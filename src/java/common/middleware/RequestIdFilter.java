@@ -15,32 +15,22 @@ import java.util.UUID;
 @WebFilter(urlPatterns = "/*", filterName = "RequestIdFilter")
 public class RequestIdFilter implements Filter {
     public static final String REQUEST_ID_KEY = "X-Request-Id";
-    
-    /**
-     *
-     * @param request
-     * @param response
-     * @param filterChain
-     * @throws IOException
-     * @throws ServletException
-     */
+    public static final String REQUEST_ID_ATTRIBUTE = "requestId";
+
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
-        
+
         String requestId = httpRequest.getHeader(REQUEST_ID_KEY);
-        
-        if(requestId == null) {
+        if (requestId == null || requestId.isBlank()) {
             requestId = UUID.randomUUID().toString();
         }
-        
-        // set in request
+
         httpRequest.setAttribute(REQUEST_ID_KEY, requestId);
-                
-        // set in response header to client
+        httpRequest.setAttribute(REQUEST_ID_ATTRIBUTE, requestId);
         httpResponse.setHeader(REQUEST_ID_KEY, requestId);
-        
+
         filterChain.doFilter(request, response);
     }
 }

@@ -1,5 +1,6 @@
 package common.exceptionFilter;
 
+import common.middleware.RequestIdFilter;
 import common.type.ApiError;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -30,8 +31,7 @@ public class ExceptionFilter implements Filter {
             int status = 500;
             String message = (e.getMessage() != null) ? e.getMessage() : "Internal server error";
 
-            // lấy requestId (giống NestJS)
-            String requestId = (String) request.getAttribute("requestId");
+            String requestId = (String) request.getAttribute(RequestIdFilter.REQUEST_ID_ATTRIBUTE);
 
             ApiError error = new ApiError(
                     false,
@@ -43,6 +43,7 @@ public class ExceptionFilter implements Filter {
                     requestId
             );
             ObjectMapper mapper = new ObjectMapper();
+            httpResponse.setStatus(status);
             httpResponse.getWriter().print(
                     mapper.writeValueAsString(error)
             );

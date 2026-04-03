@@ -32,6 +32,17 @@ public class TransformFilter implements Filter {
         chain.doFilter(request, (ServletResponse) responseWrapper);
 
         String originalBody = responseWrapper.getContent();
+        int statusCode = httpResponse.getStatus() == 0 ? 200 : httpResponse.getStatus();
+
+        if (statusCode >= 400) {
+            httpResponse.setContentType("application/json");
+            httpResponse.setCharacterEncoding("UTF-8");
+            if (originalBody != null && !originalBody.isBlank()) {
+                httpResponse.getWriter().write(originalBody);
+            }
+            httpResponse.getWriter().flush();
+            return;
+        }
 
         if (originalBody == null || originalBody.trim().isEmpty()) {
             originalBody = "null";
@@ -46,7 +57,7 @@ public class TransformFilter implements Filter {
 
         ApiResponse<Object> apiResponse = new ApiResponse<>(
                 true,
-                httpResponse.getStatus() == 0 ? 200 : httpResponse.getStatus(),
+                statusCode,
                 data,
                 "Request successful",
                 Instant.now().toString()
