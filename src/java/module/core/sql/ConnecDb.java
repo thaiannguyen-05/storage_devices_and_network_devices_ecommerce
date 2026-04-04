@@ -7,6 +7,8 @@ import module.core.config.ConfigService;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import module.core.coreInterface.CoreInterface;
+import module.core.coreInterface.RetryDto;
 /**
  *
  * @author An
@@ -22,6 +24,18 @@ public class ConnecDb {
         String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName
                 + "?useSSL=false&serverTimezone=UTC";
 
-        return DriverManager.getConnection(url, user, password);
+        RetryDto retryDto = new RetryDto();
+        try {
+            return CoreInterface.retryInterface(
+                    () -> DriverManager.getConnection(url, user, password),
+                    retryDto
+            );
+        } catch (Exception e) {
+            if (e instanceof SQLException sqlException) {
+                throw sqlException;
+            }
+            throw new SQLException("Failed to connect to database after retries", e);
+        }
     }
 }
+
