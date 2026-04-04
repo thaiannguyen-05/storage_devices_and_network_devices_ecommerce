@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package module.user;
+package module.core.auth;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -16,8 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author An
  */
-@WebServlet(name = "user", urlPatterns = {"/user"})
-public class userController extends HttpServlet {
+@WebServlet(name = "auth", urlPatterns = {"/auth"})
+public class AuthController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -36,10 +36,10 @@ public class userController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet userController</title>");
+            out.println("<title>Servlet AuthController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet userController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet AuthController at" + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }

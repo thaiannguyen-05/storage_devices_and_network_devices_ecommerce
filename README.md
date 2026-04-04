@@ -46,25 +46,25 @@ storage_devices_and_network_devices_ecommerce/
 │       │   │   ├── ApiError.java
 │       │   │   └── ApiResponse.java
 │       │   ├── guard/
-│       │   │   └── authGuard.java
+│       │   │   └── AuthGuard.java
 │       │   └── logger/
-│       │       └── loggerService.java
+│       │       └── LoggerService.java
 │       └── module/
 │           ├── core/auth/
-│           │   ├── authController.java
-│           │   └── authService.java
+│           │   ├── AuthController.java
+│           │   └── AuthService.java
 │           ├── user/
-│           │   ├── userController.java
-│           │   └── userService.java
+│           │   ├── UserController.java
+│           │   └── UserService.java
 │           ├── product/
-│           │   ├── productController.java
-│           │   └── productService.java
+│           │   ├── ProductController.java
+│           │   └── ProductService.java
 │           ├── order/
-│           │   ├── orderController.java
-│           │   └── orderService.java
+│           │   ├── OrderController.java
+│           │   └── OrderService.java
 │           └── payment/
-│               ├── paymentController.java
-│               └── paymentService.java
+│               ├── PaymentController.java
+│               └── PaymentService.java
 └── web/
     └── WEB-INF/
         └── glassfish-web.xml
@@ -90,7 +90,7 @@ Chứa các thành phần dùng chung toàn ứng dụng (cross-cutting concerns
 - `type/ApiError.java`, `type/ApiResponse.java`  
   DTO chuẩn cho response lỗi/thành công.
 
-- `guard/authGuard.java`, `logger/loggerService.java`  
+- `guard/AuthGuard.java`, `logger/LoggerService.java`  
   Hiện đang là placeholder (chưa có logic triển khai).
 
 ### `src/java/module/`

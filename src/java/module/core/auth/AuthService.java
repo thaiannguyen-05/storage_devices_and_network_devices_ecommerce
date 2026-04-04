@@ -1,5 +1,5 @@
 package module.core.auth;
 
-public class authService {
+public class AuthService {
 
 }
