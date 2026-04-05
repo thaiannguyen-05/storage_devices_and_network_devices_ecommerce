@@ -1,25 +1,12 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "OutBox")
 public class OutBoxEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "payload")
     private String payload;
-
-    @Column(name = "status")
     private String status;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt")
     private LocalDateTime updatedAt;
 
     public OutBoxEntity() {

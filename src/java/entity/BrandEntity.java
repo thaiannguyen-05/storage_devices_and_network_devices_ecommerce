@@ -1,31 +1,14 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "Brand")
 public class BrandEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "name")
     private String name;
-
-    @Column(name = "userId")
     private String userId;
-
-    @Column(name = "description")
     private String description;
-
-    @Column(name = "status")
     private String status;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt")
     private LocalDateTime updatedAt;
 
     public BrandEntity() {

@@ -1,5 +1,15 @@
 package module.core.user;
 
-public class UserService {
+import module.core.sql.repository.UserRepository;
 
+public class UserService {
+    private final UserRepository userRepository;
+
+    public UserService() {
+        this.userRepository = new UserRepository();
+    }
+
+    public UserRepository getUserRepository() {
+        return userRepository;
+    }
 }

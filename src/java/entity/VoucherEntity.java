@@ -1,29 +1,14 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "Voucher")
 public class VoucherEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "percent")
     private Double percent;
-
-    @Column(name = "userId")
     private String userId;
-
-    @Column(name = "expTime")
     private LocalDate expTime;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
-
-    @Column(name = "quantity")
     private Integer quantity;
 
     public VoucherEntity() {

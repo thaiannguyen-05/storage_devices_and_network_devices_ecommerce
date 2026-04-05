@@ -1,38 +1,17 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "ProductVariant")
 public class ProductVariantEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "productId")
     private String productId;
-
-    @Column(name = "price")
     private BigDecimal price;
-
-    @Column(name = "imageUrl")
     private String imageUrl;
-
-    @Column(name = "status")
     private String status;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt")
     private LocalDateTime updatedAt;
-
-    @Column(name = "sku")
     private String sku;
-
-    @Column(name = "quantity")
     private Integer quantity;
 
     public ProductVariantEntity() {

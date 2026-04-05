@@ -1,139 +1,104 @@
-# Storage Devices and Network Devices Ecommerce
+# Ecommerce (Java Servlet)
 
-Tài liệu này mô tả **cấu trúc dự án** dựa trên source code hiện tại.
+Backend web application cho hệ thống Ecommerce, build bằng **Ant/NetBeans**, chạy trên **Jakarta EE server** (GlassFish).
 
-## 1) Tổng quan kiến trúc
+## 1) Tổng quan
 
-Dự án là một Jakarta Servlet Web Application (Java 17), build bằng Ant/NetBeans, đóng gói WAR để deploy lên GlassFish.
+- Ngôn ngữ: **Java 17**
+- Kiến trúc hiện tại: Servlet + Service + Repository (đang ở mức khung)
+- Build tool: **Ant** (`build.xml`)
+- Output artifact: `dist/Ecommerce.war`
+- Kết nối DB: MySQL + **HikariCP** connection pool
 
-- Kiểu project: `org.netbeans.modules.web.project` (NetBeans web project)
-- Build script chính: `build.xml`
-- Cấu hình project: `nbproject/`
-- Mã nguồn Java: `src/java/`
-- Tài nguyên web: `web/`
-- Thư viện ngoài (Jackson): `lib/`
+## 2) Quick Start
 
-## 2) Cây thư mục chính
+### Yêu cầu
 
-```text
-storage_devices_and_network_devices_ecommerce/
-├── build.xml
-├── lib/
-│   ├── jackson-annotations-2.17.0.jar
-│   ├── jackson-core-2.17.0.jar
-│   ├── jackson-databind-2.17.0.jar
-│   └── ...
-├── nbproject/
-│   ├── project.xml
-│   ├── project.properties
-│   ├── build-impl.xml
-│   ├── ant-deploy.xml
-│   └── genfiles.properties
-├── src/
-│   ├── conf/
-│   │   └── MANIFEST.MF
-│   └── java/
-│       ├── common/
-│       │   ├── exceptionFilter/
-│       │   │   └── ExceptionFilter.java
-│       │   ├── interceptor/
-│       │   │   └── TransformFilter.java
-│       │   ├── middleware/
-│       │   │   └── RequestIdFilter.java
-│       │   ├── pipe/
-│       │   │   └── pipeService.java
-│       │   ├── type/
-│       │   │   ├── ApiError.java
-│       │   │   └── ApiResponse.java
-│       │   ├── guard/
-│       │   │   └── AuthGuard.java
-│       │   └── logger/
-│       │       └── LoggerService.java
-│       └── module/
-│           ├── core/auth/
-│           │   ├── AuthController.java
-│           │   └── AuthService.java
-│           ├── user/
-│           │   ├── UserController.java
-│           │   └── UserService.java
-│           ├── product/
-│           │   ├── ProductController.java
-│           │   └── ProductService.java
-│           ├── order/
-│           │   ├── OrderController.java
-│           │   └── OrderService.java
-│           └── payment/
-│               ├── PaymentController.java
-│               └── PaymentService.java
-└── web/
-    └── WEB-INF/
-        └── glassfish-web.xml
+- JDK 17
+- Ant
+- MySQL
+- (Khuyến nghị) NetBeans + GlassFish để deploy WAR nhanh
+
+### Cấu hình môi trường
+
+Tạo file `.env` ở root project:
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=ecommerce
+DB_USER=root
+DB_PASSWORD=your_password
 ```
 
-## 3) Vai trò từng khối
+> `DB_PORT` mặc định là `3306` nếu thiếu hoặc sai format.
 
-### `src/java/common/`
-Chứa các thành phần dùng chung toàn ứng dụng (cross-cutting concerns):
+### Build
 
-- `middleware/RequestIdFilter.java`  
-  Gắn `X-Request-Id` cho request/response, tạo mới nếu client chưa gửi.
+```bash
+ant -f build.xml clean
+ant -f build.xml dist
+```
 
-- `exceptionFilter/ExceptionFilter.java`  
-  Bắt exception toàn cục và trả về chuẩn lỗi `ApiError` dạng JSON.
+Artifact sau khi build:
 
-- `interceptor/TransformFilter.java`  
-  Chuẩn hoá response thành `ApiResponse<T>` cho các response thành công.
+```text
+dist/Ecommerce.war
+```
 
-- `pipe/pipeService.java`  
-  Wrapper request để trim khoảng trắng của input params.
+## 3) Endpoint hiện có (skeleton)
 
-- `type/ApiError.java`, `type/ApiResponse.java`  
-  DTO chuẩn cho response lỗi/thành công.
+| Endpoint | Controller |
+|---|---|
+| `/auth` | `src/java/module/core/auth/AuthController.java` |
+| `/user` | `src/java/module/core/user/UserController.java` |
+| `/product` | `src/java/module/bussiness/product/ProductController.java` |
+| `/order` | `src/java/module/bussiness/order/OrderController.java` |
+| `/payment` | `src/java/module/bussiness/payment/PaymentController.java` |
 
-- `guard/AuthGuard.java`, `logger/LoggerService.java`  
-  Hiện đang là placeholder (chưa có logic triển khai).
+Hiện tại các controller chủ yếu trả HTML mẫu (skeleton), chưa phải API nghiệp vụ hoàn chỉnh.
 
-### `src/java/module/`
-Chứa các domain/module nghiệp vụ theo nhóm chức năng:
+## 4) Cấu trúc mã nguồn chính
 
-- `core/auth/`
-- `user/`
-- `product/`
-- `order/`
-- `payment/`
+```text
+src/java/
+├── common/                         # filter, middleware, response wrapper, logger
+├── entity/                         # POJO entity (không dùng ORM annotation)
+└── module/
+    ├── core/
+    │   ├── auth/
+    │   ├── user/
+    │   ├── config/                 # đọc biến môi trường (.env)
+    │   └── sql/
+    │       ├── ConnecDb.java       # HikariCP pool
+    │       └── repository/         # repository classes (đang là khung)
+    └── bussiness/
+        ├── product/
+        ├── order/
+        └── payment/
+```
 
-Mỗi module đang theo cấu trúc cơ bản:
+## 5) Data layer hiện tại
 
-- `*Controller.java`: Servlet endpoint (ví dụ `/auth`, `/user`, `/product`, ...).
-- `*Service.java`: lớp service nghiệp vụ (hiện đa số còn trống).
+- `ConnecDb` khởi tạo **HikariDataSource** dùng pool để cấp phát connection.
+- Repository nằm trong `src/java/module/core/sql/repository/`.
+- Nhiều repository/service hiện đang để khung để hoàn thiện dần logic CRUD/business.
 
-### `web/`
-Chứa cấu hình web app runtime:
+## 6) Thư viện chính
 
-- `WEB-INF/glassfish-web.xml`: cấu hình dành cho GlassFish.
+- Jackson (`jackson-core`, `jackson-databind`, `jackson-annotations`)
+- MySQL Connector/J
+- `dotenv-java`
+- HikariCP
 
-### `nbproject/`
-Metadata/cấu hình NetBeans + Ant:
+## 7) Troubleshooting nhanh
 
-- `project.xml`: định nghĩa loại project web, libraries.
-- `project.properties`: Java version, classpath, artifact WAR, server type.
-- `build-impl.xml`, `ant-deploy.xml`: logic build/deploy do NetBeans sinh.
+- `ant: command not found`  
+  => Cài Ant và thêm vào `PATH`.
 
-## 4) Luồng xử lý request (mức khái quát)
+- Lỗi kết nối DB khi chạy  
+  => Kiểm tra `.env` và trạng thái MySQL (`DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD`).
 
-Ở mức tổng quát, request đi qua chuỗi filter trong `common/`, sau đó vào các `*Controller` trong `module/`. Response được chuẩn hoá theo `ApiResponse` (thành công) hoặc `ApiError` (lỗi).
+- WAR build thành công nhưng endpoint không chạy  
+  => Kiểm tra context path sau deploy và mapping servlet (`@WebServlet`).
 
-> Lưu ý: thứ tự filter thực tế phụ thuộc container (annotation scanning / registration). Nếu cần kiểm soát chặt thứ tự lifecycle/filter-chain, nên cấu hình explicit order tại tầng đăng ký filter.
-
-## 5) Thư viện chính
-
-- Jackson 2.17.0 (`jackson-core`, `jackson-databind`, `jackson-annotations`) để xử lý JSON.
-
-## 6) Trạng thái hiện tại (theo code hiện có)
-
-- Các controller đang ở mức skeleton/demo response HTML.
-- Nhiều service chưa có nghiệp vụ.
-- Khối `common` là phần đã có logic rõ nhất cho chuẩn hoá request/response và xử lý lỗi.
-
----
-Nếu bạn muốn, mình có thể viết thêm phần README thứ 2: **"Conventions & Development Guide"** (naming, cách thêm module mới, cách chuẩn hoá response/error, checklist khi thêm filter).

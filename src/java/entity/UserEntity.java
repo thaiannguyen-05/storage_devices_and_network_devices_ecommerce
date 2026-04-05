@@ -1,35 +1,16 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "User")
 public class UserEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "name")
     private String name;
-
-    @Column(name = "dateOfBirth")
     private LocalDate dateOfBirth;
-
-    @Column(name = "hashPassword")
     private String hashPassword;
-
-    @Column(name = "status")
     private String status;
-
-    @Column(name = "email")
     private String email;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt")
     private LocalDateTime updatedAt;
 
     public UserEntity() {

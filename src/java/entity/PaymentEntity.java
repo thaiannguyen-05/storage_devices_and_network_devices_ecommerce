@@ -1,53 +1,22 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "Payment")
 public class PaymentEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "orderId")
     private String orderId;
-
-    @Column(name = "userId")
     private String userId;
-
-    @Column(name = "amount")
     private BigDecimal amount;
-
-    @Column(name = "access_key")
     private String accessKey;
-
-    @Column(name = "partner_code")
     private String partnerCode;
-
-    @Column(name = "redirect_url")
     private String redirectUrl;
-
-    @Column(name = "ipn_url")
     private String ipnUrl;
-
-    @Column(name = "extra_data")
     private String extraData;
-
-    @Column(name = "request_type")
     private String requestType;
-
-    @Column(name = "signature")
     private String signature;
-
-    @Column(name = "status")
     private String status;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt")
     private LocalDateTime updatedAt;
 
     public PaymentEntity() {

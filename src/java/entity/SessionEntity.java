@@ -1,25 +1,12 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "Session")
 public class SessionEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "hashRefreshToken")
     private String hashRefreshToken;
-
-    @Column(name = "userId")
     private String userId;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt")
     private LocalDateTime updatedAt;
 
     public SessionEntity() {

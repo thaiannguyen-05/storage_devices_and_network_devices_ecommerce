@@ -1,22 +1,11 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "SavedProduct")
 public class SavedProductEntity {
-    @Id
-    @Column(name = "id")
     private String id;
-
-    @Column(name = "productId")
     private String productId;
-
-    @Column(name = "quantity")
     private Integer quantity;
-
-    @Column(name = "createdAt")
     private LocalDateTime createdAt;
 
     public SavedProductEntity() {
