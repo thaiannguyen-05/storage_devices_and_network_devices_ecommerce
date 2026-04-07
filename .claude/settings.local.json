@@ -3,7 +3,9 @@
     "allow": [
       "Bash(git:*)",
       "Bash(ant clean:*)",
-      "Bash(ant:*)"
+      "Bash(ant:*)",
+      "Bash(mkdir -p \"C:/workspace/work/Th_WEB/26_02/BTL/Ecommerce/src/java/module/bussiness/product/dto\")",
+      "Bash(mkdir -p \"C:/workspace/work/Th_WEB/26_02/BTL/Ecommerce/src/java/module/bussiness/order/dto\")"
     ]
   }
 }

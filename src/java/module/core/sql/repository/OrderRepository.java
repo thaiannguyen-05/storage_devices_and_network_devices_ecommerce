@@ -1,4 +1,7 @@
 package module.core.sql.repository;
 
-public class OrderRepository {
+import module.core.sql.interfaces.IOrderRepository;
+
+public class OrderRepository implements IOrderRepository {
+    
 }
