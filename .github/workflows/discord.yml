@@ -1,14 +1,36 @@
 name: Notify Discord
 
 on:
-  push:
+  pull_request:
+    types: [closed]
 
 jobs:
   notify:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Send message to Discord
+      - name: Send merged PR info to Discord
         run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+          MERGE_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          MERGED_BY="${{ github.event.pull_request.merged_by.login }}"
+          COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.merge_commit_sha }}"
+
+          MESSAGE="✅ PR #${PR_NUMBER} đã được merge\n"
+          MESSAGE+="• Tiêu đề: ${PR_TITLE}\n"
+          MESSAGE+="• Từ nhánh: ${SOURCE_BRANCH}\n"
+          MESSAGE+="• Vào nhánh: ${TARGET_BRANCH}\n"
+          MESSAGE+="• Tác giả PR: ${AUTHOR}\n"
+          MESSAGE+="• Merged bởi: ${MERGED_BY}\n"
+          MESSAGE+="• PR: ${PR_URL}\n"
+          MESSAGE+="• Merge commit: ${MERGE_COMMIT}\n"
+          MESSAGE+="• Link commit: ${COMMIT_URL}"
+
           curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
-          -H "Content-Type: application/json" \
-          -d "{\"content\":\"🚀 Có commit mới được push lên repo\"}"
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg content "$MESSAGE" '{content: $content}')"
