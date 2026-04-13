@@ -1,35 +1,117 @@
 name: Notify Discord
 
 on:
+  push:
   pull_request:
-    types: [closed]
+    types: [opened, edited, reopened, synchronize, ready_for_review, converted_to_draft, review_requested, review_request_removed, closed]
 
 jobs:
   notify:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Send merged PR info to Discord
+      - name: Send detailed event info to Discord
+        env:
+          REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_URL="${{ github.event.pull_request.html_url }}"
-          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
-          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
-          MERGE_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
-          AUTHOR="${{ github.event.pull_request.user.login }}"
-          MERGED_BY="${{ github.event.pull_request.merged_by.login }}"
-          COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.merge_commit_sha }}"
+          if [ "$EVENT_NAME" = "push" ]; then
+            BRANCH="${GITHUB_REF#refs/heads/}"
+            PUSHER="${{ github.actor }}"
+            COMPARE_URL="${{ github.event.compare }}"
+            COMMIT_COUNT=$(jq '.commits | length' "$GITHUB_EVENT_PATH")
 
-          MESSAGE="✅ PR #${PR_NUMBER} đã được merge\n"
-          MESSAGE+="• Tiêu đề: ${PR_TITLE}\n"
-          MESSAGE+="• Từ nhánh: ${SOURCE_BRANCH}\n"
-          MESSAGE+="• Vào nhánh: ${TARGET_BRANCH}\n"
-          MESSAGE+="• Tác giả PR: ${AUTHOR}\n"
-          MESSAGE+="• Merged bởi: ${MERGED_BY}\n"
-          MESSAGE+="• PR: ${PR_URL}\n"
-          MESSAGE+="• Merge commit: ${MERGE_COMMIT}\n"
-          MESSAGE+="• Link commit: ${COMMIT_URL}"
+            if [ "$COMMIT_COUNT" -gt 0 ]; then
+              COMMITS=$(jq -r --arg repo "$REPO" '.commits[:8][] | "• [`\(.id[0:7])`](https://github.com/\($repo)/commit/\(.id)) \((.message | split("\n")[0])) — \(.author.name)"' "$GITHUB_EVENT_PATH")
+            else
+              COMMITS="• Không có commit mới trong payload."
+            fi
+
+            EXTRA_COUNT=0
+            if [ "$COMMIT_COUNT" -gt 8 ]; then
+              EXTRA_COUNT=$((COMMIT_COUNT - 8))
+            fi
+
+            MESSAGE="Push mới vào ${REPO}\n"
+            MESSAGE+="• Branch: ${BRANCH}\n"
+            MESSAGE+="• Pusher: ${PUSHER}\n"
+            MESSAGE+="• Số commit: ${COMMIT_COUNT}\n"
+            MESSAGE+="• Compare: ${COMPARE_URL}\n"
+            MESSAGE+="\nCommit list:\n${COMMITS}"
+
+            if [ "$EXTRA_COUNT" -gt 0 ]; then
+              MESSAGE+="\n• ... và ${EXTRA_COUNT} commit khác"
+            fi
+          else
+            ACTION="${{ github.event.action }}"
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            PR_URL="${{ github.event.pull_request.html_url }}"
+            SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+            TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+            AUTHOR="${{ github.event.pull_request.user.login }}"
+            IS_DRAFT="${{ github.event.pull_request.draft }}"
+            PR_COMMITS="${{ github.event.pull_request.commits }}"
+            CHANGED_FILES="${{ github.event.pull_request.changed_files }}"
+            ADDITIONS="${{ github.event.pull_request.additions }}"
+            DELETIONS="${{ github.event.pull_request.deletions }}"
+
+            case "$ACTION" in
+              opened)
+                HEADER="PR mới được tạo"
+                ;;
+              edited)
+                HEADER="PR được chỉnh sửa"
+                ;;
+              reopened)
+                HEADER="PR được mở lại"
+                ;;
+              synchronize)
+                HEADER="PR có commit mới (synchronize)"
+                ;;
+              ready_for_review)
+                HEADER="PR đã sẵn sàng để review"
+                ;;
+              converted_to_draft)
+                HEADER="PR chuyển về draft"
+                ;;
+              review_requested)
+                HEADER="PR được yêu cầu review"
+                ;;
+              review_request_removed)
+                HEADER="PR bị gỡ yêu cầu review"
+                ;;
+              closed)
+                if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+                  HEADER="PR đã được merge"
+                  MERGED_BY="${{ github.event.pull_request.merged_by.login }}"
+                  MERGE_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
+                  COMMIT_URL="${{ github.server_url }}/${REPO}/commit/${MERGE_COMMIT}"
+                else
+                  HEADER="PR đã đóng (không merge)"
+                fi
+                ;;
+              *)
+                HEADER="Cập nhật PR"
+                ;;
+            esac
+
+            MESSAGE="${HEADER}\n"
+            MESSAGE+="• PR #${PR_NUMBER}: ${PR_TITLE}\n"
+            MESSAGE+="• Từ nhánh: ${SOURCE_BRANCH}\n"
+            MESSAGE+="• Vào nhánh: ${TARGET_BRANCH}\n"
+            MESSAGE+="• Tác giả PR: ${AUTHOR}\n"
+            MESSAGE+="• Action: ${ACTION}\n"
+            MESSAGE+="• Draft: ${IS_DRAFT}\n"
+            MESSAGE+="• Commits: ${PR_COMMITS}\n"
+            MESSAGE+="• Files changed: ${CHANGED_FILES} (+${ADDITIONS}/-${DELETIONS})\n"
+            MESSAGE+="• PR link: ${PR_URL}"
+
+            if [ "$ACTION" = "closed" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+              MESSAGE+="\n• Merge commit: ${MERGE_COMMIT}"
+              MESSAGE+="\n• Merged bởi: ${MERGED_BY}"
+              MESSAGE+="\n• Commit link: ${COMMIT_URL}"
+            fi
+          fi
 
           curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
             -H "Content-Type: application/json" \
