@@ -35,7 +35,7 @@ Sprint 1 tập trung vào **quy trình chuẩn** khi thêm CRUD:
 - Service chỉ điều phối logic nghiệp vụ cơ bản
 - Input service dùng DTO
 - Service gọi repository và trả kết quả entity/list/boolean
-
+      
 ---
 
 ## 3) Vị trí file theo module
