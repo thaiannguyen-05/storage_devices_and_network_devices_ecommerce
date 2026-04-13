@@ -31,15 +31,15 @@ jobs:
               EXTRA_COUNT=$((COMMIT_COUNT - 8))
             fi
 
-            MESSAGE="Push mới vào ${REPO}\n"
-            MESSAGE+="• Branch: ${BRANCH}\n"
-            MESSAGE+="• Pusher: ${PUSHER}\n"
-            MESSAGE+="• Số commit: ${COMMIT_COUNT}\n"
-            MESSAGE+="• Compare: ${COMPARE_URL}\n"
-            MESSAGE+="\nCommit list:\n${COMMITS}"
+            MESSAGE="📦 Push mới vào ${REPO}\n"
+            MESSAGE+="• 🌿 Branch: ${BRANCH}\n"
+            MESSAGE+="• 👤 Pusher: ${PUSHER}\n"
+            MESSAGE+="• 🔢 Số commit: ${COMMIT_COUNT}\n"
+            MESSAGE+="• 🔍 Compare: ${COMPARE_URL}\n"
+            MESSAGE+="\n🧾 Commit list:\n${COMMITS}"
 
             if [ "$EXTRA_COUNT" -gt 0 ]; then
-              MESSAGE+="\n• ... và ${EXTRA_COUNT} commit khác"
+              MESSAGE+="\n• ➕ ... và ${EXTRA_COUNT} commit khác"
             fi
           else
             ACTION="${{ github.event.action }}"
@@ -57,59 +57,59 @@ jobs:
 
             case "$ACTION" in
               opened)
-                HEADER="PR mới được tạo"
+                HEADER="🆕 PR mới được tạo"
                 ;;
               edited)
-                HEADER="PR được chỉnh sửa"
+                HEADER="✏️ PR được chỉnh sửa"
                 ;;
               reopened)
-                HEADER="PR được mở lại"
+                HEADER="♻️ PR được mở lại"
                 ;;
               synchronize)
-                HEADER="PR có commit mới (synchronize)"
+                HEADER="🔄 PR có commit mới (synchronize)"
                 ;;
               ready_for_review)
-                HEADER="PR đã sẵn sàng để review"
+                HEADER="👀 PR đã sẵn sàng để review"
                 ;;
               converted_to_draft)
-                HEADER="PR chuyển về draft"
+                HEADER="📝 PR chuyển về draft"
                 ;;
               review_requested)
-                HEADER="PR được yêu cầu review"
+                HEADER="🙋 PR được yêu cầu review"
                 ;;
               review_request_removed)
-                HEADER="PR bị gỡ yêu cầu review"
+                HEADER="➖ PR bị gỡ yêu cầu review"
                 ;;
               closed)
                 if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
-                  HEADER="PR đã được merge"
+                  HEADER="✅ PR đã được merge"
                   MERGED_BY="${{ github.event.pull_request.merged_by.login }}"
                   MERGE_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
                   COMMIT_URL="${{ github.server_url }}/${REPO}/commit/${MERGE_COMMIT}"
                 else
-                  HEADER="PR đã đóng (không merge)"
+                  HEADER="🛑 PR đã đóng (không merge)"
                 fi
                 ;;
               *)
-                HEADER="Cập nhật PR"
+                HEADER="📣 Cập nhật PR"
                 ;;
             esac
 
             MESSAGE="${HEADER}\n"
-            MESSAGE+="• PR #${PR_NUMBER}: ${PR_TITLE}\n"
-            MESSAGE+="• Từ nhánh: ${SOURCE_BRANCH}\n"
-            MESSAGE+="• Vào nhánh: ${TARGET_BRANCH}\n"
-            MESSAGE+="• Tác giả PR: ${AUTHOR}\n"
-            MESSAGE+="• Action: ${ACTION}\n"
-            MESSAGE+="• Draft: ${IS_DRAFT}\n"
-            MESSAGE+="• Commits: ${PR_COMMITS}\n"
-            MESSAGE+="• Files changed: ${CHANGED_FILES} (+${ADDITIONS}/-${DELETIONS})\n"
-            MESSAGE+="• PR link: ${PR_URL}"
+            MESSAGE+="• 🔢 PR #${PR_NUMBER}: ${PR_TITLE}\n"
+            MESSAGE+="• 🌿 Từ nhánh: ${SOURCE_BRANCH}\n"
+            MESSAGE+="• 🎯 Vào nhánh: ${TARGET_BRANCH}\n"
+            MESSAGE+="• 👤 Tác giả PR: ${AUTHOR}\n"
+            MESSAGE+="• ⚙️ Action: ${ACTION}\n"
+            MESSAGE+="• 🧪 Draft: ${IS_DRAFT}\n"
+            MESSAGE+="• 🔢 Commits: ${PR_COMMITS}\n"
+            MESSAGE+="• 📁 Files changed: ${CHANGED_FILES} (+${ADDITIONS}/-${DELETIONS})\n"
+            MESSAGE+="• 🔗 PR link: ${PR_URL}"
 
             if [ "$ACTION" = "closed" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
-              MESSAGE+="\n• Merge commit: ${MERGE_COMMIT}"
-              MESSAGE+="\n• Merged bởi: ${MERGED_BY}"
-              MESSAGE+="\n• Commit link: ${COMMIT_URL}"
+              MESSAGE+="\n• 🧬 Merge commit: ${MERGE_COMMIT}"
+              MESSAGE+="\n• 🤝 Merged bởi: ${MERGED_BY}"
+              MESSAGE+="\n• 🔗 Commit link: ${COMMIT_URL}"
             fi
           fi
 
