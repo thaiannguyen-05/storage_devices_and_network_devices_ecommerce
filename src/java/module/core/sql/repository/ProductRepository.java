@@ -53,19 +53,18 @@ public class ProductRepository {
             }
         }
     }
-    public boolean create(String id, CreateProduct dto) throws SQLException{
-        String sql = "INSERT INTO product (id, name, description, brandId, status, userId,createdAt,updatedAt,category)"+
-        "VALUES(?,?,?,?,?,?,CURDATE(),CURDATE(),?)";
+    public boolean create(CreateProduct dto) throws SQLException{
+        String sql = "INSERT INTO product (name, description, brandId, status, userId,createdAt,updatedAt,category)"+
+        "VALUES(?,?,?,?,?,CURDATE(),CURDATE(),?)";
 
         try(Connection con =  ConnecDb.getConnection();
         PreparedStatement ps = con.PreparedStatement(sql)){
-            ps.setString(1,id);
-            ps.setString(2,dto.getName());
-            ps.setString(3,dto.getDescription());   
-            ps.setString(4,dto.getBrandId());
-            ps.setString(5,dto.getStatus());
-            ps.setString(6,dto.getUserId());
-            ps.setString(7,dto.getCategory());
+            ps.setString(1,dto.getName());
+            ps.setString(2,dto.getDescription());   
+            ps.setString(3,dto.getBrandId());
+            ps.setString(4,dto.getStatus());
+            ps.setString(5,dto.getUserId());
+            ps.setString(6,dto.getCategory());
 
             return ps.executeUpdate() > 0;
         }
