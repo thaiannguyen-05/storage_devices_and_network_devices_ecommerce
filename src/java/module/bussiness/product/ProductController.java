@@ -57,7 +57,31 @@ public class ProductController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        response.setContentType("text/plain;charset = UTF-8");
+        
+        try(PrintWriter out = response.getWriter()){
+            String id  = request.getParameter("id");
+            if(id != null && !id.isBlank()){
+                ProductEntity item = ProductService.getProductById(id);
+                if(item == null){
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.println("Product not found");
+                    return;
+                }
+                out.println("Product: " + item.getUserId() + " | " + item.getName());
+                return;
+            }
+            
+            List<ProductEntity> products = ProductService.getAllProducts();
+            out.println("Product count: " + products.size());
+            for(ProductEntity p : product){
+                out.println(p.getUserId() + " | "+ p.getName());
+            }
+
+        }catch(SQLException e){
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Database error: " + e.getMessage());
+        }
     }
 
     /**
@@ -71,8 +95,77 @@ public class ProductController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        response.setContentType("text/plain;charset=UTF-8");
+
+        CreateProduct dto = new CreateProduct();
+        dto.setName(request.getParameter("name"));
+        dto.setDescription(request.getParameter("description"));
+        dto.setBrandId(request.getParameter("brandId"));
+        dto.setStatus(request.getParameter("status"));
+        dto.setUserId(request.getParameter("userId"));
+        dto.setCategory(request.getParameter("category"));
+
+        try(PrintWriter out = response.getWriter()){
+            boolean ok = ProductService.createProduct(dto);
+            if(!ok){
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println("Create product failed");
+                return;
+            }
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            out.println("Create product success");
+        }catch(SQLException e){
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Database error: " + e.getMessage());
+        }
     }
+     @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/plain;charset=UTF-8");
+
+        String id = request.getParameter("id");
+        UpdateProduct dto = new UpdateProduct();
+        dto.setName(request.getParameter("name"));
+        dto.setDescription(request.getParameter("description"));
+        dto.setBrandId(request.getParameter("brandId"));
+        dto.setStatus(request.getParameter("status"));
+        dto.setCategory(request.getParameter("category"));
+
+        try (PrintWriter out = response.getWriter()) {
+            boolean ok = productService.updateProduct(id, dto);
+            if (!ok) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println("Update product failed");
+                return;
+            }
+            out.println("Update product success");
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Database error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/plain;charset=UTF-8");
+
+        String id = request.getParameter("id");
+        try (PrintWriter out = response.getWriter()) {
+            boolean ok = productService.deleteProduct(id);
+            if (!ok) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println("Delete product failed");
+                return;
+            }
+            out.println("Delete product success");
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().println("Database error: " + e.getMessage());
+        }
+    }
+    
 
     /**
      * Returns a short description of the servlet.
