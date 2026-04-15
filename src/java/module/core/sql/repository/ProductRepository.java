@@ -3,6 +3,7 @@ import entity.ProductEntity;
 import module.bussiness.product.dto.CreateProduct;
 import module.bussiness.product.dto.UpdateProduct;
 import module.core.sql.ConnecDb;
+import module.core.sql.interfaces.IProductRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,13 +12,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProductRepository {
+public class ProductRepository implements IProductRepository {
     public List<ProductEntity> findAll() throws SQLException{
-        String sql = "SLECT id , name , description, brandId, status, userId, category FROM product ODER BY createdAt DESC";
+        String sql = "SELECT id , name , description, brandId, status, userId, category FROM product ORDER BY createdAt DESC";
         List<ProductEntity> products = new ArrayList<>();
 
         try(Connection con = ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql);
+        PreparedStatement ps = con.preparedStatement(sql);
         ResultSet rs = ps.executeQuery()){
 
             while(rs.next()){
@@ -36,8 +37,8 @@ public class ProductRepository {
     }
     public ProductEntity findById(String id) throws SQLException{
         String sql = "SELECT id, name, description, brandId, status, userId, category FROM product WHERE id = ?";
-        try(Connection con =  ConnecDb.getConnection;
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        try(Connection con =  ConnecDb.getConnection();
+        PreparedStatement ps = con.preparedStatement(sql)){
             ps.setString(1,id);
             try(ResultSet rs = ps.executeQuery()){
                 if(!rs.next()) return null;
@@ -54,11 +55,20 @@ public class ProductRepository {
         }
     }
     public boolean create(CreateProduct dto) throws SQLException{
+<<<<<<< HEAD
         String sql = "INSERT INTO product (name, description, brandId, status, userId,createdAt,updatedAt,category)"+
         "VALUES(?,?,?,?,?,CURDATE(),CURDATE(),?)";
 
         try(Connection con =  ConnecDb.getConnection();
         PreparedStatement ps = con.PreparedStatement(sql)){
+=======
+        String sql = "INSERT INTO product ( name, description, brandId, status, userId,createdAt,updatedAt,category)"+
+        "VALUES(?,?,?,?,?,CURDATE(),CURDATE(),?)";
+
+        try(Connection con =  ConnecDb.getConnection();
+        PreparedStatement ps = con.preparedStatement(sql)){
+          
+>>>>>>> f0ee289 (Thêm interface cho repo , bỏ hàm UUID để DB tự sinh id - 15/4)
             ps.setString(1,dto.getName());
             ps.setString(2,dto.getDescription());   
             ps.setString(3,dto.getBrandId());
@@ -70,10 +80,10 @@ public class ProductRepository {
         }
     }
     public boolean update(String id , UpdateProduct dto) throws SQLException{
-        String sql ="UPDATE product SET name = ? , description = ? , brandId = ? , status = ?, category = ?, updateAt = CURDATE() WHERE id = ?";
+        String sql ="UPDATE product SET name = ? , description = ? , brandId = ? , status = ?, category = ?, updatedAt = CURDATE() WHERE id = ?";
 
         try(Connection con = ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.preparedStatement(sql)){
 
             ps.setString(1,dto.getName());
             ps.setString(2,dto.getDescription());
@@ -88,7 +98,7 @@ public class ProductRepository {
     public boolean delete(String id) throws SQLException{
         String sql = "DELETE FROM product WHERE id = ? ";
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.preparedStatement(sql)){
             ps.setString(1,id);
             return ps.executeUpdate() > 0;
         }

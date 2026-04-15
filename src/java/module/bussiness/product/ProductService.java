@@ -4,10 +4,12 @@ import entity.ProductEntity;
 import module.core.sql.repository.BrandRepository;
 import module.core.sql.repository.ProductRepository;
 import module.core.sql.repository.ProductVariantRepository;
+import module.bussiness.product.dto.CreateProduct;
+import module.bussiness.product.dto.UpdateProduct;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
+
 
 public class ProductService {
     private final ProductRepository productRepository;
@@ -38,8 +40,7 @@ public class ProductService {
         return productRepository.findById(id);
     }
     public boolean createProduct(CreateProduct dto) throws SQLException{
-        String id = UUID.randomUUID().toString();
-        return productRepository.create(id, dto);
+        return productRepository.create( dto);
     }
     public boolean updateProduct(String id, UpdateProduct dto) throws SQLException{
         return productRepository.update(id, dto);
