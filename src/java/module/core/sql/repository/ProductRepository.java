@@ -38,7 +38,7 @@ public class ProductRepository implements IProductRepository {
     public ProductEntity findById(String id) throws SQLException{
         String sql = "SELECT id, name, description, brandId, status, userId, category FROM product WHERE id = ?";
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.preparedStatement(sql)){
+        PreparedStatement ps = con.PreparedStatement(sql)){
             ps.setString(1,id);
             try(ResultSet rs = ps.executeQuery()){
                 if(!rs.next()) return null;
@@ -55,20 +55,11 @@ public class ProductRepository implements IProductRepository {
         }
     }
     public boolean create(CreateProduct dto) throws SQLException{
-<<<<<<< HEAD
         String sql = "INSERT INTO product (name, description, brandId, status, userId,createdAt,updatedAt,category)"+
         "VALUES(?,?,?,?,?,CURDATE(),CURDATE(),?)";
 
         try(Connection con =  ConnecDb.getConnection();
         PreparedStatement ps = con.PreparedStatement(sql)){
-=======
-        String sql = "INSERT INTO product ( name, description, brandId, status, userId,createdAt,updatedAt,category)"+
-        "VALUES(?,?,?,?,?,CURDATE(),CURDATE(),?)";
-
-        try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.preparedStatement(sql)){
-          
->>>>>>> f0ee289 (Thêm interface cho repo , bỏ hàm UUID để DB tự sinh id - 15/4)
             ps.setString(1,dto.getName());
             ps.setString(2,dto.getDescription());   
             ps.setString(3,dto.getBrandId());
@@ -83,7 +74,7 @@ public class ProductRepository implements IProductRepository {
         String sql ="UPDATE product SET name = ? , description = ? , brandId = ? , status = ?, category = ?, updatedAt = CURDATE() WHERE id = ?";
 
         try(Connection con = ConnecDb.getConnection();
-        PreparedStatement ps = con.preparedStatement(sql)){
+        PreparedStatement ps = con.PreparedStatement(sql)){
 
             ps.setString(1,dto.getName());
             ps.setString(2,dto.getDescription());
@@ -98,7 +89,7 @@ public class ProductRepository implements IProductRepository {
     public boolean delete(String id) throws SQLException{
         String sql = "DELETE FROM product WHERE id = ? ";
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.preparedStatement(sql)){
+        PreparedStatement ps = con.PreparedStatement(sql)){
             ps.setString(1,id);
             return ps.executeUpdate() > 0;
         }

@@ -4,13 +4,18 @@
  */
 package module.bussiness.product;
 
+import entity.ProductEntity;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import module.bussiness.product.dto.CreateProduct;
+import module.bussiness.product.dto.UpdateProduct;
 
 /**
  *
@@ -18,34 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @WebServlet(name = "product", urlPatterns = {"/product"})
 public class ProductController extends HttpServlet {
+    private final ProductService productService = new ProductService();
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet ProductController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet ProductController at" + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -62,7 +41,7 @@ public class ProductController extends HttpServlet {
         try(PrintWriter out = response.getWriter()){
             String id  = request.getParameter("id");
             if(id != null && !id.isBlank()){
-                ProductEntity item = ProductService.getProductById(id);
+                ProductEntity item = productService.getProductById(id);
                 if(item == null){
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     out.println("Product not found");
@@ -72,9 +51,9 @@ public class ProductController extends HttpServlet {
                 return;
             }
             
-            List<ProductEntity> products = ProductService.getAllProducts();
+            List<ProductEntity> products = productService.getAllProducts();
             out.println("Product count: " + products.size());
-            for(ProductEntity p : product){
+            for(ProductEntity p : products){
                 out.println(p.getUserId() + " | "+ p.getName());
             }
 
@@ -106,7 +85,7 @@ public class ProductController extends HttpServlet {
         dto.setCategory(request.getParameter("category"));
 
         try(PrintWriter out = response.getWriter()){
-            boolean ok = ProductService.createProduct(dto);
+            boolean ok = productService.createProduct(dto);
             if(!ok){
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.println("Create product failed");
@@ -175,6 +154,6 @@ public class ProductController extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }
