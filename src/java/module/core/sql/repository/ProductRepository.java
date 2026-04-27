@@ -11,14 +11,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ProductRepository implements IProductRepository {
     public List<ProductEntity> findAll() throws SQLException{
-        String sql = "SELECT id , name , description, brandId, status, userId, category FROM product ORDER BY createdAt DESC";
+        String sql = "SELECT id , name , description, brandId, status, userId, category FROM `Product` ORDER BY createdAt DESC";
         List<ProductEntity> products = new ArrayList<>();
 
         try(Connection con = ConnecDb.getConnection();
-        PreparedStatement ps = con.preparedStatement(sql);
+        PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery()){
 
             while(rs.next()){
@@ -36,9 +37,9 @@ public class ProductRepository implements IProductRepository {
         return products;
     }
     public ProductEntity findById(String id) throws SQLException{
-        String sql = "SELECT id, name, description, brandId, status, userId, category FROM product WHERE id = ?";
+        String sql = "SELECT id, name, description, brandId, status, userId, category FROM `Product` WHERE id = ?";
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.prepareStatement(sql)){
             ps.setString(1,id);
             try(ResultSet rs = ps.executeQuery()){
                 if(!rs.next()) return null;
@@ -55,26 +56,28 @@ public class ProductRepository implements IProductRepository {
         }
     }
     public boolean create(CreateProduct dto) throws SQLException{
-        String sql = "INSERT INTO product (name, description, brandId, status, userId,createdAt,updatedAt,category)"+
-        "VALUES(?,?,?,?,?,CURDATE(),CURDATE(),?)";
+        String sql = "INSERT INTO `Product` (id, name, description, brandId, status, userId, createdAt, updatedAt, category) "
+                + "VALUES(?,?,?,?,?,?,NOW(),NOW(),?)";
 
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
-            ps.setString(1,dto.getName());
-            ps.setString(2,dto.getDescription());   
-            ps.setString(3,dto.getBrandId());
-            ps.setString(4,dto.getStatus());
-            ps.setString(5,dto.getUserId());
-            ps.setString(6,dto.getCategory());
+        PreparedStatement ps = con.prepareStatement(sql)){
+            String id = UUID.randomUUID().toString();
+            ps.setString(1, id);
+            ps.setString(2,dto.getName());
+            ps.setString(3,dto.getDescription());
+            ps.setString(4,dto.getBrandId());
+            ps.setString(5,dto.getStatus());
+            ps.setString(6,dto.getUserId());
+            ps.setString(7,dto.getCategory());
 
             return ps.executeUpdate() > 0;
         }
     }
     public boolean update(String id , UpdateProduct dto) throws SQLException{
-        String sql ="UPDATE product SET name = ? , description = ? , brandId = ? , status = ?, category = ?, updatedAt = CURDATE() WHERE id = ?";
+        String sql ="UPDATE `Product` SET name = ? , description = ? , brandId = ? , status = ?, category = ?, updatedAt = NOW() WHERE id = ?";
 
         try(Connection con = ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.prepareStatement(sql)){
 
             ps.setString(1,dto.getName());
             ps.setString(2,dto.getDescription());
@@ -87,9 +90,9 @@ public class ProductRepository implements IProductRepository {
         }
     }
     public boolean delete(String id) throws SQLException{
-        String sql = "DELETE FROM product WHERE id = ? ";
+        String sql = "DELETE FROM `Product` WHERE id = ? ";
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.prepareStatement(sql)){
             ps.setString(1,id);
             return ps.executeUpdate() > 0;
         }

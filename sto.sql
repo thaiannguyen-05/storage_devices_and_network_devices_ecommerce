@@ -1,165 +1,161 @@
-CREATE TABLE `User`(
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS `Payment`;
+DROP TABLE IF EXISTS `Session`;
+DROP TABLE IF EXISTS `SavedProduct`;
+DROP TABLE IF EXISTS `OrderCart`;
+DROP TABLE IF EXISTS `Voucher`;
+DROP TABLE IF EXISTS `Order`;
+DROP TABLE IF EXISTS `ProductVariant`;
+DROP TABLE IF EXISTS `Product`;
+DROP TABLE IF EXISTS `Brand`;
+DROP TABLE IF EXISTS `OutBox`;
+DROP TABLE IF EXISTS `User`;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE `User` (
     `id` CHAR(36) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `dateOfBirth` DATE NOT NULL,
     `hashPassword` VARCHAR(255) NOT NULL,
-    `status` ENUM('PENDING','ACTIVE','INACTIVE','BANNED') NOT NULL,
-    `role` ENUM('ADMIN','USER') NOT NULL,
+    `status` ENUM('PENDING', 'ACTIVE', 'INACTIVE', 'BANNED') NOT NULL DEFAULT 'PENDING',
+    `role` ENUM('ADMIN', 'USER') NOT NULL DEFAULT 'USER',
     `email` VARCHAR(255) NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `updatedAt` DATE NOT NULL,
-    PRIMARY KEY(`id`)
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `user_email_unique` (`email`)
 );
-ALTER TABLE
-    `User` ADD INDEX `user_email_index`(`email`);
-ALTER TABLE
-    `User` ADD UNIQUE `user_email_unique`(`email`);
-CREATE TABLE `Session`(
-    `id` CHAR(36) NOT NULL,
-    `hashRefreshToken` VARCHAR(255) NOT NULL,
-    `userId` VARCHAR(255) NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `updatedAt` DATE NOT NULL,
-    PRIMARY KEY(`id`)
-);
-ALTER TABLE
-    `Session` ADD INDEX `session_userid_index`(`userId`);
-ALTER TABLE
-    `Session` ADD UNIQUE `session_userid_unique`(`userId`);
-CREATE TABLE `OutBox`(
+
+CREATE TABLE `OutBox` (
     `id` CHAR(36) NOT NULL,
     `payload` JSON NOT NULL,
-    `status` ENUM('') NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `updatedAt` DATE NOT NULL,
-    PRIMARY KEY(`id`)
+    `status` ENUM('PENDING', 'PROCESSED', 'FAILED') NOT NULL DEFAULT 'PENDING',
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
 );
-CREATE TABLE `Brand`(
+
+CREATE TABLE `Brand` (
     `id` CHAR(36) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
-    `userId` VARCHAR(255) NOT NULL,
+    `userId` CHAR(36) NOT NULL,
     `description` VARCHAR(255) NOT NULL,
-    `status` ENUM('') NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `updatedAt` DATE NOT NULL,
-    PRIMARY KEY(`id`)
+    `status` ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `brand_userid_index` (`userId`),
+    CONSTRAINT `brand_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
 );
-ALTER TABLE
-    `Brand` ADD INDEX `brand_userid_index`(`userId`);
-CREATE TABLE `Product`(
+
+CREATE TABLE `Product` (
     `id` CHAR(36) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `description` VARCHAR(255) NOT NULL,
     `brandId` CHAR(36) NOT NULL,
-    `status` ENUM('') NOT NULL,
+    `status` ENUM('DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED') NOT NULL DEFAULT 'DRAFT',
     `userId` CHAR(36) NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `updatedAt` DATE NOT NULL,
-    `category` ENUM('') NOT NULL,
-    PRIMARY KEY(`id`)
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `category` ENUM('STORAGE_DEVICE', 'NETWORK_DEVICE', 'ACCESSORY') NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `product_brandid_index` (`brandId`),
+    KEY `product_userid_index` (`userId`),
+    CONSTRAINT `product_brandid_foreign` FOREIGN KEY (`brandId`) REFERENCES `Brand` (`id`),
+    CONSTRAINT `product_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
 );
-ALTER TABLE
-    `Product` ADD INDEX `product_brandid_index`(`brandId`);
-ALTER TABLE
-    `Product` ADD INDEX `product_userid_index`(`userId`);
-CREATE TABLE `ProductVariant`(
+
+CREATE TABLE `ProductVariant` (
     `id` CHAR(36) NOT NULL,
     `productId` CHAR(36) NOT NULL,
-    `price` DECIMAL(8, 2) NOT NULL,
+    `price` DECIMAL(12,2) NOT NULL,
     `imageUrl` VARCHAR(255) NOT NULL,
-    `status` ENUM('') NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `updatedAt` DATE NOT NULL,
+    `status` ENUM('ACTIVE', 'INACTIVE', 'OUT_OF_STOCK') NOT NULL DEFAULT 'ACTIVE',
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `sku` VARCHAR(255) NOT NULL,
     `quantity` INT NOT NULL,
-    PRIMARY KEY(`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `productvariant_sku_unique` (`sku`),
+    KEY `productvariant_productid_index` (`productId`),
+    CONSTRAINT `productvariant_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`)
 );
-ALTER TABLE
-    `ProductVariant` ADD INDEX `productvariant_productid_index`(`productId`);
-CREATE TABLE `Payment`(
-    `id` CHAR(36) NOT NULL,
-    `orderId` VARCHAR(255) NOT NULL,
-    `userId` CHAR(36) NOT NULL,
-    `amount` DECIMAL(8, 2) NOT NULL,
-    `access_key` VARCHAR(255) NOT NULL,
-    `partner_code` VARCHAR(255) NOT NULL,
-    `redirect_url` VARCHAR(255) NOT NULL,
-    `ipn_url` VARCHAR(255) NOT NULL,
-    `extra_data` VARCHAR(255) NOT NULL,
-    `request_type` VARCHAR(255) NOT NULL,
-    `signature` VARCHAR(255) NOT NULL,
-    `status` ENUM('') NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `updatedAt` DATE NOT NULL,
-    PRIMARY KEY(`id`)
-);
-ALTER TABLE
-    `Payment` ADD INDEX `payment_orderid_index`(`orderId`);
-ALTER TABLE
-    `Payment` ADD INDEX `payment_userid_index`(`userId`);
-CREATE TABLE `Order`(
+
+CREATE TABLE `Order` (
     `id` CHAR(36) NOT NULL,
     `userId` CHAR(36) NOT NULL,
     `productId` CHAR(36) NOT NULL,
-    `createdAt` DATE NOT NULL,
-    `status` ENUM('') NOT NULL,
-    PRIMARY KEY(`id`)
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `status` ENUM('PENDING', 'CONFIRMED', 'SHIPPING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    PRIMARY KEY (`id`),
+    KEY `order_userid_index` (`userId`),
+    KEY `order_productid_index` (`productId`),
+    CONSTRAINT `order_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`),
+    CONSTRAINT `order_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`)
 );
-ALTER TABLE
-    `Order` ADD INDEX `order_userid_index`(`userId`);
-ALTER TABLE
-    `Order` ADD INDEX `order_productid_index`(`productId`);
-CREATE TABLE `Voucher`(
+
+CREATE TABLE `Payment` (
     `id` CHAR(36) NOT NULL,
-    `percent` FLOAT(53) NOT NULL,
+    `orderId` CHAR(36) NOT NULL,
+    `userId` CHAR(36) NOT NULL,
+    `amount` DECIMAL(12,2) NOT NULL,
+    `accessKey` VARCHAR(255) NOT NULL,
+    `partnerCode` VARCHAR(255) NOT NULL,
+    `redirectUrl` VARCHAR(255) NOT NULL,
+    `ipnUrl` VARCHAR(255) NOT NULL,
+    `extraData` VARCHAR(255) NOT NULL,
+    `requestType` VARCHAR(255) NOT NULL,
+    `signature` VARCHAR(255) NOT NULL,
+    `status` ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `payment_orderid_index` (`orderId`),
+    KEY `payment_userid_index` (`userId`),
+    CONSTRAINT `payment_orderid_foreign` FOREIGN KEY (`orderId`) REFERENCES `Order` (`id`),
+    CONSTRAINT `payment_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+);
+
+CREATE TABLE `Voucher` (
+    `id` CHAR(36) NOT NULL,
+    `percent` DECIMAL(5,2) NOT NULL,
     `userId` CHAR(36) NOT NULL,
     `expTime` DATE NOT NULL,
-    `createdAt` DATE NOT NULL,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `quantity` INT NOT NULL,
-    PRIMARY KEY(`id`)
+    PRIMARY KEY (`id`),
+    KEY `voucher_userid_index` (`userId`),
+    CONSTRAINT `voucher_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
 );
-ALTER TABLE
-    `Voucher` ADD INDEX `voucher_userid_index`(`userId`);
-CREATE TABLE `OrderCart`(
+
+CREATE TABLE `OrderCart` (
     `id` CHAR(36) NOT NULL,
     `userId` CHAR(36) NOT NULL,
-    `createdAt` DATE NOT NULL,
-    PRIMARY KEY(`id`)
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ordercart_userid_index` (`userId`),
+    CONSTRAINT `ordercart_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
 );
-ALTER TABLE
-    `OrderCart` ADD INDEX `ordercart_userid_index`(`userId`);
-CREATE TABLE `SavedProduct`(
+
+CREATE TABLE `SavedProduct` (
     `id` CHAR(36) NOT NULL,
     `productId` CHAR(36) NOT NULL,
     `quantity` INT NOT NULL,
-    `createdAt` DATE NOT NULL,
-    PRIMARY KEY(`id`)
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `savedproduct_productid_index` (`productId`),
+    CONSTRAINT `savedproduct_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`)
 );
-ALTER TABLE
-    `SavedProduct` ADD INDEX `savedproduct_productid_index`(`productId`);
-ALTER TABLE
-    `Product` ADD CONSTRAINT `product_userid_foreign` FOREIGN KEY(`userId`) REFERENCES `SavedProduct`(`id`);
-ALTER TABLE
-    `Product` ADD CONSTRAINT `product_brandid_foreign` FOREIGN KEY(`brandId`) REFERENCES `Brand`(`userId`);
-ALTER TABLE
-    `Voucher` ADD CONSTRAINT `voucher_percent_foreign` FOREIGN KEY(`percent`) REFERENCES `User`(`hashPassword`);
-ALTER TABLE
-    `Brand` ADD CONSTRAINT `brand_id_foreign` FOREIGN KEY(`id`) REFERENCES `User`(`updatedAt`);
-ALTER TABLE
-    `OrderCart` ADD CONSTRAINT `ordercart_id_foreign` FOREIGN KEY(`id`) REFERENCES `User`(`createdAt`);
-ALTER TABLE
-    `SavedProduct` ADD CONSTRAINT `savedproduct_quantity_foreign` FOREIGN KEY(`quantity`) REFERENCES `OrderCart`(`userId`);
-ALTER TABLE
-    `Order` ADD CONSTRAINT `order_id_foreign` FOREIGN KEY(`id`) REFERENCES `User`(`email`);
-ALTER TABLE
-    `ProductVariant` ADD CONSTRAINT `productvariant_id_foreign` FOREIGN KEY(`id`) REFERENCES `Product`(`category`);
-ALTER TABLE
-    `ProductVariant` ADD CONSTRAINT `productvariant_sku_foreign` FOREIGN KEY(`sku`) REFERENCES `Order`(`userId`);
-ALTER TABLE
-    `OutBox` ADD CONSTRAINT `outbox_id_foreign` FOREIGN KEY(`id`) REFERENCES `User`(`updatedAt`);
-ALTER TABLE
-    `Voucher` ADD CONSTRAINT `voucher_percent_foreign` FOREIGN KEY(`percent`) REFERENCES `Order`(`userId`);
-ALTER TABLE
-    `Payment` ADD CONSTRAINT `payment_id_foreign` FOREIGN KEY(`id`) REFERENCES `Order`(`id`);
-ALTER TABLE
-    `Session` ADD CONSTRAINT `session_id_foreign` FOREIGN KEY(`id`) REFERENCES `User`(`id`);
+
+CREATE TABLE `Session` (
+    `id` CHAR(36) NOT NULL,
+    `hashRefreshToken` VARCHAR(255) NOT NULL,
+    `userId` CHAR(36) NOT NULL,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `session_userid_index` (`userId`),
+    CONSTRAINT `session_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+);

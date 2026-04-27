@@ -9,6 +9,7 @@ public class UserEntity {
     private LocalDate dateOfBirth;
     private String hashPassword;
     private String status;
+    private String role;
     private String email;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -16,13 +17,14 @@ public class UserEntity {
     public UserEntity() {
     }
 
-    public UserEntity(String id, String name, LocalDate dateOfBirth, String hashPassword, String status, String email,
+    public UserEntity(String id, String name, LocalDate dateOfBirth, String hashPassword, String status, String role, String email,
             LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.dateOfBirth = dateOfBirth;
         this.hashPassword = hashPassword;
         this.status = status;
+        this.role = role;
         this.email = email;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -66,6 +68,14 @@ public class UserEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getEmail() {
