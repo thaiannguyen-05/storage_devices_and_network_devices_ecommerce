@@ -1,5 +1,6 @@
 package module.bussiness.payment;
 
+import java.util.Map;
 import module.bussiness.payment.repository.impl.PaymentRepository;
 import module.bussiness.payment.repository.impl.VoucherRepository;
 
@@ -18,5 +19,9 @@ public class PaymentService {
 
     public VoucherRepository getVoucherRepository() {
         return voucherRepository;
+    }
+
+    public Map<String, Object> handleSePayWebhook(Map<String, Object> payload) {
+        return Map.of("success", true, "data", payload);
     }
 }

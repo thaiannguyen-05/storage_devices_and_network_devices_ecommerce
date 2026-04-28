@@ -4,35 +4,32 @@
  */
 package module.bussiness.payment;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import common.controller.BaseController;
 import java.io.IOException;
 import java.io.PrintWriter;
-import jakarta.servlet.ServletException;
+import java.util.Map;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author An
- */
-@WebServlet(name = "payment", urlPatterns = {"/payment"})
-public class PaymentController extends HttpServlet {
+@WebServlet(name = "payment", urlPatterns = {"/payment/*"})
+public class PaymentController extends BaseController {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final PaymentService paymentService = new PaymentService();
+
+    @Override
+    protected void registerRoutes() {
+        registerGet("/", this::handleRoot);
+        registerPost("/", this::handleRoot);
+        registerPost("/sepay/webhook", this::handleSePayWebhook);
+    }
+
+    private void handleRoot(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
@@ -45,43 +42,25 @@ public class PaymentController extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    private void handleSePayWebhook(HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+
+        Map<String, Object> payload;
+        try {
+            payload = OBJECT_MAPPER.readValue(
+                    request.getInputStream(),
+                    new TypeReference<Map<String, Object>>() {
+                    }
+            );
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            OBJECT_MAPPER.writeValue(response.getWriter(), Map.of("success", false, "message", "Invalid webhook payload"));
+            return;
+        }
+
+        Map<String, Object> result = paymentService.handleSePayWebhook(payload);
+        response.setStatus(HttpServletResponse.SC_OK);
+        OBJECT_MAPPER.writeValue(response.getWriter(), result);
     }
-
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }

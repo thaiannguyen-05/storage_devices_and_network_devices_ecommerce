@@ -5,7 +5,10 @@
       "Bash(User)",
       "Bash(OrderCart)",
       "Bash(grep -RIn \"INSERT INTO `Product`\\\\|INSERT INTO `User`\\\\|INSERT INTO `OrderCart`\" ./src/java/module/core/sql/repository)",
-      "Bash(grep -E \"\\(Repository|Service\\)\\\\.java$\")"
+      "Bash(grep -E \"\\(Repository|Service\\)\\\\.java$\")",
+      "Bash(grep -E \"Controller\\\\.java$|Filter\\\\.java$|pipeService\\\\.java$|PaymentService\\\\.java$\")",
+      "Bash(grep -E \"web\\\\.xml$\")",
+      "Bash(grep -n \"CREATE TABLE `User`\\\\|CREATE TABLE User\\\\|`User`\" \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/sto.sql\")"
     ]
   }
 }
