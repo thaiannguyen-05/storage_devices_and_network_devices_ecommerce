@@ -1,4 +1,4 @@
-package module.core.sql.interfaces;
+package module.bussiness.order.repository.interfaces;
 
 import entity.OrderCartEntity;
 import module.bussiness.cart.dto.CreateCartDto;

@@ -1,4 +1,4 @@
-package module.core.sql.repository;
+package module.core.user.repository.impl;
 
 import entity.UserEntity;
 import java.sql.Connection;
@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import module.core.sql.ConnecDb;
-import module.core.sql.interfaces.IUserRepository;
+import module.core.user.repository.interfaces.IUserRepository;
 import module.core.user.dto.CreateUserDto;
 
 public class UserRepository implements IUserRepository {

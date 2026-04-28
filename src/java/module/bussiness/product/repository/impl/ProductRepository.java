@@ -1,9 +1,9 @@
-package module.core.sql.repository;
+package module.bussiness.product.repository.impl;
 import entity.ProductEntity;
 import module.bussiness.product.dto.CreateProduct;
 import module.bussiness.product.dto.UpdateProduct;
 import module.core.sql.ConnecDb;
-import module.core.sql.interfaces.IProductRepository;
+import module.bussiness.product.repository.interfaces.IProductRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

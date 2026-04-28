@@ -1,9 +1,9 @@
 package module.bussiness.product;
 
 import entity.ProductEntity;
-import module.core.sql.repository.BrandRepository;
-import module.core.sql.repository.ProductRepository;
-import module.core.sql.repository.ProductVariantRepository;
+import module.bussiness.product.repository.impl.BrandRepository;
+import module.bussiness.product.repository.impl.ProductRepository;
+import module.bussiness.product.repository.impl.ProductVariantRepository;
 import module.bussiness.product.dto.CreateProduct;
 import module.bussiness.product.dto.UpdateProduct;
 

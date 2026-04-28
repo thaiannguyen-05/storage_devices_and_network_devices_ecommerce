@@ -1,8 +1,8 @@
 package module.core.user;
 
 import entity.UserEntity;
-import module.core.sql.interfaces.IUserRepository;
-import module.core.sql.repository.UserRepository;
+import module.core.user.repository.interfaces.IUserRepository;
+import module.core.user.repository.impl.UserRepository;
 import module.core.user.dto.CreateUserDto;
 
 public class UserService {

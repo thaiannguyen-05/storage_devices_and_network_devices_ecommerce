@@ -1,7 +1,7 @@
 package module.core.auth;
 
-import module.core.sql.repository.SessionRepository;
-import module.core.sql.repository.UserRepository;
+import module.core.auth.repository.impl.SessionRepository;
+import module.core.user.repository.impl.UserRepository;
 
 public class AuthService {
     private final UserRepository userRepository;

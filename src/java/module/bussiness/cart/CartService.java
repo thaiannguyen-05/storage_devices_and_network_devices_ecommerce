@@ -6,8 +6,8 @@ package module.bussiness.cart;
 
 import entity.OrderCartEntity;
 import module.bussiness.cart.dto.CreateCartDto;
-import module.core.sql.interfaces.IOrderCartRepository;
-import module.core.sql.repository.OrderCartRepository;
+import module.bussiness.order.repository.interfaces.IOrderCartRepository;
+import module.bussiness.order.repository.impl.OrderCartRepository;
 
 public class CartService {
 

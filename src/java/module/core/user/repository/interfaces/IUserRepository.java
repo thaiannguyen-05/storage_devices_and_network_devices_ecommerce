@@ -1,4 +1,4 @@
-package module.core.sql.interfaces;
+package module.core.user.repository.interfaces;
 
 import entity.UserEntity;
 import module.core.user.dto.CreateUserDto;

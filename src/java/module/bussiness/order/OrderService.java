@@ -1,7 +1,7 @@
 package module.bussiness.order;
 
-import module.core.sql.repository.OrderCartRepository;
-import module.core.sql.repository.OrderRepository;
+import module.bussiness.order.repository.impl.OrderCartRepository;
+import module.bussiness.order.repository.impl.OrderRepository;
 
 public class OrderService {
     private final OrderRepository orderRepository;

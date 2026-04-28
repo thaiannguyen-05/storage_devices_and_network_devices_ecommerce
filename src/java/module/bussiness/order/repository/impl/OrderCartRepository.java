@@ -1,4 +1,4 @@
-package module.core.sql.repository;
+package module.bussiness.order.repository.impl;
 
 import entity.OrderCartEntity;
 import java.sql.Connection;
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import module.bussiness.cart.dto.CreateCartDto;
 import module.core.sql.ConnecDb;
-import module.core.sql.interfaces.IOrderCartRepository;
+import module.bussiness.order.repository.interfaces.IOrderCartRepository;
 
 public class OrderCartRepository implements IOrderCartRepository {
 

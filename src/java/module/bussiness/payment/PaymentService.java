@@ -1,7 +1,7 @@
 package module.bussiness.payment;
 
-import module.core.sql.repository.PaymentRepository;
-import module.core.sql.repository.VoucherRepository;
+import module.bussiness.payment.repository.impl.PaymentRepository;
+import module.bussiness.payment.repository.impl.VoucherRepository;
 
 public class PaymentService {
     private final PaymentRepository paymentRepository;

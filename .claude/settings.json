@@ -4,7 +4,8 @@
       "Bash(Product)",
       "Bash(User)",
       "Bash(OrderCart)",
-      "Bash(grep -RIn \"INSERT INTO `Product`\\\\|INSERT INTO `User`\\\\|INSERT INTO `OrderCart`\" ./src/java/module/core/sql/repository)"
+      "Bash(grep -RIn \"INSERT INTO `Product`\\\\|INSERT INTO `User`\\\\|INSERT INTO `OrderCart`\" ./src/java/module/core/sql/repository)",
+      "Bash(grep -E \"\\(Repository|Service\\)\\\\.java$\")"
     ]
   }
 }

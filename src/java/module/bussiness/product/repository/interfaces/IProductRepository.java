@@ -1,4 +1,4 @@
-package module.core.sql.interfaces;
+package module.bussiness.product.repository.interfaces;
 
 import entity.ProductEntity;
 import module.bussiness.product.dto.CreateProduct;
