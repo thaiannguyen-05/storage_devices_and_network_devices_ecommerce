@@ -1,87 +1,84 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package module.core.user;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import entity.UserEntity;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import module.core.user.dto.FindAllUserDto;
+import module.core.user.dto.FindUserByIdDto;
 
-/**
- *
- * @author An
- */
 @WebServlet(name = "user", urlPatterns = {"/user"})
 public class UserController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet UserController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet UserController at" + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
+    private final UserService userService = new UserService();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        String action = request.getParameter("action");
+
+        if ("findAll".equals(action)) {
+            findAllUser(request, response);
+        } else if ("findById".equals(action)) {
+            findById(request, response);
+        } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"message\": \"Action is required (findAll or findById)\"}");
+        }
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    private void findAllUser(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        try {
+            int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
+            int limit = request.getParameter("limit") != null ? Integer.parseInt(request.getParameter("limit")) : 10;
+
+            FindAllUserDto dto = new FindAllUserDto(page, limit);
+            List<UserEntity> users = userService.findAllUser(dto);
+
+            response.getWriter().write(objectMapper.writeValueAsString(users));
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"message\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    private void findById(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        try {
+            String idParam = request.getParameter("id");
+            if (idParam == null || idParam.isBlank()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"message\": \"ID is required\"}");
+                return;
+            }
+
+            int id = Integer.parseInt(idParam);
+            FindUserByIdDto dto = new FindUserByIdDto(id);
+            UserEntity user = userService.findById(dto);
+
+            if (user != null) {
+                response.getWriter().write(objectMapper.writeValueAsString(user));
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write("{\"message\": \"User not found\"}");
+            }
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"message\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        // Handle POST for Create/Update/Delete if needed, or redirect to processRequest
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }

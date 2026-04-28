@@ -13,12 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductRepository implements IProductRepository {
+    @Override
     public List<ProductEntity> findAll() throws SQLException{
         String sql = "SELECT id , name , description, brandId, status, userId, category FROM product ORDER BY createdAt DESC";
         List<ProductEntity> products = new ArrayList<>();
 
         try(Connection con = ConnecDb.getConnection();
-        PreparedStatement ps = con.preparedStatement(sql);
+        PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery()){
 
             while(rs.next()){
@@ -38,7 +39,7 @@ public class ProductRepository implements IProductRepository {
     public ProductEntity findById(String id) throws SQLException{
         String sql = "SELECT id, name, description, brandId, status, userId, category FROM product WHERE id = ?";
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.prepareStatement(sql)){
             ps.setString(1,id);
             try(ResultSet rs = ps.executeQuery()){
                 if(!rs.next()) return null;
@@ -59,7 +60,7 @@ public class ProductRepository implements IProductRepository {
         "VALUES(?,?,?,?,?,CURDATE(),CURDATE(),?)";
 
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.prepareStatement(sql)){
             ps.setString(1,dto.getName());
             ps.setString(2,dto.getDescription());   
             ps.setString(3,dto.getBrandId());
@@ -74,7 +75,7 @@ public class ProductRepository implements IProductRepository {
         String sql ="UPDATE product SET name = ? , description = ? , brandId = ? , status = ?, category = ?, updatedAt = CURDATE() WHERE id = ?";
 
         try(Connection con = ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.prepareStatement(sql)){
 
             ps.setString(1,dto.getName());
             ps.setString(2,dto.getDescription());
@@ -86,10 +87,11 @@ public class ProductRepository implements IProductRepository {
             return ps.executeUpdate() > 0;
         }
     }
+    @Override
     public boolean delete(String id) throws SQLException{
         String sql = "DELETE FROM product WHERE id = ? ";
         try(Connection con =  ConnecDb.getConnection();
-        PreparedStatement ps = con.PreparedStatement(sql)){
+        PreparedStatement ps = con.prepareStatement(sql)){
             ps.setString(1,id);
             return ps.executeUpdate() > 0;
         }
