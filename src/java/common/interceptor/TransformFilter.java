@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 import java.io.CharArrayWriter;
@@ -23,8 +24,27 @@ public class TransformFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
 
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+        String requestUri = httpRequest.getRequestURI();
+
+        // Bypass UI routes so JSP renders HTML directly instead of wrapped JSON.
+        if (requestUri.contains("/views/")
+                || requestUri.contains("/assets/")
+                || requestUri.endsWith(".css")
+                || requestUri.endsWith(".js")
+                || requestUri.endsWith(".png")
+                || requestUri.endsWith(".jpg")
+                || requestUri.endsWith(".jpeg")
+                || requestUri.endsWith(".svg")
+                || requestUri.endsWith("/product")
+                || requestUri.endsWith("/cart")
+                || requestUri.endsWith("/payment")
+                || requestUri.endsWith("/auth")) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         ContentCachingResponseWrapper responseWrapper =
                 new ContentCachingResponseWrapper(httpResponse);

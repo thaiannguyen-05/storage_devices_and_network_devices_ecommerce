@@ -20,8 +20,23 @@ public class ExceptionFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chainFilter) throws IOException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+        String requestUri = httpRequest.getRequestURI();
 
-        httpResponse.setContentType("application/json;charset=UTF-8");
+        boolean isUiRoute = requestUri.contains("/views/")
+                || requestUri.contains("/assets/")
+                || requestUri.endsWith(".css")
+                || requestUri.endsWith(".js")
+                || requestUri.endsWith(".png")
+                || requestUri.endsWith(".jpg")
+                || requestUri.endsWith(".jpeg")
+                || requestUri.endsWith(".svg")
+                || requestUri.endsWith("/product")
+                || requestUri.endsWith("/cart")
+                || requestUri.endsWith("/payment")
+                || requestUri.endsWith("/auth");
+        if (!isUiRoute) {
+            httpResponse.setContentType("application/json;charset=UTF-8");
+        }
 
         try {
             chainFilter.doFilter(request, response);
@@ -44,6 +59,9 @@ public class ExceptionFilter implements Filter {
             );
             ObjectMapper mapper = new ObjectMapper();
             httpResponse.setStatus(status);
+            if (isUiRoute) {
+                httpResponse.setContentType("text/plain;charset=UTF-8");
+            }
             httpResponse.getWriter().print(
                     mapper.writeValueAsString(error)
             );

@@ -15,17 +15,34 @@ public class ConfigService {
             .ignoreIfMissing()
             .load();
 
+     private static final Dotenv dotenvProject = Dotenv.configure()
+            .directory("D:/Learn/BaiTapLon_Java_Web/storage_devices_and_network_devices_ecommerce")
+            .filename(".env")
+            .ignoreIfMalformed()
+            .ignoreIfMissing()
+            .load();
+
     public static String get(String key) {
-        return dotenv.get(key);
+        String envValue = System.getenv(key);
+        if (envValue != null && !envValue.trim().isEmpty()) {
+            return envValue;
+        }
+
+        String value = dotenv.get(key);
+        if (value != null && !value.trim().isEmpty()) {
+            return value;
+        }
+
+        return dotenvProject.get(key);
     }
 
     public static String getOrDefault(String key, String defaultValue) {
-        String value = dotenv.get(key);
+        String value = get(key);
         return value != null ? value : defaultValue;
     }
 
     public static int getInt(String key, int defaultValue) {
-        String value = dotenv.get(key);
+        String value = get(key);
         if (value == null || value.trim().isEmpty()) {
             return defaultValue;
         }

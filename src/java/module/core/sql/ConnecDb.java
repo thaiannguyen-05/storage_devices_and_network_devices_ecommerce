@@ -6,7 +6,6 @@ package module.core.sql;
 
 import module.core.config.ConfigService;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -20,14 +19,15 @@ public class ConnecDb {
     private static HikariDataSource dataSource;
 
     static {
-        String host = ConfigService.get("DB_HOST");
+        // Use defaults so app still runs when .env is not loaded in server runtime.
+        String host = ConfigService.getOrDefault("DB_HOST", "localhost");
         int port = ConfigService.getInt("DB_PORT", 3306);
-        String dbName = ConfigService.get("DB_NAME");
-        String user = ConfigService.get("DB_USER");
-        String password = ConfigService.get("DB_PASSWORD");
+        String dbName = ConfigService.getOrDefault("DB_NAME", "ecommerce");
+        String user = ConfigService.getOrDefault("DB_USER", "root");
+        String password = ConfigService.getOrDefault("DB_PASSWORD", "");
 
         String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName
-                + "?useSSL=false&serverTimezone=UTC";
+                + "?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh";
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
