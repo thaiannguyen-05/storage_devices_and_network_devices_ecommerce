@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 import java.io.CharArrayWriter;
@@ -24,6 +25,14 @@ public class TransformFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String uri = httpRequest.getRequestURI();
+
+        if (shouldBypassTransform(uri)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         ContentCachingResponseWrapper responseWrapper =
@@ -33,6 +42,14 @@ public class TransformFilter implements Filter {
 
         String originalBody = responseWrapper.getContent();
         int statusCode = httpResponse.getStatus() == 0 ? 200 : httpResponse.getStatus();
+        String contentType = httpResponse.getContentType();
+
+        if (contentType != null && contentType.toLowerCase().contains("text/html")) {
+            httpResponse.setCharacterEncoding("UTF-8");
+            httpResponse.getWriter().write(originalBody);
+            httpResponse.getWriter().flush();
+            return;
+        }
 
         if (statusCode >= 400) {
             httpResponse.setContentType("application/json");
@@ -69,6 +86,30 @@ public class TransformFilter implements Filter {
         httpResponse.setCharacterEncoding("UTF-8");
         httpResponse.getWriter().write(jsonResponse);
         httpResponse.getWriter().flush();
+    }
+
+    private boolean shouldBypassTransform(String uri) {
+        if (uri == null) {
+            return false;
+        }
+
+        return uri.contains("/views/")
+                || uri.endsWith(".jsp")
+                || uri.contains("/assets/")
+                || uri.contains("/auth")
+                || uri.contains("/product")
+                || uri.contains("/cart")
+                || uri.contains("/payment")
+                || uri.endsWith(".css")
+                || uri.endsWith(".js")
+                || uri.endsWith(".png")
+                || uri.endsWith(".jpg")
+                || uri.endsWith(".jpeg")
+                || uri.endsWith(".svg")
+                || uri.endsWith(".ico")
+                || uri.endsWith(".woff")
+                || uri.endsWith(".woff2")
+                || uri.endsWith(".ttf");
     }
 
     public static class ContentCachingResponseWrapper extends HttpServletResponseWrapper {

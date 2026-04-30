@@ -11,5 +11,6 @@ public interface IUserRepository {
     List<UserEntity> findAll(int page, int pageSize);
     UserEntity findById(String id);
     boolean update(String id, UpdateUserDto dto);
+    boolean updatePasswordById(String id, String hashPassword);
     boolean delete(String id);
 }

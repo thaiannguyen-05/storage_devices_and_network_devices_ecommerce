@@ -1,87 +1,163 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package module.bussiness.cart;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import module.bussiness.cart.dto.CartItemView;
 
-/**
- *
- * @author An
- */
-@WebServlet(name = "CartController", urlPatterns = {"/CartController"})
+@WebServlet(name = "CartController", urlPatterns = {"/cart", "/CartController"})
 public class CartController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet CartController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet CartController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        HttpSession session = request.getSession(true);
+        Map<String, CartItemView> cart = getCartMap(session);
+
+        List<CartItemView> items = new ArrayList<>(cart.values());
+        request.setAttribute("cartItems", items);
+        request.setAttribute("cartCount", count(cart));
+        request.setAttribute("totalPriceText", formatVnd(total(cart)));
+        request.getRequestDispatcher("/views/cart/index.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        String action = request.getParameter("action");
+        if (action == null) {
+            action = "";
+        }
+
+        HttpSession session = request.getSession(true);
+        Map<String, CartItemView> cart = getCartMap(session);
+
+        switch (action) {
+            case "add":
+                addItem(request, cart);
+                break;
+            case "update":
+                updateItem(request, cart);
+                break;
+            case "remove":
+                removeItem(request, cart);
+                break;
+            case "clear":
+                cart.clear();
+                break;
+            default:
+                break;
+        }
+
+        session.setAttribute("cartItems", cart);
+        response.sendRedirect(request.getContextPath() + "/cart");
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+    @SuppressWarnings("unchecked")
+    private Map<String, CartItemView> getCartMap(HttpSession session) {
+        Object raw = session.getAttribute("cartItems");
+        if (raw instanceof Map) {
+            return (Map<String, CartItemView>) raw;
+        }
+        Map<String, CartItemView> map = new LinkedHashMap<>();
+        session.setAttribute("cartItems", map);
+        return map;
+    }
 
+    private void addItem(HttpServletRequest request, Map<String, CartItemView> cart) {
+        String productId = safe(request.getParameter("productId"));
+        if (productId.isBlank()) {
+            return;
+        }
+
+        CartItemView item = cart.get(productId);
+        if (item == null) {
+            item = new CartItemView();
+            item.setProductId(productId);
+            item.setName(safe(request.getParameter("name")));
+            item.setCategory(safe(request.getParameter("category")));
+            item.setBrandId(safe(request.getParameter("brandId")));
+            item.setImageUrl(safe(request.getParameter("imageUrl")));
+            item.setUnitPrice(parseLong(request.getParameter("priceValue"), 0));
+            item.setStock((int) parseLong(request.getParameter("stock"), 0));
+            item.setQuantity(1);
+            cart.put(productId, item);
+            return;
+        }
+
+        int next = item.getQuantity() + 1;
+        if (item.getStock() > 0) {
+            next = Math.min(next, item.getStock());
+        }
+        item.setQuantity(Math.max(1, next));
+    }
+
+    private void updateItem(HttpServletRequest request, Map<String, CartItemView> cart) {
+        String productId = safe(request.getParameter("productId"));
+        CartItemView item = cart.get(productId);
+        if (item == null) {
+            return;
+        }
+
+        String op = safe(request.getParameter("op"));
+        int quantity = (int) parseLong(request.getParameter("quantity"), item.getQuantity());
+
+        if ("inc".equals(op)) {
+            quantity = item.getQuantity() + 1;
+        } else if ("dec".equals(op)) {
+            quantity = item.getQuantity() - 1;
+        }
+
+        if (item.getStock() > 0) {
+            quantity = Math.min(quantity, item.getStock());
+        }
+        quantity = Math.max(1, quantity);
+        item.setQuantity(quantity);
+    }
+
+    private void removeItem(HttpServletRequest request, Map<String, CartItemView> cart) {
+        String productId = safe(request.getParameter("productId"));
+        cart.remove(productId);
+    }
+
+    private int count(Map<String, CartItemView> cart) {
+        int count = 0;
+        for (CartItemView item : cart.values()) {
+            count += item.getQuantity();
+        }
+        return count;
+    }
+
+    private long total(Map<String, CartItemView> cart) {
+        long total = 0;
+        for (CartItemView item : cart.values()) {
+            total += item.getUnitPrice() * item.getQuantity();
+        }
+        return total;
+    }
+
+    private String formatVnd(long amount) {
+        return new DecimalFormat("#,##0").format(amount) + " VND";
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private long parseLong(String raw, long fallback) {
+        try {
+            return Long.parseLong(raw);
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
 }

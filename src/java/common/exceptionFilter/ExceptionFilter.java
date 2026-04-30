@@ -21,22 +21,24 @@ public class ExceptionFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        httpResponse.setContentType("application/json;charset=UTF-8");
-
         try {
             chainFilter.doFilter(request, response);
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
 
             int status = 500;
-            String message = (e.getMessage() != null) ? e.getMessage() : "Internal server error";
+            Throwable root = e;
+            while (root.getCause() != null) {
+                root = root.getCause();
+            }
+            String rootMessage = root.getClass().getName() + ": " + (root.getMessage() != null ? root.getMessage() : "Internal server error");
 
             String requestId = (String) request.getAttribute(RequestIdFilter.REQUEST_ID_ATTRIBUTE);
 
             ApiError error = new ApiError(
                     false,
                     status,
-                    message,
+                    rootMessage,
                     new Date().toString(),
                     httpRequest.getRequestURI(),
                     httpRequest.getMethod(),
@@ -44,6 +46,7 @@ public class ExceptionFilter implements Filter {
             );
             ObjectMapper mapper = new ObjectMapper();
             httpResponse.setStatus(status);
+            httpResponse.setContentType("application/json;charset=UTF-8");
             httpResponse.getWriter().print(
                     mapper.writeValueAsString(error)
             );
