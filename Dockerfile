@@ -16,7 +16,8 @@ RUN curl -fsSL "https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-
 
 RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip" -o /tmp/glassfish.zip \
     && unzip /tmp/glassfish.zip -d /opt \
-    && rm /tmp/glassfish.zip
+    && rm /tmp/glassfish.zip \
+    && ln -s /opt/glassfish6/glassfish /opt/glassfish
 
 WORKDIR /app
 COPY . .
@@ -36,7 +37,8 @@ RUN apt-get update \
 
 RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip" -o /tmp/glassfish.zip \
     && unzip /tmp/glassfish.zip -d /opt \
-    && rm /tmp/glassfish.zip
+    && rm /tmp/glassfish.zip \
+    && ln -s /opt/glassfish6/glassfish /opt/glassfish
 
 COPY --from=builder /app/dist/Ecommerce.war /opt/Ecommerce.war
 
