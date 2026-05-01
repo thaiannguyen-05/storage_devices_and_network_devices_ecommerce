@@ -10,11 +10,11 @@ public class ConnecDb {
     private static final HikariDataSource dataSource;
 
     static {
-        String host = "20.189.125.186";
-        int port = 3306;
-        String dbName = "mydb";
-        String user = "andev";
-        String password = "andev123";
+        String host = getEnvOrDefault("DB_HOST", "localhost");
+        int port = parseIntOrDefault(getEnvOrDefault("DB_PORT", "3306"), 3306);
+        String dbName = getEnvOrDefault("DB_NAME", "mydb");
+        String user = getEnvOrDefault("DB_USER", "root");
+        String password = getEnvOrDefault("DB_PASSWORD", "");
 
         String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
@@ -29,11 +29,26 @@ public class ConnecDb {
         config.setValidationTimeout(5000);
 
         dataSource = new HikariDataSource(config);
-        System.out.println("DB Pool initialized: host=" + host + ", port=" + port + ", db=" + dbName + ", user=" + user);
     }
 
     public static Connection getConnection() throws SQLException {
         return dataSource.getConnection();
+    }
+
+    private static String getEnvOrDefault(String key, String defaultValue) {
+        String value = System.getenv(key);
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    private static int parseIntOrDefault(String value, int defaultValue) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     public static void main(String[] args) {
