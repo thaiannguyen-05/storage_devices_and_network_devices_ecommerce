@@ -9,7 +9,6 @@ env:
   APP_NAME: ecommerce
   CONTAINER_NAME: ecommerce
   APP_PORT: "8080"
-  REGISTRY_IMAGE_HOST: ${{ secrets.REGISTRY_HOST }}
 
 jobs:
   build_and_push:
@@ -59,12 +58,15 @@ jobs:
           HOST="${HOST#https://}"
           HOST="${HOST%/}"
 
-          IMAGE="$HOST/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:${GITHUB_SHA}"
-          LATEST="$HOST/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:latest"
+          RAW_NAMESPACE="${{ secrets.REGISTRY_NAMESPACE }}"
+          NAMESPACE="${RAW_NAMESPACE#/}"
+          NAMESPACE="${NAMESPACE%/}"
+          NAMESPACE="$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')"
+
+          IMAGE="$HOST/$NAMESPACE/${{ env.APP_NAME }}:${GITHUB_SHA}"
 
           echo "registry_host=$HOST" >> "$GITHUB_OUTPUT"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -72,9 +74,7 @@ jobs:
           context: .
           file: ./Dockerfile
           builder: builder
-          outputs: |
-            type=registry,name=${{ steps.meta.outputs.image }},registry.insecure=true,push=true
-            type=registry,name=${{ steps.meta.outputs.latest }},registry.insecure=true,push=true
+          outputs: type=registry,name=${{ steps.meta.outputs.image }},registry.insecure=true,push=true
 
   deploy_via_ssh:
     runs-on: ubuntu-latest
