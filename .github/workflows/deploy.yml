@@ -97,10 +97,12 @@ jobs:
       - name: Deploy on VPS via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          IMAGE: ${{ needs.build_and_push.outputs.image }}
           REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+          REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          IMAGE_TAG: ${{ github.sha }}
+          APP_NAME: ${{ env.APP_NAME }}
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
           APP_PORT: ${{ env.APP_PORT }}
           ENV_FILE_PATH: ${{ secrets.ENV_FILE_PATH }}
@@ -109,7 +111,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT }}
-          envs: IMAGE,REGISTRY_HOST,REGISTRY_USERNAME,REGISTRY_PASSWORD,CONTAINER_NAME,APP_PORT,ENV_FILE_PATH
+          envs: REGISTRY_HOST,REGISTRY_NAMESPACE,REGISTRY_USERNAME,REGISTRY_PASSWORD,IMAGE_TAG,APP_NAME,CONTAINER_NAME,APP_PORT,ENV_FILE_PATH
           script_stop: true
           script: |
             set -e
@@ -118,10 +120,16 @@ jobs:
             HOST="${HOST#https://}"
             HOST="${HOST%/}"
 
-            if [ -z "$HOST" ]; then
-              echo "REGISTRY_HOST is empty after normalization"
+            NAMESPACE="${REGISTRY_NAMESPACE#/}"
+            NAMESPACE="${NAMESPACE%/}"
+            NAMESPACE="$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')"
+
+            if [ -z "$HOST" ] || [ -z "$NAMESPACE" ]; then
+              echo "REGISTRY_HOST or REGISTRY_NAMESPACE is empty after normalization"
               exit 1
             fi
+
+            IMAGE="$HOST/$NAMESPACE/$APP_NAME:$IMAGE_TAG"
 
             echo "$REGISTRY_PASSWORD" | docker login "$HOST" -u "$REGISTRY_USERNAME" --password-stdin
             docker pull "$IMAGE"
