@@ -68,6 +68,19 @@ jobs:
           echo "registry_host=$HOST" >> "$GITHUB_OUTPUT"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
+      - name: Write Docker auth for registry
+        run: |
+          mkdir -p "$HOME/.docker"
+          AUTH="$(printf '%s' "${{ secrets.REGISTRY_USERNAME }}:${{ secrets.REGISTRY_PASSWORD }}" | base64 | tr -d '\n')"
+          cat > "$HOME/.docker/config.json" <<EOF
+          {
+            "auths": {
+              "${{ steps.meta.outputs.registry_host }}": { "auth": "$AUTH" },
+              "http://${{ steps.meta.outputs.registry_host }}": { "auth": "$AUTH" }
+            }
+          }
+          EOF
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
