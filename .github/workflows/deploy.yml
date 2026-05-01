@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.meta.outputs.image }}
+      registry_host: ${{ steps.meta.outputs.registry_host }}
 
     steps:
       - name: Checkout
@@ -29,8 +30,12 @@ jobs:
 
       - name: Configure insecure registry for BuildKit
         run: |
-          cat > /tmp/buildkitd.toml <<'EOF'
-          [registry."${{ secrets.REGISTRY_HOST }}"]
+          RAW_HOST="${{ secrets.REGISTRY_HOST }}"
+          HOST="${RAW_HOST#http://}"
+          HOST="${HOST#https://}"
+          HOST="${HOST%/}"
+          cat > /tmp/buildkitd.toml <<EOF
+          [registry."$HOST"]
             http = true
             insecure = true
           EOF
@@ -49,8 +54,17 @@ jobs:
       - name: Prepare image tag
         id: meta
         run: |
-          IMAGE="${{ env.REGISTRY_IMAGE_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:${GITHUB_SHA}"
+          RAW_HOST="${{ secrets.REGISTRY_HOST }}"
+          HOST="${RAW_HOST#http://}"
+          HOST="${HOST#https://}"
+          HOST="${HOST%/}"
+
+          IMAGE="$HOST/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:${GITHUB_SHA}"
+          LATEST="$HOST/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:latest"
+
+          echo "registry_host=$HOST" >> "$GITHUB_OUTPUT"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -60,7 +74,7 @@ jobs:
           builder: builder
           outputs: |
             type=registry,name=${{ steps.meta.outputs.image }},registry.insecure=true,push=true
-            type=registry,name=${{ env.REGISTRY_IMAGE_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:latest,registry.insecure=true,push=true
+            type=registry,name=${{ steps.meta.outputs.latest }},registry.insecure=true,push=true
 
   deploy_via_ssh:
     runs-on: ubuntu-latest
@@ -71,7 +85,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           IMAGE: ${{ needs.build_and_push.outputs.image }}
-          REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+          REGISTRY_HOST: ${{ needs.build_and_push.outputs.registry_host }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
