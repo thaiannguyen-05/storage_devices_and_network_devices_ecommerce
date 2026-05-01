@@ -52,20 +52,15 @@ jobs:
           IMAGE="${{ env.REGISTRY_IMAGE_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:${GITHUB_SHA}"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
-      - name: Login to private registry (HTTP)
-        run: |
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login "http://${{ secrets.REGISTRY_HOST }}" -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
-
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ steps.meta.outputs.image }}
-            ${{ env.REGISTRY_IMAGE_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:latest
           builder: builder
+          outputs: |
+            type=registry,name=${{ steps.meta.outputs.image }},registry.insecure=true,push=true
+            type=registry,name=${{ env.REGISTRY_IMAGE_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:latest,registry.insecure=true,push=true
 
   deploy_via_ssh:
     runs-on: ubuntu-latest
@@ -92,7 +87,7 @@ jobs:
           script: |
             set -e
 
-            echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY_HOST" -u "$REGISTRY_USERNAME" --password-stdin
+            echo "$REGISTRY_PASSWORD" | docker login "http://$REGISTRY_HOST" -u "$REGISTRY_USERNAME" --password-stdin
             docker pull "$IMAGE"
 
             docker rm -f "$CONTAINER_NAME" || true
