@@ -9,6 +9,8 @@ env:
   APP_NAME: ecommerce
   CONTAINER_NAME: ecommerce
   APP_PORT: "8080"
+  REGISTRY_IMAGE_HOST: ${{ secrets.REGISTRY_HOST }}
+  REGISTRY_LOGIN_HOST: http://${{ secrets.REGISTRY_HOST }}
 
 jobs:
   build_and_push:
@@ -48,13 +50,13 @@ jobs:
       - name: Prepare image tag
         id: meta
         run: |
-          IMAGE="${{ secrets.REGISTRY_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:${GITHUB_SHA}"
+          IMAGE="${{ env.REGISTRY_IMAGE_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:${GITHUB_SHA}"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
       - name: Login to private registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.REGISTRY_HOST }}
+          registry: ${{ env.REGISTRY_LOGIN_HOST }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
@@ -66,7 +68,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.meta.outputs.image }}
-            ${{ secrets.REGISTRY_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:latest
+            ${{ env.REGISTRY_IMAGE_HOST }}/${{ secrets.REGISTRY_NAMESPACE }}/${{ env.APP_NAME }}:latest
           builder: builder
 
   deploy_via_ssh:
