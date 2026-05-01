@@ -26,22 +26,13 @@ RUN ant -f build.xml clean dist -Dj2ee.server.home=${GLASSFISH_HOME} -Dplatforms
 
 FROM eclipse-temurin:17-jre-jammy
 
-ARG GLASSFISH_VERSION=6.1.0
-ENV GLASSFISH_HOME=/opt/glassfish \
+ENV GLASSFISH_HOME=/opt/glassfish6/glassfish \
     DOMAIN_NAME=domain1 \
     PORT=8080
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl unzip \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip" -o /tmp/glassfish.zip \
-    && unzip /tmp/glassfish.zip -d /opt \
-    && rm /tmp/glassfish.zip \
-    && ln -s /opt/glassfish6/glassfish /opt/glassfish
-
+COPY --from=builder /opt/glassfish6 /opt/glassfish6
 COPY --from=builder /app/dist/Ecommerce.war ${GLASSFISH_HOME}/domains/${DOMAIN_NAME}/autodeploy/Ecommerce.war
 
 EXPOSE 8080
 
-CMD ["/opt/glassfish/bin/asadmin", "start-domain", "--verbose", "domain1"]
+CMD ["/opt/glassfish6/glassfish/bin/asadmin", "start-domain", "--verbose", "domain1"]
