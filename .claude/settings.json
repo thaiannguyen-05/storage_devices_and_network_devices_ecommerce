@@ -8,7 +8,10 @@
       "Bash(grep -E \"\\(Repository|Service\\)\\\\.java$\")",
       "Bash(grep -E \"Controller\\\\.java$|Filter\\\\.java$|pipeService\\\\.java$|PaymentService\\\\.java$\")",
       "Bash(grep -E \"web\\\\.xml$\")",
-      "Bash(grep -n \"CREATE TABLE `User`\\\\|CREATE TABLE User\\\\|`User`\" \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/sto.sql\")"
+      "Bash(grep -n \"CREATE TABLE `User`\\\\|CREATE TABLE User\\\\|`User`\" \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/sto.sql\")",
+      "Bash(grep -E \"\\(Payment|Voucher|Order|ConfigService|Controller|Dto|Entity|Repository|Servlet|web.xml|\\\\.env|pom.xml\\)$\")",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs"
     ]
   }
 }

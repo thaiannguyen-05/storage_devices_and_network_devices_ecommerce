@@ -134,6 +134,7 @@
                             <label>Phương thức thanh toán</label>
                             <select id="paymentMethod" name="paymentMethod">
                                 <option value="COD">Thanh toán khi nhận hàng</option>
+                                <option value="SEPAY">Thanh toán online qua SePay</option>
                                 <option value="BANK_TRANSFER">Chuyển khoản ngân hàng</option>
                                 <option value="VISA">Thẻ Visa / MasterCard</option>
                                 <option value="ATM">Thẻ ATM nội địa</option>
