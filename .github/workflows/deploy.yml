@@ -98,7 +98,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           IMAGE: ${{ needs.build_and_push.outputs.image }}
-          REGISTRY_HOST: ${{ needs.build_and_push.outputs.registry_host }}
+          REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
@@ -117,6 +117,11 @@ jobs:
             HOST="${REGISTRY_HOST#http://}"
             HOST="${HOST#https://}"
             HOST="${HOST%/}"
+
+            if [ -z "$HOST" ]; then
+              echo "REGISTRY_HOST is empty after normalization"
+              exit 1
+            fi
 
             echo "$REGISTRY_PASSWORD" | docker login "$HOST" -u "$REGISTRY_USERNAME" --password-stdin
             docker pull "$IMAGE"
