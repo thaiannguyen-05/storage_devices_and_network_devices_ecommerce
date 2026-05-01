@@ -1,7 +1,7 @@
 
 FROM eclipse-temurin:17-jdk-jammy AS builder
 
-ARG GLASSFISH_VERSION=6.1.0
+ARG GLASSFISH_VERSION=7.0.12
 ENV GLASSFISH_HOME=/opt/glassfish \
     PATH="/opt/apache-ant/bin:${PATH}"
 
@@ -17,7 +17,7 @@ RUN curl -fsSL "https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-
 RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip" -o /tmp/glassfish.zip \
     && unzip /tmp/glassfish.zip -d /opt \
     && rm /tmp/glassfish.zip \
-    && ln -s /opt/glassfish6/glassfish /opt/glassfish
+    && ln -s /opt/glassfish7/glassfish /opt/glassfish
 
 WORKDIR /app
 COPY . .
@@ -26,13 +26,13 @@ RUN ant -f build.xml clean dist -Dj2ee.server.home=${GLASSFISH_HOME} -Dplatforms
 
 FROM eclipse-temurin:17-jre-jammy
 
-ENV GLASSFISH_HOME=/opt/glassfish6/glassfish \
+ENV GLASSFISH_HOME=/opt/glassfish7/glassfish \
     DOMAIN_NAME=domain1 \
     PORT=8080
 
-COPY --from=builder /opt/glassfish6 /opt/glassfish6
+COPY --from=builder /opt/glassfish7 /opt/glassfish7
 COPY --from=builder /app/dist/Ecommerce.war ${GLASSFISH_HOME}/domains/${DOMAIN_NAME}/autodeploy/Ecommerce.war
 
 EXPOSE 8080
 
-CMD ["/opt/glassfish6/glassfish/bin/asadmin", "start-domain", "--verbose", "domain1"]
+CMD ["/opt/glassfish7/glassfish/bin/asadmin", "start-domain", "--verbose", "domain1"]
