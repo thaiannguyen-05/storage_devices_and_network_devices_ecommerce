@@ -21,7 +21,7 @@ RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/
 WORKDIR /app
 COPY . .
 
-RUN ant -f build.xml clean dist -Dj2ee.server.home=${GLASSFISH_HOME}
+RUN ant -f build.xml clean dist -Dj2ee.server.home=${GLASSFISH_HOME} -Dplatforms.JDK_17.home=${JAVA_HOME}
 
 FROM eclipse-temurin:17-jre-jammy
 
