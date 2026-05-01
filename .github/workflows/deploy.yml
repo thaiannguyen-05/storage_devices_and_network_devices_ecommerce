@@ -114,7 +114,11 @@ jobs:
           script: |
             set -e
 
-            echo "$REGISTRY_PASSWORD" | docker login "http://$REGISTRY_HOST" -u "$REGISTRY_USERNAME" --password-stdin
+            HOST="${REGISTRY_HOST#http://}"
+            HOST="${HOST#https://}"
+            HOST="${HOST%/}"
+
+            echo "$REGISTRY_PASSWORD" | docker login "$HOST" -u "$REGISTRY_USERNAME" --password-stdin
             docker pull "$IMAGE"
 
             docker rm -f "$CONTAINER_NAME" || true
