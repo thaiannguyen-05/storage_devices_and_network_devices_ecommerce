@@ -40,11 +40,7 @@ RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/
     && rm /tmp/glassfish.zip \
     && ln -s /opt/glassfish6/glassfish /opt/glassfish
 
-COPY --from=builder /app/dist/Ecommerce.war /opt/Ecommerce.war
-
-RUN ${GLASSFISH_HOME}/bin/asadmin start-domain ${DOMAIN_NAME} \
-    && ${GLASSFISH_HOME}/bin/asadmin deploy --force=true --name Ecommerce /opt/Ecommerce.war \
-    && ${GLASSFISH_HOME}/bin/asadmin stop-domain ${DOMAIN_NAME}
+COPY --from=builder /app/dist/Ecommerce.war ${GLASSFISH_HOME}/domains/${DOMAIN_NAME}/autodeploy/Ecommerce.war
 
 EXPOSE 8080
 
