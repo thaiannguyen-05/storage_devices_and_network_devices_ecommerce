@@ -1,18 +1,15 @@
 package module.core.auth;
 
-import common.retry.FixedDelayRetryExecutor;
-import common.retry.RetryExecutor;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import entity.EmailVerificationCodeEntity;
 import entity.OutBoxEntity;
 import entity.PasswordResetTokenEntity;
 import entity.UserEntity;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
 import module.bussiness.notification.EmailService;
 import module.core.auth.dto.ForgotPasswordRequestDto;
 import module.core.auth.dto.ProfileRequestDto;
@@ -20,8 +17,6 @@ import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
 import module.core.auth.dto.VerifyEmailCodeRequestDto;
-import module.core.auth.repository.impl.EmailVerificationCodeRepository;
-import module.core.auth.repository.impl.PasswordResetTokenRepository;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
 import module.core.auth.response_dto.ProfileResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
@@ -29,30 +24,31 @@ import module.core.auth.response_dto.SigninResponseDto;
 import module.core.auth.response_dto.SignupResponseDto;
 import module.core.auth.response_dto.VerifyEmailCodeResponseDto;
 import module.core.config.ConfigService;
+import module.core.coreInterface.CoreInterface;
+import module.core.coreInterface.RetryDto;
 import module.core.shared.repository.impl.OutBoxRepository;
 import module.core.user.dto.CreateUserDto;
 import module.core.user.repository.impl.UserRepository;
 
 public class AuthService {
     private final UserRepository userRepository;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final EmailVerificationCodeRepository emailVerificationCodeRepository;
     private final OutBoxRepository outBoxRepository;
     private final EmailService emailService;
-    private final RetryExecutor retryExecutor;
+    private final RetryDto retryDto;
 
     public AuthService() {
         this.userRepository = new UserRepository();
-        this.passwordResetTokenRepository = new PasswordResetTokenRepository();
-        this.emailVerificationCodeRepository = new EmailVerificationCodeRepository();
         this.outBoxRepository = new OutBoxRepository();
         this.emailService = new EmailService();
-        this.retryExecutor = new FixedDelayRetryExecutor(3, 200L);
+        this.retryDto = new RetryDto();
+        this.retryDto.maxRetry = 3;
+        this.retryDto.retryTime = 200;
+        this.retryDto.maxTimeRetry = 1000;
+        this.retryDto.randomState = 1;
     }
 
     public SignupResponseDto signup(SignupRequestDto req) {
         SignupResponseDto res = new SignupResponseDto();
-
         String fullname = value(req.getFullname());
         String email = value(req.getEmail()).toLowerCase();
         String password = value(req.getPassword());
@@ -67,34 +63,37 @@ public class AuthService {
         dto.setName(fullname);
         dto.setEmail(email);
         dto.setDateOfBirth(LocalDate.parse(req.getDateOfBirth()));
-        dto.setHashPassword(hashPassword(password));
+        dto.setHashPassword(hashArgon2(password));
 
         try {
-            UserEntity createdUser = retryExecutor.execute(() -> userRepository.createUser(dto));
+            UserEntity createdUser = CoreInterface.retryInterface(() -> userRepository.createUser(dto), retryDto);
             String rawCode = generateVerificationCode();
-            String codeHash = sha256(rawCode);
+            String codeHash = hashArgon2(rawCode);
 
-            emailVerificationCodeRepository.invalidateAllByUserId(createdUser.getId());
-            emailVerificationCodeRepository.create(createdUser.getId(), codeHash, 10);
-
-            String payload = buildVerifyEmailPayload(createdUser, rawCode);
-            OutBoxEntity outbox = outBoxRepository.create(payload);
+            String payload = buildVerifyEmailPayload(createdUser, codeHash);
+            OutBoxEntity outbox = CoreInterface.retryInterface(() -> outBoxRepository.create(payload), retryDto);
 
             try {
-                emailService.sendVerificationCodeEmail(createdUser.getEmail(), createdUser.getName(), rawCode);
-                outBoxRepository.markProcessed(outbox.getId());
+                CoreInterface.retryInterface(() -> {
+                    emailService.sendVerificationCodeEmail(createdUser.getEmail(), createdUser.getName(), rawCode);
+                    return true;
+                }, retryDto);
+                CoreInterface.retryInterface(() -> outBoxRepository.markProcessed(outbox.getId()), retryDto);
                 res.setSuccess(true);
                 res.setUserName(createdUser.getName());
                 res.setUserEmail(createdUser.getEmail());
                 res.setUserRole(createdUser.getRole());
                 return res;
-            } catch (RuntimeException e) {
-                outBoxRepository.markFailed(outbox.getId());
+            } catch (Exception e) {
+                try {
+                    CoreInterface.retryInterface(() -> outBoxRepository.markFailed(outbox.getId()), retryDto);
+                } catch (Exception ignored) {
+                }
                 res.setSuccess(false);
                 res.setErrorMessage("Đăng ký thành công nhưng chưa gửi được mã xác thực. Vui lòng thử lại sau.");
                 return res;
             }
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             String message = e.getMessage() == null ? "Không thể tạo tài khoản. Vui lòng thử lại." : e.getMessage();
             res.setSuccess(false);
             res.setErrorMessage(message);
@@ -128,13 +127,20 @@ public class AuthService {
             return res;
         }
 
-        emailVerificationCodeRepository.markUsed(verificationCode.getId());
-        boolean activated = userRepository.activateById(user.getId());
-        if (!activated) {
+        try {
+            CoreInterface.retryInterface(() -> emailVerificationCodeRepository.markUsed(verificationCode.getId()), retryDto);
+            boolean activated = CoreInterface.retryInterface(() -> userRepository.activateById(user.getId()), retryDto);
+            if (!activated) {
+                res.setSuccess(false);
+                res.setErrorMessage("Không thể kích hoạt tài khoản. Vui lòng thử lại.");
+                return res;
+            }
+        } catch (Exception e) {
             res.setSuccess(false);
             res.setErrorMessage("Không thể kích hoạt tài khoản. Vui lòng thử lại.");
             return res;
         }
+
 
         res.setSuccess(true);
         res.setSuccessMessage("Xác thực email thành công. Bạn có thể đăng nhập.");
@@ -161,7 +167,7 @@ public class AuthService {
             return res;
         }
 
-        if (!verifyPassword(password, matched.getHashPassword())) {
+        if (!verifyPassword(password, matched.gethashArgon2())) {
             res.setSuccess(false);
             res.setErrorMessage("Mật khẩu không đúng.");
             return res;
@@ -184,14 +190,17 @@ public class AuthService {
         UserEntity matched = findUserByEmail(email);
         if (matched != null) {
             try {
-                passwordResetTokenRepository.invalidateAllByUserId(matched.getId());
+                CoreInterface.retryInterface(() -> passwordResetTokenRepository.invalidateAllByUserId(matched.getId()), retryDto);
                 String rawToken = UUID.randomUUID().toString() + UUID.randomUUID().toString().replace("-", "");
                 String tokenHash = sha256(rawToken);
-                passwordResetTokenRepository.create(matched.getId(), tokenHash, 15);
+                CoreInterface.retryInterface(() -> passwordResetTokenRepository.create(matched.getId(), tokenHash, 15), retryDto);
 
                 String baseUrl = ConfigService.getOrDefault("APP_BASE_URL", fallbackBaseUrl);
                 String resetLink = baseUrl + "/auth?action=resetPassword&token=" + rawToken;
-                emailService.sendPasswordResetEmail(matched.getEmail(), resetLink);
+                CoreInterface.retryInterface(() -> {
+                    emailService.sendPasswordResetEmail(matched.getEmail(), resetLink);
+                    return true;
+                }, retryDto);
             } catch (Exception e) {
                 String msg = e.getMessage() == null ? "Không thể gửi email lúc này." : e.getMessage();
                 res.setSuccess(false);
@@ -220,15 +229,21 @@ public class AuthService {
             return res;
         }
 
-        boolean updated = userRepository.updatePasswordById(validToken.getUserId(), hashPassword(newPassword));
-        if (!updated) {
+        try {
+            boolean updated = CoreInterface.retryInterface(() -> userRepository.updatePasswordById(validToken.getUserId(), hashArgon2(newPassword)), retryDto);
+            if (!updated) {
+                res.setSuccess(false);
+                res.setErrorMessage("Không thể cập nhật mật khẩu. Vui lòng thử lại.");
+                return res;
+            }
+
+            CoreInterface.retryInterface(() -> passwordResetTokenRepository.markUsed(validToken.getId()), retryDto);
+            CoreInterface.retryInterface(() -> passwordResetTokenRepository.invalidateAllByUserId(validToken.getUserId()), retryDto);
+        } catch (Exception e) {
             res.setSuccess(false);
             res.setErrorMessage("Không thể cập nhật mật khẩu. Vui lòng thử lại.");
             return res;
         }
-
-        passwordResetTokenRepository.markUsed(validToken.getId());
-        passwordResetTokenRepository.invalidateAllByUserId(validToken.getUserId());
 
         UserEntity updatedUser = userRepository.findById(validToken.getUserId());
         res.setSuccess(true);
@@ -270,25 +285,7 @@ public class AuthService {
         return input == null ? "" : input.trim();
     }
 
-    private String sha256(String raw) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(raw.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hex = new StringBuilder();
-            for (byte b : hash) {
-                String h = Integer.toHexString(0xff & b);
-                if (h.length() == 1) {
-                    hex.append('0');
-                }
-                hex.append(h);
-            }
-            return hex.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot hash token", e);
-        }
-    }
-
-    private String hashPassword(String password) {
+    private String hashArgon2(String password) {
         Argon2 argon2 = Argon2Factory.create();
         char[] pwd = password == null ? new char[0] : password.toCharArray();
         try {

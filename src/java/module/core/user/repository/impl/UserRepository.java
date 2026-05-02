@@ -30,7 +30,7 @@ public class UserRepository implements IUserRepository {
             ps.setString(2, dto.getName());
             ps.setObject(3, dto.getDateOfBirth());
             ps.setString(4, dto.getHashPassword());
-            ps.setString(5, "ACTIVE");
+            ps.setString(5, "PENDING");
             ps.setString(6, "USER");
             ps.setString(7, dto.getEmail());
 
@@ -44,7 +44,7 @@ public class UserRepository implements IUserRepository {
                     dto.getName(),
                     dto.getDateOfBirth(),
                     dto.getHashPassword(),
-                    "ACTIVE",
+                    "PENDING",
                     "USER",
                     dto.getEmail(),
                     now,
