@@ -1,4 +1,4 @@
-package module.core.shared.repository.impl;
+package module.core.outbox;
 
 import entity.OutBoxEntity;
 import java.sql.Connection;
@@ -8,19 +8,41 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import module.core.shared.repository.interfaces.IOutBoxRepository;
+
 import module.core.sql.ConnecDb;
 
 public class OutBoxRepository implements IOutBoxRepository {
 
     @Override
-    public OutBoxEntity create(String payload) {
-        String sql = "INSERT INTO `OutBox` (`id`, `payload`, `status`, `createdAt`, `updatedAt`) VALUES (?, CAST(? AS JSON), 'PENDING', NOW(), NOW())";
+    public OutBoxEntity findByUserIdAndType(String userId, String type) {
+        String sql = "SELECT `id`, `code`, `status`, `createdAt`, `updatedAt`, `type`, `userId` "
+                + "FROM `OutBox` "
+                + "WHERE `userId` = ? AND `type` = ? AND `status` IN ('PENDING', 'PROCESSED') "
+                + "ORDER BY `createdAt` DESC LIMIT 1";
+        try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            ps.setString(2, type);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+                return map(rs);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find outbox event", e);
+        }
+    }
+
+    @Override
+    public OutBoxEntity create(String userId, String code, String type) {
+        String sql = "INSERT INTO `OutBox` (`id`, `code`, `status`, `createdAt`, `updatedAt`, `type`, `userId`) VALUES (?, ?, 'PENDING', NOW(), NOW(), ?, ?)";
         String id = UUID.randomUUID().toString();
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
-            ps.setString(2, payload);
+            ps.setString(2, code);
+            ps.setString(3, type);
+            ps.setString(4, userId);
             int affectedRows = ps.executeUpdate();
             if (affectedRows == 0) {
                 throw new RuntimeException("Failed to create outbox event");
@@ -28,19 +50,7 @@ public class OutBoxRepository implements IOutBoxRepository {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create outbox event", e);
         }
-
-        String fetchSql = "SELECT `id`, `payload`, `status`, `createdAt`, `updatedAt` FROM `OutBox` WHERE `id` = ? LIMIT 1";
-        try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(fetchSql)) {
-            ps.setString(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    throw new RuntimeException("Failed to load outbox event");
-                }
-                return map(rs);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to load outbox event", e);
-        }
+        return new OutBoxEntity(id, code, "PENDING", LocalDateTime.now(), LocalDateTime.now(), type, userId);
     }
 
     @Override
@@ -72,10 +82,12 @@ public class OutBoxRepository implements IOutBoxRepository {
         LocalDateTime updatedAt = updatedAtTs == null ? null : updatedAtTs.toLocalDateTime();
         return new OutBoxEntity(
                 rs.getString("id"),
-                rs.getString("payload"),
+                rs.getString("code"),
                 rs.getString("status"),
                 createdAt,
-                updatedAt
+                updatedAt,
+                rs.getString("type"),
+                rs.getString("userId")
         );
     }
 }

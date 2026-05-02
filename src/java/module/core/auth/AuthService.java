@@ -26,7 +26,8 @@ import module.core.auth.response_dto.VerifyEmailCodeResponseDto;
 import module.core.config.ConfigService;
 import module.core.coreInterface.CoreInterface;
 import module.core.coreInterface.RetryDto;
-import module.core.shared.repository.impl.OutBoxRepository;
+import module.core.outbox.OutBoxRepository;
+import module.core.outbox.TypeEvent;
 import module.core.user.dto.CreateUserDto;
 import module.core.user.repository.impl.UserRepository;
 
@@ -35,12 +36,14 @@ public class AuthService {
     private final OutBoxRepository outBoxRepository;
     private final EmailService emailService;
     private final RetryDto retryDto;
+    private final TypeEvent typeEventOubox;
 
     public AuthService() {
         this.userRepository = new UserRepository();
         this.outBoxRepository = new OutBoxRepository();
         this.emailService = new EmailService();
         this.retryDto = new RetryDto();
+        this.typeEventOubox = new TypeEvent();
         this.retryDto.maxRetry = 3;
         this.retryDto.retryTime = 200;
         this.retryDto.maxTimeRetry = 1000;
@@ -70,8 +73,7 @@ public class AuthService {
             String rawCode = generateVerificationCode();
             String codeHash = hashArgon2(rawCode);
 
-            String payload = buildVerifyEmailPayload(createdUser, codeHash);
-            OutBoxEntity outbox = CoreInterface.retryInterface(() -> outBoxRepository.create(payload), retryDto);
+            OutBoxEntity outbox = CoreInterface.retryInterface(() -> outBoxRepository.create(createdUser.getId(), codeHash, typeEventOubox.getSendVerifyEmail()), retryDto);
 
             try {
                 CoreInterface.retryInterface(() -> {
@@ -114,21 +116,20 @@ public class AuthService {
             return res;
         }
 
-        EmailVerificationCodeEntity verificationCode = emailVerificationCodeRepository.findValidByUserId(user.getId());
-        if (verificationCode == null) {
+        OutBoxEntity outbox = outBoxRepository.findByUserIdAndType(user.getId(), TypeEvent.SEND_VERIFY_EMAIL);
+        if (outbox == null) {
             res.setSuccess(false);
             res.setErrorMessage("Mã xác thực không hợp lệ hoặc đã hết hạn.");
             return res;
         }
 
-        if (!sha256(code).equals(verificationCode.getCodeHash())) {
+        if (!verifyArgon2(code, outbox.getCode())) {
             res.setSuccess(false);
             res.setErrorMessage("Mã xác thực không đúng.");
             return res;
         }
 
         try {
-            CoreInterface.retryInterface(() -> emailVerificationCodeRepository.markUsed(verificationCode.getId()), retryDto);
             boolean activated = CoreInterface.retryInterface(() -> userRepository.activateById(user.getId()), retryDto);
             if (!activated) {
                 res.setSuccess(false);
@@ -295,7 +296,7 @@ public class AuthService {
         }
     }
 
-    private boolean verifyPassword(String rawPassword, String hash) {
+    private boolean verifyArgon2(String rawPassword, String hash) {
         Argon2 argon2 = Argon2Factory.create();
         char[] pwd = rawPassword == null ? new char[0] : rawPassword.toCharArray();
         try {
@@ -308,22 +309,5 @@ public class AuthService {
     private String generateVerificationCode() {
         int value = 100000 + (int) (Math.random() * 900000);
         return String.valueOf(value);
-    }
-
-    private String buildVerifyEmailPayload(UserEntity user, String code) {
-        String safeName = escapeJson(value(user.getName()));
-        String safeEmail = escapeJson(value(user.getEmail()));
-        String safeCode = escapeJson(value(code));
-        return "{"
-                + "\"eventType\":\"SEND_VERIFY_EMAIL\","
-                + "\"userId\":\"" + user.getId() + "\","
-                + "\"email\":\"" + safeEmail + "\","
-                + "\"name\":\"" + safeName + "\","
-                + "\"code\":\"" + safeCode + "\""
-                + "}";
-    }
-
-    private String escapeJson(String value) {
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
