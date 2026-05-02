@@ -141,6 +141,18 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
+    public boolean activateById(String id) {
+        String sql = "UPDATE `User` SET `status` = 'ACTIVE', `updatedAt` = NOW() WHERE `id` = ?";
+
+        try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to activate user", e);
+        }
+    }
+
+    @Override
     public boolean delete(String id) {
         String sql = "DELETE FROM `User` WHERE `id` = ?";
 

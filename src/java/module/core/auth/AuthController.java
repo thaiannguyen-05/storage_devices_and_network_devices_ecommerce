@@ -11,11 +11,13 @@ import module.core.auth.dto.ProfileRequestDto;
 import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
+import module.core.auth.dto.VerifyEmailCodeRequestDto;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
 import module.core.auth.response_dto.ProfileResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
 import module.core.auth.response_dto.SignupResponseDto;
+import module.core.auth.response_dto.VerifyEmailCodeResponseDto;
 
 @WebServlet(name = "auth", urlPatterns = {"/auth"})
 public class AuthController extends HttpServlet {
@@ -44,6 +46,9 @@ public class AuthController extends HttpServlet {
                     request.setAttribute("error", "Link đặt lại mật khẩu không hợp lệ.");
                 }
                 request.getRequestDispatcher("/views/auth/reset-password.jsp").forward(request, response);
+                break;
+            case "verifyEmail":
+                request.getRequestDispatcher("/views/auth/verify-email.jsp").forward(request, response);
                 break;
             case "profile":
                 handleProfile(request, response);
@@ -85,6 +90,11 @@ public class AuthController extends HttpServlet {
             return;
         }
 
+        if ("verifyEmail".equalsIgnoreCase(action)) {
+            handleVerifyEmail(request, response);
+            return;
+        }
+
         doGet(request, response);
     }
 
@@ -112,10 +122,9 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        request.getSession(true).setAttribute("authUserName", result.getUserName());
-        request.getSession().setAttribute("authUserEmail", result.getUserEmail());
-        request.getSession().setAttribute("authUserRole", result.getUserRole());
-        response.sendRedirect(request.getContextPath() + "/product");
+        request.setAttribute("success", "Đăng ký thành công. Vui lòng nhập mã xác thực đã gửi qua email.");
+        request.setAttribute("email", result.getUserEmail());
+        request.getRequestDispatcher("/views/auth/verify-email.jsp").forward(request, response);
     }
 
     private void handleSignin(HttpServletRequest request, HttpServletResponse response)
@@ -180,6 +189,25 @@ public class AuthController extends HttpServlet {
             request.getSession().setAttribute("authUserRole", result.getUserRole());
         }
         response.sendRedirect(request.getContextPath() + "/product");
+    }
+
+    private void handleVerifyEmail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        VerifyEmailCodeRequestDto dto = new VerifyEmailCodeRequestDto();
+        dto.setEmail(value(request.getParameter("email")));
+        dto.setCode(value(request.getParameter("code")));
+
+        request.setAttribute("email", dto.getEmail());
+
+        VerifyEmailCodeResponseDto result = authService.verifyEmailCode(dto);
+        if (!result.isSuccess()) {
+            request.setAttribute("error", result.getErrorMessage());
+            request.getRequestDispatcher("/views/auth/verify-email.jsp").forward(request, response);
+            return;
+        }
+
+        request.setAttribute("success", result.getSuccessMessage());
+        request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
     private void handleProfile(HttpServletRequest request, HttpServletResponse response)

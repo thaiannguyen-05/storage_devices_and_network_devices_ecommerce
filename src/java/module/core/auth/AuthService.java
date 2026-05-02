@@ -4,10 +4,13 @@ import common.retry.FixedDelayRetryExecutor;
 import common.retry.RetryExecutor;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
+import entity.EmailVerificationCodeEntity;
+import entity.OutBoxEntity;
 import entity.PasswordResetTokenEntity;
 import entity.UserEntity;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import module.bussiness.notification.EmailService;
@@ -16,25 +19,33 @@ import module.core.auth.dto.ProfileRequestDto;
 import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
+import module.core.auth.dto.VerifyEmailCodeRequestDto;
+import module.core.auth.repository.impl.EmailVerificationCodeRepository;
 import module.core.auth.repository.impl.PasswordResetTokenRepository;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
 import module.core.auth.response_dto.ProfileResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
 import module.core.auth.response_dto.SignupResponseDto;
+import module.core.auth.response_dto.VerifyEmailCodeResponseDto;
 import module.core.config.ConfigService;
+import module.core.shared.repository.impl.OutBoxRepository;
 import module.core.user.dto.CreateUserDto;
 import module.core.user.repository.impl.UserRepository;
 
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailVerificationCodeRepository emailVerificationCodeRepository;
+    private final OutBoxRepository outBoxRepository;
     private final EmailService emailService;
     private final RetryExecutor retryExecutor;
 
     public AuthService() {
         this.userRepository = new UserRepository();
         this.passwordResetTokenRepository = new PasswordResetTokenRepository();
+        this.emailVerificationCodeRepository = new EmailVerificationCodeRepository();
+        this.outBoxRepository = new OutBoxRepository();
         this.emailService = new EmailService();
         this.retryExecutor = new FixedDelayRetryExecutor(3, 200L);
     }
@@ -55,22 +66,79 @@ public class AuthService {
         CreateUserDto dto = new CreateUserDto();
         dto.setName(fullname);
         dto.setEmail(email);
-        dto.setDateOfBirth(java.time.LocalDate.parse(req.getDateOfBirth()));
+        dto.setDateOfBirth(LocalDate.parse(req.getDateOfBirth()));
         dto.setHashPassword(hashPassword(password));
 
         try {
             UserEntity createdUser = retryExecutor.execute(() -> userRepository.createUser(dto));
-            res.setSuccess(true);
-            res.setUserName(createdUser.getName());
-            res.setUserEmail(createdUser.getEmail());
-            res.setUserRole(createdUser.getRole());
-            return res;
+            String rawCode = generateVerificationCode();
+            String codeHash = sha256(rawCode);
+
+            emailVerificationCodeRepository.invalidateAllByUserId(createdUser.getId());
+            emailVerificationCodeRepository.create(createdUser.getId(), codeHash, 10);
+
+            String payload = buildVerifyEmailPayload(createdUser, rawCode);
+            OutBoxEntity outbox = outBoxRepository.create(payload);
+
+            try {
+                emailService.sendVerificationCodeEmail(createdUser.getEmail(), createdUser.getName(), rawCode);
+                outBoxRepository.markProcessed(outbox.getId());
+                res.setSuccess(true);
+                res.setUserName(createdUser.getName());
+                res.setUserEmail(createdUser.getEmail());
+                res.setUserRole(createdUser.getRole());
+                return res;
+            } catch (RuntimeException e) {
+                outBoxRepository.markFailed(outbox.getId());
+                res.setSuccess(false);
+                res.setErrorMessage("Đăng ký thành công nhưng chưa gửi được mã xác thực. Vui lòng thử lại sau.");
+                return res;
+            }
         } catch (RuntimeException e) {
             String message = e.getMessage() == null ? "Không thể tạo tài khoản. Vui lòng thử lại." : e.getMessage();
             res.setSuccess(false);
             res.setErrorMessage(message);
             return res;
         }
+    }
+
+    public VerifyEmailCodeResponseDto verifyEmailCode(VerifyEmailCodeRequestDto req) {
+        VerifyEmailCodeResponseDto res = new VerifyEmailCodeResponseDto();
+
+        String email = value(req.getEmail()).toLowerCase();
+        String code = value(req.getCode());
+
+        UserEntity user = findUserByEmail(email);
+        if (user == null) {
+            res.setSuccess(false);
+            res.setErrorMessage("Tài khoản không tồn tại.");
+            return res;
+        }
+
+        EmailVerificationCodeEntity verificationCode = emailVerificationCodeRepository.findValidByUserId(user.getId());
+        if (verificationCode == null) {
+            res.setSuccess(false);
+            res.setErrorMessage("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+            return res;
+        }
+
+        if (!sha256(code).equals(verificationCode.getCodeHash())) {
+            res.setSuccess(false);
+            res.setErrorMessage("Mã xác thực không đúng.");
+            return res;
+        }
+
+        emailVerificationCodeRepository.markUsed(verificationCode.getId());
+        boolean activated = userRepository.activateById(user.getId());
+        if (!activated) {
+            res.setSuccess(false);
+            res.setErrorMessage("Không thể kích hoạt tài khoản. Vui lòng thử lại.");
+            return res;
+        }
+
+        res.setSuccess(true);
+        res.setSuccessMessage("Xác thực email thành công. Bạn có thể đăng nhập.");
+        return res;
     }
 
     public SigninResponseDto signin(SigninRequestDto req) {
@@ -84,6 +152,12 @@ public class AuthService {
         if (matched == null) {
             res.setSuccess(false);
             res.setErrorMessage("Tài khoản không tồn tại.");
+            return res;
+        }
+
+        if (!"ACTIVE".equalsIgnoreCase(matched.getStatus())) {
+            res.setSuccess(false);
+            res.setErrorMessage("Tài khoản chưa xác thực email.");
             return res;
         }
 
@@ -234,4 +308,25 @@ public class AuthService {
         }
     }
 
+    private String generateVerificationCode() {
+        int value = 100000 + (int) (Math.random() * 900000);
+        return String.valueOf(value);
+    }
+
+    private String buildVerifyEmailPayload(UserEntity user, String code) {
+        String safeName = escapeJson(value(user.getName()));
+        String safeEmail = escapeJson(value(user.getEmail()));
+        String safeCode = escapeJson(value(code));
+        return "{"
+                + "\"eventType\":\"SEND_VERIFY_EMAIL\","
+                + "\"userId\":\"" + user.getId() + "\","
+                + "\"email\":\"" + safeEmail + "\","
+                + "\"name\":\"" + safeName + "\","
+                + "\"code\":\"" + safeCode + "\""
+                + "}";
+    }
+
+    private String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
 }

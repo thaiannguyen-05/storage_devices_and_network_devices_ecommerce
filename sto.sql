@@ -2,6 +2,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `Payment`;
 DROP TABLE IF EXISTS `PasswordResetToken`;
+DROP TABLE IF EXISTS `EmailVerificationCode`;
 DROP TABLE IF EXISTS `Session`;
 DROP TABLE IF EXISTS `SavedProduct`;
 DROP TABLE IF EXISTS `OrderCart`;
@@ -36,6 +37,18 @@ CREATE TABLE `OutBox` (
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `EmailVerificationCode` (
+    `id` CHAR(36) NOT NULL,
+    `userId` CHAR(36) NOT NULL,
+    `codeHash` VARCHAR(255) NOT NULL,
+    `expiresAt` DATETIME NOT NULL,
+    `usedAt` DATETIME NULL,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `emailverificationcode_userid_index` (`userId`),
+    CONSTRAINT `emailverificationcode_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Brand` (

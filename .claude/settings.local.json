@@ -12,7 +12,11 @@
       "Bash(grep \"\\\\.class$\")",
       "Bash(curl -fsSL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm/2.11/\")",
       "Bash(curl -fsSL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm/2.11/argon2-jvm-2.11.pom\")",
-      "Bash(curl -fL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm-nolibs/2.11/argon2-jvm-nolibs-2.11.jar\" -o \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/lib/argon2-jvm-nolibs-2.11.jar\")"
+      "Bash(curl -fL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm-nolibs/2.11/argon2-jvm-nolibs-2.11.jar\" -o \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/lib/argon2-jvm-nolibs-2.11.jar\")",
+      "Bash(grep -E \"/\\(java|src\\)$|/src/java\")",
+      "Bash(grep -E \"\\(sto\\\\.sql|\\\\.sql$|documents/.+\\)\")",
+      "Bash(OutBox)",
+      "Bash(grep -RIn \"OutBoxRepository\\\\|IOutBoxRepository\\\\|OutBoxEntity\\\\|INSERT INTO `OutBox`\\\\|UPDATE `OutBox`\\\\|FROM `OutBox`\" \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/src/java\")"
     ]
   }
 }
