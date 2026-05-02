@@ -6,7 +6,13 @@
       "Bash(ant:*)",
       "Bash(mkdir -p \"C:/workspace/work/Th_WEB/26_02/BTL/Ecommerce/src/java/module/bussiness/product/dto\")",
       "Bash(mkdir -p \"C:/workspace/work/Th_WEB/26_02/BTL/Ecommerce/src/java/module/bussiness/order/dto\")",
-      "Bash(xargs '-I{}' sh -c 'p=\"{}\"; pkg=$\\(grep -m1 \"^package \" \"$p\" | sed \"s/package //;s/;//\"\\); echo \"$p|$pkg\"')"
+      "Bash(xargs '-I{}' sh -c 'p=\"{}\"; pkg=$\\(grep -m1 \"^package \" \"$p\" | sed \"s/package //;s/;//\"\\); echo \"$p|$pkg\"')",
+      "Bash(curl -fL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm/2.11/argon2-jvm-2.11.jar\" -o \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/lib/argon2-jvm-2.11.jar\")",
+      "Bash(jar tf *)",
+      "Bash(grep \"\\\\.class$\")",
+      "Bash(curl -fsSL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm/2.11/\")",
+      "Bash(curl -fsSL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm/2.11/argon2-jvm-2.11.pom\")",
+      "Bash(curl -fL \"https://repo1.maven.org/maven2/de/mkammerer/argon2-jvm-nolibs/2.11/argon2-jvm-nolibs-2.11.jar\" -o \"/home/andev/dev/projects/storage_devices_and_network_devices_ecommerce/lib/argon2-jvm-nolibs-2.11.jar\")"
     ]
   }
 }

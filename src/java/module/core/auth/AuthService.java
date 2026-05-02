@@ -1,12 +1,13 @@
 package module.core.auth;
 
+import common.retry.FixedDelayRetryExecutor;
+import common.retry.RetryExecutor;
+import de.mkammerer.argon2.Argon2;
+import de.mkammerer.argon2.Argon2Factory;
 import entity.PasswordResetTokenEntity;
 import entity.UserEntity;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 import module.bussiness.notification.EmailService;
@@ -29,11 +30,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
+    private final RetryExecutor retryExecutor;
 
     public AuthService() {
         this.userRepository = new UserRepository();
         this.passwordResetTokenRepository = new PasswordResetTokenRepository();
         this.emailService = new EmailService();
+        this.retryExecutor = new FixedDelayRetryExecutor(3, 200L);
     }
 
     public SignupResponseDto signup(SignupRequestDto req) {
@@ -42,49 +45,6 @@ public class AuthService {
         String fullname = value(req.getFullname());
         String email = value(req.getEmail()).toLowerCase();
         String password = value(req.getPassword());
-        String confirmPassword = value(req.getConfirmPassword());
-        String dateOfBirthRaw = value(req.getDateOfBirth());
-
-        if (fullname.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank() || dateOfBirthRaw.isBlank()) {
-            res.setSuccess(false);
-            res.setErrorMessage("Vui lòng nhập đầy đủ thông tin.");
-            return res;
-        }
-
-        if (!email.endsWith("@gmail.com")) {
-            res.setSuccess(false);
-            res.setErrorMessage("Email phải có đuôi @gmail.com.");
-            return res;
-        }
-
-        if (!password.equals(confirmPassword)) {
-            res.setSuccess(false);
-            res.setErrorMessage("Xác nhận mật khẩu không khớp.");
-            return res;
-        }
-
-        if (!req.isAcceptTerms()) {
-            res.setSuccess(false);
-            res.setErrorMessage("Bạn cần đồng ý điều khoản trước khi đăng ký.");
-            return res;
-        }
-
-        LocalDate dateOfBirth;
-        try {
-            dateOfBirth = LocalDate.parse(dateOfBirthRaw);
-        } catch (DateTimeParseException e) {
-            res.setSuccess(false);
-            res.setErrorMessage("Ngày sinh không hợp lệ.");
-            return res;
-        }
-
-        int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
-        if (age < 18) {
-            res.setSuccess(false);
-            res.setErrorMessage("Bạn phải đủ 18 tuổi trở lên để đăng ký.");
-            return res;
-        }
-
         UserEntity existed = findUserByEmail(email);
         if (existed != null) {
             res.setSuccess(false);
@@ -95,15 +55,22 @@ public class AuthService {
         CreateUserDto dto = new CreateUserDto();
         dto.setName(fullname);
         dto.setEmail(email);
-        dto.setDateOfBirth(dateOfBirth);
-        dto.setHashPassword(sha256(password));
+        dto.setDateOfBirth(java.time.LocalDate.parse(req.getDateOfBirth()));
+        dto.setHashPassword(hashPassword(password));
 
-        UserEntity createdUser = userRepository.createUser(dto);
-        res.setSuccess(true);
-        res.setUserName(createdUser.getName());
-        res.setUserEmail(createdUser.getEmail());
-        res.setUserRole(createdUser.getRole());
-        return res;
+        try {
+            UserEntity createdUser = retryExecutor.execute(() -> userRepository.createUser(dto));
+            res.setSuccess(true);
+            res.setUserName(createdUser.getName());
+            res.setUserEmail(createdUser.getEmail());
+            res.setUserRole(createdUser.getRole());
+            return res;
+        } catch (RuntimeException e) {
+            String message = e.getMessage() == null ? "Không thể tạo tài khoản. Vui lòng thử lại." : e.getMessage();
+            res.setSuccess(false);
+            res.setErrorMessage(message);
+            return res;
+        }
     }
 
     public SigninResponseDto signin(SigninRequestDto req) {
@@ -113,12 +80,6 @@ public class AuthService {
         String password = value(req.getPassword());
         res.setUsername(username);
 
-        if (username.isBlank() || password.isBlank()) {
-            res.setSuccess(false);
-            res.setErrorMessage("Vui lòng nhập email và mật khẩu.");
-            return res;
-        }
-
         UserEntity matched = findUserByEmail(username);
         if (matched == null) {
             res.setSuccess(false);
@@ -126,7 +87,7 @@ public class AuthService {
             return res;
         }
 
-        if (!sha256(password).equals(matched.getHashPassword())) {
+        if (!verifyPassword(password, matched.getHashPassword())) {
             res.setSuccess(false);
             res.setErrorMessage("Mật khẩu không đúng.");
             return res;
@@ -145,12 +106,6 @@ public class AuthService {
         String email = value(req.getEmail()).toLowerCase();
         String fallbackBaseUrl = value(req.getBaseUrl());
         res.setEmail(email);
-
-        if (email.isBlank()) {
-            res.setSuccess(false);
-            res.setErrorMessage("Vui lòng nhập email.");
-            return res;
-        }
 
         UserEntity matched = findUserByEmail(email);
         if (matched != null) {
@@ -181,32 +136,7 @@ public class AuthService {
 
         String token = value(req.getToken());
         String newPassword = value(req.getNewPassword());
-        String confirmNewPassword = value(req.getConfirmNewPassword());
         res.setToken(token);
-
-        if (token.isBlank()) {
-            res.setSuccess(false);
-            res.setErrorMessage("Link đặt lại mật khẩu không hợp lệ.");
-            return res;
-        }
-
-        if (newPassword.isBlank() || confirmNewPassword.isBlank()) {
-            res.setSuccess(false);
-            res.setErrorMessage("Vui lòng nhập đầy đủ mật khẩu mới.");
-            return res;
-        }
-
-        if (!newPassword.equals(confirmNewPassword)) {
-            res.setSuccess(false);
-            res.setErrorMessage("Xác nhận mật khẩu mới không khớp.");
-            return res;
-        }
-
-        if (!newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
-            res.setSuccess(false);
-            res.setErrorMessage("Mật khẩu mới chưa đúng định dạng bảo mật.");
-            return res;
-        }
 
         String tokenHash = sha256(token);
         PasswordResetTokenEntity validToken = passwordResetTokenRepository.findValidByTokenHash(tokenHash);
@@ -216,7 +146,7 @@ public class AuthService {
             return res;
         }
 
-        boolean updated = userRepository.updatePasswordById(validToken.getUserId(), sha256(newPassword));
+        boolean updated = userRepository.updatePasswordById(validToken.getUserId(), hashPassword(newPassword));
         if (!updated) {
             res.setSuccess(false);
             res.setErrorMessage("Không thể cập nhật mật khẩu. Vui lòng thử lại.");
@@ -240,12 +170,6 @@ public class AuthService {
         ProfileResponseDto res = new ProfileResponseDto();
 
         String authUserEmail = value(req.getAuthUserEmail());
-        if (authUserEmail.isBlank()) {
-            res.setSuccess(false);
-            res.setErrorMessage("Không tìm thấy thông tin tài khoản. Vui lòng đăng nhập lại.");
-            return res;
-        }
-
         UserEntity matched = findUserByEmail(authUserEmail);
         if (matched == null) {
             res.setSuccess(false);
@@ -286,7 +210,28 @@ public class AuthService {
             }
             return hex.toString();
         } catch (Exception e) {
-            throw new RuntimeException("Cannot hash password", e);
+            throw new RuntimeException("Cannot hash token", e);
         }
     }
+
+    private String hashPassword(String password) {
+        Argon2 argon2 = Argon2Factory.create();
+        char[] pwd = password == null ? new char[0] : password.toCharArray();
+        try {
+            return argon2.hash(3, 65536, 1, pwd);
+        } finally {
+            argon2.wipeArray(pwd);
+        }
+    }
+
+    private boolean verifyPassword(String rawPassword, String hash) {
+        Argon2 argon2 = Argon2Factory.create();
+        char[] pwd = rawPassword == null ? new char[0] : rawPassword.toCharArray();
+        try {
+            return argon2.verify(hash, pwd);
+        } finally {
+            argon2.wipeArray(pwd);
+        }
+    }
+
 }
