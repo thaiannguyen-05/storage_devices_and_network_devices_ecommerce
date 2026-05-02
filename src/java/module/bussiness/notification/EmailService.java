@@ -1,4 +1,4 @@
-package module.core.auth.service;
+package module.bussiness.notification;
 
 import java.util.Properties;
 import jakarta.mail.Authenticator;
