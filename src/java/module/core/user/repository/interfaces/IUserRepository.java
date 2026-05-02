@@ -12,5 +12,6 @@ public interface IUserRepository {
     UserEntity findById(String id);
     boolean update(String id, UpdateUserDto dto);
     boolean updatePasswordById(String id, String hashPassword);
+    boolean activateById(String id);
     boolean delete(String id);
 }
