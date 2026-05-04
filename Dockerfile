@@ -1,21 +1,18 @@
-
 FROM eclipse-temurin:17-jdk-jammy AS builder
 
 ARG GLASSFISH_VERSION=7.0.12
 ENV GLASSFISH_HOME=/opt/glassfish \
     PATH="/opt/apache-ant/bin:${PATH}"
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl unzip \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN curl -fsSL "https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-bin.zip" -o /tmp/ant.zip \
-    && unzip /tmp/ant.zip -d /opt \
+ADD https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-bin.zip /tmp/ant.zip
+RUN cd /opt \
+    && jar xf /tmp/ant.zip \
     && ln -s /opt/apache-ant-1.10.14 /opt/apache-ant \
     && rm /tmp/ant.zip
 
-RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip" -o /tmp/glassfish.zip \
-    && unzip /tmp/glassfish.zip -d /opt \
+ADD https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip /tmp/glassfish.zip
+RUN cd /opt \
+    && jar xf /tmp/glassfish.zip \
     && rm /tmp/glassfish.zip \
     && ln -s /opt/glassfish7/glassfish /opt/glassfish
 
@@ -24,7 +21,7 @@ COPY . .
 
 RUN ant -f build.xml clean dist -Dj2ee.server.home=${GLASSFISH_HOME} -Dplatforms.JDK_17.home=${JAVA_HOME}
 
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17-jdk-jammy
 
 ENV GLASSFISH_HOME=/opt/glassfish7/glassfish \
     DOMAIN_NAME=domain1 \
