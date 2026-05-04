@@ -28,11 +28,21 @@ COPY lib ./lib
 COPY src ./src
 COPY web ./web
 
-RUN grep -n "private String safe" /app/src/java/module/bussiness/payment/PaymentService.java \
-    && grep -n "private String signFields" /app/src/java/module/bussiness/payment/PaymentService.java \
-    && grep -n "private Map<String, Object> body" /app/src/java/module/bussiness/payment/PaymentService.java \
-    && grep -n "private void handleSePayQuery" /app/src/java/module/bussiness/payment/PaymentController.java \
-    && grep -n "import module.core.config.ConfigService;" /app/src/java/module/bussiness/payment/PaymentController.java
+RUN set -eux; \
+    echo "=== PaymentService markers ==="; \
+    grep -n "private String safe" /app/src/java/module/bussiness/payment/PaymentService.java || true; \
+    grep -n "private String signFields" /app/src/java/module/bussiness/payment/PaymentService.java || true; \
+    grep -n "private Map<String, Object> body" /app/src/java/module/bussiness/payment/PaymentService.java || true; \
+    grep -n "private String normalizePaymentMethod" /app/src/java/module/bussiness/payment/PaymentService.java || true; \
+    echo "=== PaymentController markers ==="; \
+    grep -n "private void handleSePayQuery" /app/src/java/module/bussiness/payment/PaymentController.java || true; \
+    grep -n "private void handleSePayCancel" /app/src/java/module/bussiness/payment/PaymentController.java || true; \
+    grep -n "private void handleSePayVoid" /app/src/java/module/bussiness/payment/PaymentController.java || true; \
+    grep -n "import module.core.config.ConfigService;" /app/src/java/module/bussiness/payment/PaymentController.java || true; \
+    echo "=== Payment file stats ==="; \
+    wc -l /app/src/java/module/bussiness/payment/PaymentService.java /app/src/java/module/bussiness/payment/PaymentController.java; \
+    head -n 40 /app/src/java/module/bussiness/payment/PaymentService.java; \
+    head -n 40 /app/src/java/module/bussiness/payment/PaymentController.java
 
 RUN ant clean dist -Dj2ee.server.home=${GLASSFISH_HOME} -Dplatforms.JDK_17.home=${JAVA_HOME}
 

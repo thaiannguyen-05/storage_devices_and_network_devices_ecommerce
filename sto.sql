@@ -1,6 +1,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `Payment`;
+DROP TABLE IF EXISTS `ProductReview`;
 DROP TABLE IF EXISTS `Session`;
 DROP TABLE IF EXISTS `SavedProduct`;
 DROP TABLE IF EXISTS `OrderCart`;
@@ -53,7 +54,7 @@ CREATE TABLE `Brand` (
     `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `brand_userid_index` (`userId`),
-    CONSTRAINT `brand_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+    CONSTRAINT `brand_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Product` (
@@ -69,8 +70,8 @@ CREATE TABLE `Product` (
     PRIMARY KEY (`id`),
     KEY `product_brandid_index` (`brandId`),
     KEY `product_userid_index` (`userId`),
-    CONSTRAINT `product_brandid_foreign` FOREIGN KEY (`brandId`) REFERENCES `Brand` (`id`),
-    CONSTRAINT `product_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+    CONSTRAINT `product_brandid_foreign` FOREIGN KEY (`brandId`) REFERENCES `Brand` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `product_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `ProductVariant` (
@@ -86,7 +87,20 @@ CREATE TABLE `ProductVariant` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `productvariant_sku_unique` (`sku`),
     KEY `productvariant_productid_index` (`productId`),
-    CONSTRAINT `productvariant_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`)
+    CONSTRAINT `productvariant_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `ProductReview` (
+    `id` CHAR(36) NOT NULL,
+    `productId` CHAR(36) NOT NULL,
+    `reviewerName` VARCHAR(255) NOT NULL,
+    `rating` INT NOT NULL,
+    `comment` TEXT NOT NULL,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `productreview_productid_createdat_index` (`productId`, `createdAt`),
+    CONSTRAINT `productreview_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `productreview_rating_check` CHECK (`rating` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Order` (
@@ -98,8 +112,8 @@ CREATE TABLE `Order` (
     PRIMARY KEY (`id`),
     KEY `order_userid_index` (`userId`),
     KEY `order_productid_index` (`productId`),
-    CONSTRAINT `order_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`),
-    CONSTRAINT `order_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`)
+    CONSTRAINT `order_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `order_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Payment` (
@@ -120,8 +134,9 @@ CREATE TABLE `Payment` (
     PRIMARY KEY (`id`),
     KEY `payment_orderid_index` (`orderId`),
     KEY `payment_userid_index` (`userId`),
-    CONSTRAINT `payment_orderid_foreign` FOREIGN KEY (`orderId`) REFERENCES `Order` (`id`),
-    CONSTRAINT `payment_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+    KEY `payment_status_index` (`status`),
+    CONSTRAINT `payment_orderid_foreign` FOREIGN KEY (`orderId`) REFERENCES `Order` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `payment_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Voucher` (
@@ -133,7 +148,7 @@ CREATE TABLE `Voucher` (
     `quantity` INT NOT NULL,
     PRIMARY KEY (`id`),
     KEY `voucher_userid_index` (`userId`),
-    CONSTRAINT `voucher_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+    CONSTRAINT `voucher_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `OrderCart` (
@@ -142,7 +157,7 @@ CREATE TABLE `OrderCart` (
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `ordercart_userid_index` (`userId`),
-    CONSTRAINT `ordercart_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+    CONSTRAINT `ordercart_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `SavedProduct` (
@@ -152,7 +167,7 @@ CREATE TABLE `SavedProduct` (
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `savedproduct_productid_index` (`productId`),
-    CONSTRAINT `savedproduct_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`)
+    CONSTRAINT `savedproduct_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Session` (
