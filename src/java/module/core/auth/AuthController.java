@@ -19,6 +19,7 @@ import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
 import module.core.auth.response_dto.SignupResponseDto;
 import module.core.auth.response_dto.VerifyEmailCodeResponseDto;
+import module.core.config.ConfigService;
 
 @WebServlet(name = "auth", urlPatterns = {"/auth"})
 public class AuthController extends HttpServlet {
@@ -143,8 +144,8 @@ public class AuthController extends HttpServlet {
         request.getSession().setAttribute("authUserRole", result.getUserRole());
         request.getSession().setAttribute("authSessionId", result.getSessionId());
 
-        addAuthCookie(response, "accessToken", result.getAccessToken(), 15 * 60);
-        addAuthCookie(response, "sessionId", result.getSessionId(), 30 * 24 * 60 * 60);
+        addAuthCookie(request, response, "accessToken", result.getAccessToken(), 15 * 60);
+        addAuthCookie(request, response, "sessionId", result.getSessionId(), 30 * 24 * 60 * 60);
         response.sendRedirect(request.getContextPath() + "/product");
     }
 
@@ -244,13 +245,29 @@ public class AuthController extends HttpServlet {
         return remoteAddr == null ? "unknown" : remoteAddr;
     }
 
-    private void addAuthCookie(HttpServletResponse response, String name, String value, int maxAgeSeconds) {
+    private void addAuthCookie(HttpServletRequest request, HttpServletResponse response, String name, String value, int maxAgeSeconds) {
         Cookie cookie = new Cookie(name, value == null ? "" : value);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(shouldUseSecureCookies(request));
         cookie.setPath("/");
         cookie.setMaxAge(maxAgeSeconds);
         response.addCookie(cookie);
+    }
+
+    private boolean shouldUseSecureCookies(HttpServletRequest request) {
+        String configured = value(ConfigService.getOrDefault("COOKIE_SECURE", ""));
+        if (!configured.isBlank()) {
+            return "true".equalsIgnoreCase(configured)
+                    || "1".equals(configured)
+                    || "yes".equalsIgnoreCase(configured);
+        }
+
+        if (request.isSecure()) {
+            return true;
+        }
+
+        String forwardedProto = value(request.getHeader("X-Forwarded-Proto"));
+        return "https".equalsIgnoreCase(forwardedProto);
     }
 
     @Override
