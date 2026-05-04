@@ -17,7 +17,8 @@ public class ConnecDb {
         String password = "andev123";
 
         String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName
-                + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+                + "&useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci";
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);

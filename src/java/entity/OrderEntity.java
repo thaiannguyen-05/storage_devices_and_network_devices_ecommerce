@@ -6,17 +6,25 @@ public class OrderEntity {
     private String id;
     private String userId;
     private String productId;
+    private String variantId;
+    private int quantity;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private String status;
+    private String phone;
+    private String address;
 
     public OrderEntity() {
     }
 
-    public OrderEntity(String id, String userId, String productId, LocalDateTime createdAt, String status) {
+    public OrderEntity(String id, String userId, String productId, String variantId, int quantity, LocalDateTime createdAt, LocalDateTime updatedAt, String status) {
         this.id = id;
         this.userId = userId;
         this.productId = productId;
+        this.variantId = variantId;
+        this.quantity = quantity;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.status = status;
     }
 
@@ -44,6 +52,22 @@ public class OrderEntity {
         this.productId = productId;
     }
 
+    public String getVariantId() {
+        return variantId;
+    }
+
+    public void setVariantId(String variantId) {
+        this.variantId = variantId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -52,11 +76,35 @@ public class OrderEntity {
         this.createdAt = createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

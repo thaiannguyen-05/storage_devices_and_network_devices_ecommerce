@@ -161,7 +161,8 @@ public class AuthController extends HttpServlet {
         dto.setHashPassword(sha256(password));
 
         UserEntity createdUser = authService.getUserRepository().createUser(dto);
-        request.getSession(true).setAttribute("authUserName", createdUser.getName());
+        request.getSession(true).setAttribute("authUserId", createdUser.getId());
+        request.getSession().setAttribute("authUserName", createdUser.getName());
         request.getSession().setAttribute("authUserEmail", createdUser.getEmail());
         request.getSession().setAttribute("authUserRole", createdUser.getRole());
         response.sendRedirect(request.getContextPath() + "/product");
@@ -202,9 +203,15 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        request.getSession(true).setAttribute("authUserName", matched.getName());
+        request.getSession(true).setAttribute("authUserId", matched.getId());
+        request.getSession().setAttribute("authUserName", matched.getName());
         request.getSession().setAttribute("authUserEmail", matched.getEmail());
         request.getSession().setAttribute("authUserRole", matched.getRole());
+        String next = value(request.getParameter("next"));
+        if (!next.isBlank()) {
+            response.sendRedirect(next);
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/product");
     }
 
@@ -313,7 +320,8 @@ public class AuthController extends HttpServlet {
 
         UserEntity updatedUser = authService.getUserRepository().findById(validToken.getUserId());
         if (updatedUser != null) {
-            request.getSession(true).setAttribute("authUserName", updatedUser.getName());
+            request.getSession(true).setAttribute("authUserId", updatedUser.getId());
+            request.getSession().setAttribute("authUserName", updatedUser.getName());
             request.getSession().setAttribute("authUserEmail", updatedUser.getEmail());
             request.getSession().setAttribute("authUserRole", updatedUser.getRole());
         }

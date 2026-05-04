@@ -22,6 +22,7 @@ public class PaymentService {
     }
 
     public Map<String, Object> handleSePayWebhook(Map<String, Object> payload) {
-        return Map.of("success", true, "data", payload);
+        Object status = payload.get("status");
+        return Map.of("success", true, "receivedStatus", status == null ? "" : String.valueOf(status));
     }
 }

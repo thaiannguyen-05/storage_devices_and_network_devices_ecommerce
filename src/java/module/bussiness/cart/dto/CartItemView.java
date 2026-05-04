@@ -6,6 +6,8 @@ public class CartItemView {
     private String category;
     private String brandId;
     private String imageUrl;
+    private String variantId;
+    private String sku;
     private long unitPrice;
     private int quantity;
     private int stock;
@@ -20,6 +22,10 @@ public class CartItemView {
     public void setBrandId(String brandId) { this.brandId = brandId; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getVariantId() { return variantId; }
+    public void setVariantId(String variantId) { this.variantId = variantId; }
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
     public long getUnitPrice() { return unitPrice; }
     public void setUnitPrice(long unitPrice) { this.unitPrice = unitPrice; }
     public int getQuantity() { return quantity; }

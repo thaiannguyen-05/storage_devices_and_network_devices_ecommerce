@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,23 +54,38 @@ public class ProductController extends HttpServlet {
         List<ProductCardView> allCards;
         try {
             allCards = productService.getProductCards();
-            productCards = productService.getProductCards(category);
+            productCards = filterByCategory(allCards, category);
         } catch (Throwable e) {
             request.setAttribute("error", "Cannot load products: " + e.getMessage());
             productCards = Collections.emptyList();
             allCards = Collections.emptyList();
         }
 
-        Set<String> categories = new LinkedHashSet<>();
+        Map<String, Integer> categoryCounts = new LinkedHashMap<>();
+        categoryCounts.put("HDD", 0);
+        categoryCounts.put("SSD", 0);
+        categoryCounts.put("NAS", 0);
+        categoryCounts.put("USB", 0);
+        categoryCounts.put("MEMORY_CARD", 0);
+        categoryCounts.put("TAPE", 0);
+        categoryCounts.put("ENCLOSURE", 0);
+
         for (ProductCardView card : allCards) {
-            if (card.getCategory() != null && !card.getCategory().trim().isEmpty()) {
-                categories.add(card.getCategory().trim().toUpperCase());
+            if (card.getCategory() == null || card.getCategory().trim().isEmpty()) {
+                continue;
             }
+            String key = card.getCategory().trim().toUpperCase();
+            if (!categoryCounts.containsKey(key)) {
+                categoryCounts.put(key, 0);
+            }
+            categoryCounts.put(key, categoryCounts.get(key) + 1);
         }
+
+        Set<String> categories = new LinkedHashSet<>(categoryCounts.keySet());
 
         List<ProductCardView> featuredProducts;
         try {
-            featuredProducts = productService.getFeaturedProducts(6);
+            featuredProducts = productService.getFeaturedProducts(allCards, Integer.MAX_VALUE);
         } catch (Exception e) {
             featuredProducts = productCards;
         }
@@ -77,6 +93,7 @@ public class ProductController extends HttpServlet {
         request.setAttribute("productCards", productCards);
         request.setAttribute("featuredProducts", featuredProducts);
         request.setAttribute("categories", categories);
+        request.setAttribute("categoryCounts", categoryCounts);
         request.setAttribute("selectedCategory", category == null ? "" : category.trim().toUpperCase());
         request.setAttribute("isAdmin", isAdmin);
         request.setAttribute("cartCount", countCartQuantity(request.getSession(false)));
@@ -86,6 +103,9 @@ public class ProductController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
         if ("review".equalsIgnoreCase(action)) {
             String productId = request.getParameter("productId");
@@ -94,11 +114,13 @@ public class ProductController extends HttpServlet {
             int rating = parseIntOrDefault(request.getParameter("rating"), 5);
             rating = Math.max(1, Math.min(rating, 5));
             try {
-                if (reviewerName == null || reviewerName.trim().isEmpty()) {
-                    renderProductDetail(request, response, productId, "Vui lòng nhập tên người đánh giá.");
+                Object authUserName = request.getSession(true).getAttribute("authUserName");
+                String finalReviewerName = authUserName == null ? reviewerName : String.valueOf(authUserName);
+                if (finalReviewerName == null || finalReviewerName.trim().isEmpty()) {
+                    renderProductDetail(request, response, productId, "Vui lòng đăng nhập hoặc nhập tên người đánh giá.");
                     return;
                 }
-                productService.createReview(productId, reviewerName.trim(), rating, comment);
+                productService.createReview(productId, finalReviewerName.trim(), rating, comment);
                 response.sendRedirect(request.getContextPath() + "/product?id=" + productId);
             } catch (Exception e) {
                 try {
@@ -223,6 +245,7 @@ public class ProductController extends HttpServlet {
         List<ProductReviewEntity> reviews = productService.getProductReviews(productId);
 
         request.setAttribute("productDetail", detail);
+        request.setAttribute("productVariants", productService.getProductVariants(productId));
         request.setAttribute("galleryImages", galleryImages);
         request.setAttribute("relatedProducts", relatedProducts);
         request.setAttribute("reviews", reviews);
@@ -237,5 +260,24 @@ public class ProductController extends HttpServlet {
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    private List<ProductCardView> filterByCategory(List<ProductCardView> source, String category) {
+        if (source == null || source.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String normalized = category == null ? "" : category.trim().toUpperCase();
+        if (normalized.isEmpty()) {
+            return source;
+        }
+
+        java.util.ArrayList<ProductCardView> filtered = new java.util.ArrayList<>();
+        for (ProductCardView card : source) {
+            String c = card.getCategory() == null ? "" : card.getCategory().trim().toUpperCase();
+            if (normalized.equals(c)) {
+                filtered.add(card);
+            }
+        }
+        return filtered;
     }
 }
