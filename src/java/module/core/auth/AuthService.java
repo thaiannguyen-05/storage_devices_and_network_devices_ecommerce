@@ -429,6 +429,22 @@ public class AuthService {
         return res;
     }
 
+    public boolean revokeSessionByUserId(String userId) {
+        String normalizedUserId = value(userId);
+        if (normalizedUserId.isBlank()) {
+            return false;
+        }
+
+        try {
+            return CoreInterface.retryInterface(
+                    () -> tokenService.revokeSessionByUserId(normalizedUserId),
+                    retryDto
+            );
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void sendLoginAlertAsyncSafe(UserEntity user, String ipAddress) {
         try {
             OutBoxEntity outbox = CoreInterface.retryInterface(

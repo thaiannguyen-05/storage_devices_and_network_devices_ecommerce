@@ -1,11 +1,13 @@
 package module.core.auth;
 
+import common.annotation.Public;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import module.core.auth.dto.ForgotPasswordRequestDto;
 import module.core.auth.dto.ProfileRequestDto;
@@ -23,6 +25,7 @@ import module.core.auth.response_dto.SignupResponseDto;
 import module.core.auth.response_dto.VerifyEmailCodeResponseDto;
 import module.core.config.ConfigService;
 
+@Public
 @WebServlet(name = "auth", urlPatterns = {"/auth"})
 public class AuthController extends HttpServlet {
 
@@ -52,6 +55,9 @@ public class AuthController extends HttpServlet {
                 break;
             case "refresh":
                 handleRefreshToken(request, response);
+                break;
+            case "revokeSession":
+                handleRevokeSession(request, response);
                 break;
             case "signin":
             default:
@@ -97,6 +103,11 @@ public class AuthController extends HttpServlet {
 
         if ("refresh".equalsIgnoreCase(action)) {
             handleRefreshToken(request, response);
+            return;
+        }
+
+        if ("revokeSession".equalsIgnoreCase(action)) {
+            handleRevokeSession(request, response);
             return;
         }
 
@@ -151,6 +162,7 @@ public class AuthController extends HttpServlet {
         request.getSession().setAttribute("authUserEmail", result.getUserEmail());
         request.getSession().setAttribute("authUserRole", result.getUserRole());
         request.getSession().setAttribute("authSessionId", result.getSessionId());
+        request.getSession().setAttribute("authUserId", resolveAccessTokenSubject(result.getAccessToken()));
 
         addAuthCookie(request, response, "accessToken", result.getAccessToken(), tokenService.getAccessTokenMaxAgeSeconds());
         addAuthCookie(request, response, "refreshToken", result.getRefreshToken(), tokenService.getRefreshTokenMaxAgeSeconds());
@@ -175,6 +187,7 @@ public class AuthController extends HttpServlet {
         request.getSession().setAttribute("authUserEmail", result.getUserEmail());
         request.getSession().setAttribute("authUserRole", result.getUserRole());
         request.getSession().setAttribute("authSessionId", result.getSessionId());
+        request.getSession().setAttribute("authUserId", resolveAccessTokenSubject(result.getAccessToken()));
 
         addAuthCookie(request, response, "accessToken", result.getAccessToken(), tokenService.getAccessTokenMaxAgeSeconds());
         addAuthCookie(request, response, "refreshToken", result.getRefreshToken(), tokenService.getRefreshTokenMaxAgeSeconds());
@@ -245,6 +258,39 @@ public class AuthController extends HttpServlet {
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
+    private void handleRevokeSession(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        AuthPayload authPayload = (AuthPayload) request.getAttribute(AuthPayload.REQUEST_ATTRIBUTE);
+        String userId = authPayload == null ? "" : value(authPayload.getUserId());
+
+        if (userId.isBlank()) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                Object authUserId = session.getAttribute("authUserId");
+                userId = authUserId == null ? "" : String.valueOf(authUserId).trim();
+            }
+        }
+
+        if (userId.isBlank()) {
+            clearAuthState(request, response);
+            request.setAttribute("error", "Unable to resolve the account for session revocation.");
+            request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+            return;
+        }
+
+        boolean revoked = authService.revokeSessionByUserId(userId);
+        clearAuthState(request, response);
+
+        if (!revoked) {
+            request.setAttribute("error", "Unable to revoke sessions for this account.");
+            request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+            return;
+        }
+
+        request.setAttribute("success", "All sessions for this account have been revoked. Please sign in again.");
+        request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+    }
+
     private String value(String input) {
         return input == null ? "" : input.trim();
     }
@@ -281,6 +327,19 @@ public class AuthController extends HttpServlet {
         return "";
     }
 
+    private String resolveAccessTokenSubject(String accessToken) {
+        String normalizedToken = value(accessToken);
+        if (normalizedToken.isBlank()) {
+            return "";
+        }
+
+        try {
+            return value(tokenService.parseAccessToken(normalizedToken).getSubject());
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     private void addAuthCookie(HttpServletRequest request, HttpServletResponse response, String name, String value, int maxAgeSeconds) {
         Cookie cookie = new Cookie(name, value == null ? "" : value);
         cookie.setHttpOnly(true);
@@ -288,6 +347,17 @@ public class AuthController extends HttpServlet {
         cookie.setPath("/");
         cookie.setMaxAge(maxAgeSeconds);
         response.addCookie(cookie);
+    }
+
+    private void clearAuthState(HttpServletRequest request, HttpServletResponse response) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        addAuthCookie(request, response, "accessToken", "", 0);
+        addAuthCookie(request, response, "refreshToken", "", 0);
+        addAuthCookie(request, response, "sessionId", "", 0);
     }
 
     private boolean shouldUseSecureCookies(HttpServletRequest request) {

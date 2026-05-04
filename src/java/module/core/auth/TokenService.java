@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import module.core.config.ConfigService;
+import module.core.auth.repository.impl.SessionRepository;
+import module.core.auth.repository.interfaces.ISessionRepository;
 
 public class TokenService {
     private static final String DEFAULT_JWT_SECRET = "storeit-dev-secret-storeit-dev-secret-2026";
@@ -22,12 +24,14 @@ public class TokenService {
     private final SecretKey jwtSigningKey;
     private final int accessTokenMinutes;
     private final int refreshTokenDays;
+    private final ISessionRepository sessionRepository;
 
     public TokenService() {
         this.authConfig = new AuthConfig();
         this.jwtSigningKey = Keys.hmacShaKeyFor(resolveJwtSecret().getBytes(StandardCharsets.UTF_8));
         this.accessTokenMinutes = authConfig.getAccessTokenMinutes();
         this.refreshTokenDays = authConfig.getRefreshTokenDays();
+        this.sessionRepository = new SessionRepository();
     }
 
     public String generateAccessToken(UserEntity user, String sessionId) {
@@ -73,6 +77,14 @@ public class TokenService {
 
     public int getRefreshTokenMaxAgeSeconds() {
         return refreshTokenDays * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
+    }
+
+    public boolean revokeSessionByUserId(String userId) {
+        String normalizedUserId = userId == null ? "" : userId.trim();
+        if (normalizedUserId.isBlank()) {
+            return false;
+        }
+        return sessionRepository.deleteByUserId(normalizedUserId);
     }
 
     private Claims parseToken(String token, String expectedType) {
