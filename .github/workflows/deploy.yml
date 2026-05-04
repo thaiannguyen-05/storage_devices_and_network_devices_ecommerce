@@ -1,0 +1,146 @@
+name: Build & Deploy Docker to VPS
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  APP_NAME: ecommerce
+  CONTAINER_NAME: ecommerce
+  APP_PORT: "8080"
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      registry_host: ${{ steps.meta.outputs.registry_host }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+
+      - name: Configure insecure registry for BuildKit
+        run: |
+          RAW_HOST="${{ secrets.REGISTRY_HOST }}"
+          HOST="${RAW_HOST#http://}"
+          HOST="${HOST#https://}"
+          HOST="${HOST%/}"
+          cat > /tmp/buildkitd.toml <<EOF
+          [registry."$HOST"]
+            http = true
+            insecure = true
+          EOF
+
+      - name: Recreate builder with insecure registry config
+        run: |
+          docker buildx rm builder || true
+          docker buildx create \
+            --name builder \
+            --use \
+            --driver docker-container \
+            --driver-opt network=host \
+            --config /tmp/buildkitd.toml
+          docker buildx inspect --bootstrap
+
+      - name: Prepare image tag
+        id: meta
+        run: |
+          RAW_HOST="${{ secrets.REGISTRY_HOST }}"
+          HOST="${RAW_HOST#http://}"
+          HOST="${HOST#https://}"
+          HOST="${HOST%/}"
+
+          RAW_NAMESPACE="${{ secrets.REGISTRY_NAMESPACE }}"
+          NAMESPACE="${RAW_NAMESPACE#/}"
+          NAMESPACE="${NAMESPACE%/}"
+          NAMESPACE="$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')"
+
+          IMAGE="$HOST/$NAMESPACE/${{ env.APP_NAME }}:${GITHUB_SHA}"
+
+          echo "registry_host=$HOST" >> "$GITHUB_OUTPUT"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Write Docker auth for registry
+        run: |
+          mkdir -p "$HOME/.docker"
+          AUTH="$(printf '%s' "${{ secrets.REGISTRY_USERNAME }}:${{ secrets.REGISTRY_PASSWORD }}" | base64 | tr -d '\n')"
+          cat > "$HOME/.docker/config.json" <<EOF
+          {
+            "auths": {
+              "${{ steps.meta.outputs.registry_host }}": { "auth": "$AUTH" },
+              "http://${{ steps.meta.outputs.registry_host }}": { "auth": "$AUTH" }
+            }
+          }
+          EOF
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          builder: builder
+          outputs: type=registry,name=${{ steps.meta.outputs.image }},registry.insecure=true,push=true
+
+  deploy_via_ssh:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+
+    steps:
+      - name: Deploy on VPS via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+          REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          IMAGE_TAG: ${{ github.sha }}
+          APP_NAME: ${{ env.APP_NAME }}
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          APP_PORT: ${{ env.APP_PORT }}
+          ENV_FILE_PATH: ${{ secrets.ENV_FILE_PATH }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          envs: REGISTRY_HOST,REGISTRY_NAMESPACE,REGISTRY_USERNAME,REGISTRY_PASSWORD,IMAGE_TAG,APP_NAME,CONTAINER_NAME,APP_PORT,ENV_FILE_PATH
+          script_stop: true
+          script: |
+            set -e
+
+            HOST="${REGISTRY_HOST#http://}"
+            HOST="${HOST#https://}"
+            HOST="${HOST%/}"
+
+            NAMESPACE="${REGISTRY_NAMESPACE#/}"
+            NAMESPACE="${NAMESPACE%/}"
+            NAMESPACE="$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')"
+
+            if [ -z "$HOST" ] || [ -z "$NAMESPACE" ]; then
+              echo "REGISTRY_HOST or REGISTRY_NAMESPACE is empty after normalization"
+              exit 1
+            fi
+
+            IMAGE="$HOST/$NAMESPACE/$APP_NAME:$IMAGE_TAG"
+
+            echo "$REGISTRY_PASSWORD" | docker login "$HOST" -u "$REGISTRY_USERNAME" --password-stdin
+            docker pull "$IMAGE"
+
+            docker rm -f "$CONTAINER_NAME" || true
+
+            docker run -d \
+              --name "$CONTAINER_NAME" \
+              --restart unless-stopped \
+              -p "$APP_PORT:8080" \
+              --env-file "$ENV_FILE_PATH" \
+              "$IMAGE"
+
+            docker image prune -f

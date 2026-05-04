@@ -2,21 +2,21 @@ package entity;
 
 import java.time.LocalDateTime;
 
-public class PasswordResetTokenEntity {
+public class EmailVerificationCodeEntity {
     private String id;
     private String userId;
-    private String tokenHash;
+    private String codeHash;
     private LocalDateTime expiresAt;
     private LocalDateTime usedAt;
     private LocalDateTime createdAt;
 
-    public PasswordResetTokenEntity() {
+    public EmailVerificationCodeEntity() {
     }
 
-    public PasswordResetTokenEntity(String id, String userId, String tokenHash, LocalDateTime expiresAt, LocalDateTime usedAt, LocalDateTime createdAt) {
+    public EmailVerificationCodeEntity(String id, String userId, String codeHash, LocalDateTime expiresAt, LocalDateTime usedAt, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
-        this.tokenHash = tokenHash;
+        this.codeHash = codeHash;
         this.expiresAt = expiresAt;
         this.usedAt = usedAt;
         this.createdAt = createdAt;
@@ -30,8 +30,8 @@ public class PasswordResetTokenEntity {
         return userId;
     }
 
-    public String getTokenHash() {
-        return tokenHash;
+    public String getCodeHash() {
+        return codeHash;
     }
 
     public LocalDateTime getExpiresAt() {

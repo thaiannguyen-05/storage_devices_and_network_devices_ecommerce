@@ -10,7 +10,9 @@ public interface IUserRepository {
     List<UserEntity> findAll();
     List<UserEntity> findAll(int page, int pageSize);
     UserEntity findById(String id);
+    UserEntity findByEmail(String email);
     boolean update(String id, UpdateUserDto dto);
     boolean updatePasswordById(String id, String hashPassword);
+    boolean activateById(String id);
     boolean delete(String id);
 }

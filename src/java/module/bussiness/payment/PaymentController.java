@@ -37,6 +37,9 @@ public class PaymentController extends BaseController {
         registerGet("/", this::showPaymentPage);
         registerGet("/done", this::showPaymentDonePage);
         registerPost("/", this::handlePaymentPost);
+        registerPost("/sepay/query", this::handleSePayQuery);
+        registerPost("/sepay/cancel", this::handleSePayCancel);
+        registerPost("/sepay/void", this::handleSePayVoid);
         registerPost("/sepay/webhook", this::handleSePayWebhook);
     }
 
@@ -275,6 +278,38 @@ public class PaymentController extends BaseController {
         }
     }
 
+    private String resolvePublicBaseUrl(HttpServletRequest request) {
+        String configured = ConfigService.getOrDefault("PAYMENT_PUBLIC_BASE_URL", "");
+        if (!configured.isBlank()) {
+            return trimTrailingSlash(configured);
+        }
+
+        configured = ConfigService.getOrDefault("SEPAY_PUBLIC_BASE_URL", "");
+        if (!configured.isBlank()) {
+            return trimTrailingSlash(configured);
+        }
+
+        return buildBaseUrl(request);
+    }
+
+    private String buildBaseUrl(HttpServletRequest request) {
+        StringBuilder url = new StringBuilder();
+        url.append(request.getScheme()).append("://").append(request.getServerName());
+        int port = request.getServerPort();
+        if (port != 80 && port != 443) {
+            url.append(":").append(port);
+        }
+        return url.toString();
+    }
+
+    private String trimTrailingSlash(String value) {
+        String text = value.trim();
+        if (text.endsWith("/")) {
+            return text.substring(0, text.length() - 1);
+        }
+        return text;
+    }
+
     private void handleSePayWebhook(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
 
@@ -292,7 +327,16 @@ public class PaymentController extends BaseController {
         }
 
         Map<String, Object> result = paymentService.handleSePayWebhook(payload);
-        response.setStatus(HttpServletResponse.SC_OK);
+        int statusCode = 200;
+        if (!Boolean.TRUE.equals(result.get("success"))) {
+            Object code = result.get("code");
+            if (code instanceof Number) {
+                statusCode = ((Number) code).intValue();
+            } else {
+                statusCode = HttpServletResponse.SC_BAD_REQUEST;
+            }
+        }
+        response.setStatus(statusCode);
         OBJECT_MAPPER.writeValue(response.getWriter(), result);
     }
 }
