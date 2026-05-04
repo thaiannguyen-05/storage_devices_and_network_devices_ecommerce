@@ -1,8 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `Payment`;
-DROP TABLE IF EXISTS `PasswordResetToken`;
-DROP TABLE IF EXISTS `EmailVerificationCode`;
 DROP TABLE IF EXISTS `Session`;
 DROP TABLE IF EXISTS `SavedProduct`;
 DROP TABLE IF EXISTS `OrderCart`;
@@ -40,20 +38,9 @@ CREATE TABLE `OutBox` (
     `userId` CHAR(36) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `outbox_userid_index` (`userId`),
+    KEY `outbox_type_status_createdat_index` (`type`, `status`, `createdAt`),
     KEY `outbox_userid_type_status_createdat_index` (`userId`, `type`, `status`, `createdAt`),
-    CONSTRAINT `outbox_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `EmailVerificationCode` (
-    `id` CHAR(36) NOT NULL,
-    `userId` CHAR(36) NOT NULL,
-    `codeHash` VARCHAR(255) NOT NULL,
-    `expiresAt` DATETIME NOT NULL,
-    `usedAt` DATETIME NULL,
-    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `emailverificationcode_userid_index` (`userId`),
-    CONSTRAINT `emailverificationcode_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+    CONSTRAINT `outbox_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Brand` (
@@ -177,19 +164,7 @@ CREATE TABLE `Session` (
     `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `session_userid_index` (`userId`),
+    KEY `session_hashrefreshtoken_index` (`hashRefreshToken`),
     KEY `session_userid_ip_createdat_index` (`userId`, `ip`, `createdAt`),
-    CONSTRAINT `session_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `PasswordResetToken` (
-    `id` CHAR(36) NOT NULL,
-    `userId` CHAR(36) NOT NULL,
-    `tokenHash` VARCHAR(64) NOT NULL,
-    `expiresAt` DATETIME NOT NULL,
-    `usedAt` DATETIME NULL,
-    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_password_reset_token_hash` (`tokenHash`),
-    KEY `idx_password_reset_user_id` (`userId`),
-    CONSTRAINT `fk_password_reset_user` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
+    CONSTRAINT `session_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -24,7 +24,7 @@ COPY . .
 
 RUN ant -f build.xml clean dist -Dj2ee.server.home=${GLASSFISH_HOME} -Dplatforms.JDK_17.home=${JAVA_HOME}
 
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17-jdk-jammy
 
 ENV GLASSFISH_HOME=/opt/glassfish7/glassfish \
     DOMAIN_NAME=domain1 \
