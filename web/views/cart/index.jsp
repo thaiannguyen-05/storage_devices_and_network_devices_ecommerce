@@ -53,19 +53,20 @@
                     for (CartItemView item : items) {
             %>
             <article class="cart-card">
-                <img src="<%= item.getImageUrl() %>" alt="item">
+                <img src="<%= item.getImageUrl() %>" alt="item" loading="lazy" decoding="async">
                 <div>
                     <p class="title"><%= item.getName() %></p>
                     <p class="meta">DANH MỤC: <%= item.getCategory() %></p>
-                    <p class="meta">MÃ SP: <%= item.getProductId() %></p>
+                    <p class="meta">PHÂN LOẠI: <%= item.getSku() == null || item.getSku().isBlank() ? "Mặc định" : item.getSku() %></p>
                     <p class="meta">TỒN KHO: <%= item.getStock() %></p>
                 </div>
                 <div style="text-align: right;">
                     <p class="home-price" style="margin-bottom: 16px !important;"><%= String.format("%,d VND", item.getUnitPrice()) %></p>
                     
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+                    <div class="cart-actions-wrap">
                         <form class="cart-qty-form" method="post" action="${pageContext.request.contextPath}/cart?action=update">
                             <input type="hidden" name="productId" value="<%= item.getProductId() %>">
+                            <input type="hidden" name="variantId" value="<%= item.getVariantId() == null ? "" : item.getVariantId() %>">
                             <button class="btn-qty" type="submit" name="op" value="dec">-</button>
                             <input
                                 type="number"
@@ -76,10 +77,11 @@
                                 onchange="this.form.submit()">
                             <button class="btn-qty" type="submit" name="op" value="inc">+</button>
                         </form>
-                        
-                        <form method="post" action="${pageContext.request.contextPath}/cart?action=remove" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?');">
+
+                        <form method="post" action="${pageContext.request.contextPath}/cart?action=remove" class="js-confirm-form" data-confirm-title="Xóa sản phẩm" data-confirm-message="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?">
                             <input type="hidden" name="productId" value="<%= item.getProductId() %>">
-                            <button class="btn-cart" style="color: #ff4444; border-color: #442222 !important;" type="submit">XÓA</button>
+                            <input type="hidden" name="variantId" value="<%= item.getVariantId() == null ? "" : item.getVariantId() %>">
+                            <button class="btn-cart-remove" type="submit">XÓA</button>
                         </form>
                     </div>
                 </div>
@@ -93,8 +95,8 @@
                     <span><%= totalPriceText %></span>
                 </div>
                 <div style="display: flex; gap: 16px; margin-top: 32px; justify-content: flex-end;">
-                    <form method="post" action="${pageContext.request.contextPath}/cart?action=clear" onsubmit="return confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?');">
-                        <button class="btn-cart" style="height: 48px; padding: 0 24px;" type="submit">XÓA TẤT CẢ</button>
+                    <form method="post" action="${pageContext.request.contextPath}/cart?action=clear" class="js-confirm-form" data-confirm-title="Xóa toàn bộ giỏ hàng" data-confirm-message="Bạn có chắc muốn xóa toàn bộ giỏ hàng?">
+                        <button class="btn-cart" type="submit">XÓA TẤT CẢ</button>
                     </form>
                     <a class="home-cta" style="height: 48px; padding: 0 40px; display: flex; align-items: center;" href="${pageContext.request.contextPath}/payment?source=cart">THANH TOÁN</a>
                 </div>
@@ -103,5 +105,73 @@
                 }
             %>
         </main>
+
+        <div id="confirmOverlay" class="cart-confirm-overlay is-hidden">
+            <div class="cart-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+                <h3 id="confirmTitle">Xác nhận</h3>
+                <p id="confirmMessage">Bạn có chắc muốn thực hiện thao tác này?</p>
+                <div class="cart-confirm-actions">
+                    <button id="confirmCancel" type="button" class="btn-confirm-cancel">Hủy</button>
+                    <button id="confirmOk" type="button" class="btn-confirm-ok">Xóa</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                const overlay = document.getElementById('confirmOverlay');
+                const titleEl = document.getElementById('confirmTitle');
+                const msgEl = document.getElementById('confirmMessage');
+                const okBtn = document.getElementById('confirmOk');
+                const cancelBtn = document.getElementById('confirmCancel');
+                const forms = document.querySelectorAll('.js-confirm-form');
+                let pendingForm = null;
+
+                function closeModal() {
+                    overlay.classList.add('is-hidden');
+                    pendingForm = null;
+                }
+
+                function openModal(form) {
+                    pendingForm = form;
+                    titleEl.textContent = form.dataset.confirmTitle || 'Xác nhận';
+                    msgEl.textContent = form.dataset.confirmMessage || 'Bạn có chắc muốn thực hiện thao tác này?';
+                    overlay.classList.remove('is-hidden');
+                }
+
+                forms.forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.dataset.confirmed === '1') {
+                            form.dataset.confirmed = '0';
+                            return;
+                        }
+                        event.preventDefault();
+                        openModal(form);
+                    });
+                });
+
+                okBtn.addEventListener('click', function () {
+                    if (!pendingForm) return;
+                    pendingForm.dataset.confirmed = '1';
+                    const form = pendingForm;
+                    closeModal();
+                    form.requestSubmit();
+                });
+
+                cancelBtn.addEventListener('click', closeModal);
+
+                overlay.addEventListener('click', function (event) {
+                    if (event.target === overlay) {
+                        closeModal();
+                    }
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape' && !overlay.classList.contains('is-hidden')) {
+                        closeModal();
+                    }
+                });
+            })();
+        </script>
     </body>
 </html>

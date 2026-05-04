@@ -7,6 +7,7 @@ public class ProductDetailView {
     private String category;
     private String status;
     private String brandId;
+    private String brandName;
     private String imageUrl;
     private String priceText;
     private long priceValue;
@@ -26,6 +27,8 @@ public class ProductDetailView {
     public void setStatus(String status) { this.status = status; }
     public String getBrandId() { return brandId; }
     public void setBrandId(String brandId) { this.brandId = brandId; }
+    public String getBrandName() { return brandName; }
+    public void setBrandName(String brandName) { this.brandName = brandName; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getPriceText() { return priceText; }

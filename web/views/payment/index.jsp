@@ -33,6 +33,10 @@
             if (source == null) source = "cart";
             String success = (String) request.getAttribute("paymentSuccess");
             String error = (String) request.getAttribute("paymentError");
+            String fullName = (String) request.getAttribute("fullName");
+            if (fullName == null) fullName = "";
+            String email = (String) request.getAttribute("email");
+            if (email == null) email = "";
             String voucherCode = (String) request.getAttribute("voucherCode");
             if (voucherCode == null) voucherCode = "";
             String subtotalText = (String) request.getAttribute("subtotalText");
@@ -62,6 +66,9 @@
             <% if (success != null) { %>
                 <div class="home-alert" style="background: #112211; border-color: #44ff44; color: #aaffaa;"><%= success %></div>
             <% } %>
+            <% if (request.getAttribute("paymentDoneFlash") != null) { %>
+                <div id="paymentDoneToast" style="position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:4000;background:rgba(22,163,74,.96);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:opacity .35s ease,transform .35s ease;">Thanh toán thành công</div>
+            <% } %>
             <% if (error != null) { %>
                 <div class="home-alert"><%= error %></div>
             <% } %>
@@ -79,7 +86,7 @@
                             for (CartItemView item : checkoutItems) {
                     %>
                     <article class="payment-card">
-                        <img src="<%= item.getImageUrl() %>" alt="product">
+                        <img src="<%= item.getImageUrl() %>" alt="product" loading="lazy" decoding="async">
                         <div>
                             <p class="name"><%= item.getName() %></p>
                             <p class="meta">DANH MỤC: <%= item.getCategory() %> | SL: <%= item.getQuantity() %></p>
@@ -99,6 +106,7 @@
                         <input type="hidden" name="source" value="<%= source %>">
                         <% if ("buyNow".equalsIgnoreCase(source) && firstItem != null) { %>
                             <input type="hidden" name="productId" value="<%= firstItem.getProductId() %>">
+                            <input type="hidden" name="variantId" value="<%= firstItem.getVariantId() %>">
                             <input type="hidden" name="name" value="<%= firstItem.getName() %>">
                             <input type="hidden" name="category" value="<%= firstItem.getCategory() %>">
                             <input type="hidden" name="brandId" value="<%= firstItem.getBrandId() %>">
@@ -110,7 +118,7 @@
 
                         <div class="ch-form-field">
                             <label>Họ và tên</label>
-                            <input name="fullName" required placeholder="Nguyễn Văn A">
+                            <input name="fullName" required value="<%= fullName %>" readonly>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div class="ch-form-field">
@@ -119,7 +127,7 @@
                             </div>
                             <div class="ch-form-field">
                                 <label>Email</label>
-                                <input name="email" type="email" placeholder="you@gmail.com">
+                                <input name="email" type="email" value="<%= email %>" readonly>
                             </div>
                         </div>
                         <div class="ch-form-field">
@@ -201,6 +209,26 @@
         </main>
 
         <script>
+            (function () {
+                var toast = document.getElementById('paymentDoneToast');
+                if (!toast) return;
+                var dismissed = false;
+                var dismiss = function () {
+                    if (dismissed || !toast.parentNode) return;
+                    dismissed = true;
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(-50%) translateY(-8px)';
+                    window.removeEventListener('pointerdown', onPointerDown, true);
+                    setTimeout(function () {
+                        if (toast.parentNode) toast.parentNode.removeChild(toast);
+                        window.location.href = '${pageContext.request.contextPath}/payment/done';
+                    }, 360);
+                };
+                var onPointerDown = function () { dismiss(); };
+                window.addEventListener('pointerdown', onPointerDown, true);
+                setTimeout(dismiss, 2000);
+            })();
+
             (function () {
                 var methodEl = document.getElementById("paymentMethod");
                 var boxEl = document.getElementById("cardPaymentBox");
