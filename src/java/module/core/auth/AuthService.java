@@ -2,6 +2,7 @@ package module.core.auth;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import de.mkammerer.argon2.Argon2;
@@ -227,31 +228,38 @@ public class AuthService {
 
         String accessToken = value(req.getAccessToken());
         String refreshToken = value(req.getRefreshToken());
-        Claims accessClaims;
+        String sessionId = value(req.getSessionId());
         Claims refreshClaims;
 
         try {
-            accessClaims = tokenService.parseAccessToken(accessToken);
+            refreshClaims = tokenService.parseRefreshToken(refreshToken);
         } catch (Exception e) {
             res.setSuccess(false);
-            res.setErrorMessage("The current access token is invalid.");
+            res.setErrorMessage("The refresh token is invalid or expired.");
             return res;
         }
 
-        String email = value(accessClaims.get("email", String.class)).toLowerCase();
-        String sessionId = value(accessClaims.get("sessionId", String.class));
-        String accessUserId = value(accessClaims.getSubject());
+        if (sessionId.isBlank() && !accessToken.isBlank()) {
+            try {
+                Claims accessClaims = tokenService.parseAccessTokenAllowExpired(accessToken);
+                sessionId = value(accessClaims.get("sessionId", String.class));
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (sessionId.isBlank()) {
+            res.setSuccess(false);
+            res.setErrorMessage("The login session does not exist.");
+            return res;
+        }
+
+        String email = value(refreshClaims.get("email", String.class)).toLowerCase();
+        String refreshUserId = value(refreshClaims.getSubject());
 
         UserEntity matched = userService.getUserByEmail(email);
         if (matched == null) {
             res.setSuccess(false);
             res.setErrorMessage("Account does not exist.");
-            return res;
-        }
-
-        if (!matched.getId().equals(accessUserId)) {
-            res.setSuccess(false);
-            res.setErrorMessage("The token does not match the account.");
             return res;
         }
 
@@ -268,17 +276,7 @@ public class AuthService {
             return res;
         }
 
-        try {
-            refreshClaims = tokenService.parseRefreshToken(refreshToken);
-        } catch (Exception e) {
-            res.setSuccess(false);
-            res.setErrorMessage("The refresh token is invalid or expired.");
-            return res;
-        }
-
-        String refreshEmail = value(refreshClaims.get("email", String.class)).toLowerCase();
-        String refreshUserId = value(refreshClaims.getSubject());
-        if (!matched.getEmail().equalsIgnoreCase(refreshEmail) || !matched.getId().equals(refreshUserId)) {
+        if (!matched.getEmail().equalsIgnoreCase(email) || !matched.getId().equals(refreshUserId)) {
             res.setSuccess(false);
             res.setErrorMessage("The refresh token does not match the account.");
             return res;
@@ -397,6 +395,17 @@ public class AuthService {
             return res;
         }
 
+        LocalDateTime createdAt = outbox.getCreatedAt();
+        if (createdAt == null || createdAt.plusMinutes(authConfig.getResetCodeTtlMinutes()).isBefore(LocalDateTime.now())) {
+            try {
+                CoreInterface.retryInterface(() -> outBoxRepository.markFailed(outbox.getId()), retryDto);
+            } catch (Exception ignored) {
+            }
+            res.setSuccess(false);
+            res.setErrorMessage("The reset code has expired.");
+            return res;
+        }
+
         if (!verifyArgon2(code, outbox.getCode())) {
             res.setSuccess(false);
             res.setErrorMessage("The reset code is incorrect.");
@@ -417,6 +426,11 @@ public class AuthService {
             res.setSuccess(false);
             res.setErrorMessage("Unable to update the password. Please try again.");
             return res;
+        }
+
+        try {
+            CoreInterface.retryInterface(() -> outBoxRepository.markFailed(outbox.getId()), retryDto);
+        } catch (Exception ignored) {
         }
 
         UserEntity updatedUser = userService.getUserById(matched.getId());

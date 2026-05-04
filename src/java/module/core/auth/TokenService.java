@@ -2,6 +2,7 @@ package module.core.auth;
 
 import entity.UserEntity;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
@@ -13,7 +14,6 @@ import javax.crypto.SecretKey;
 import module.core.config.ConfigService;
 
 public class TokenService {
-    private static final String DEFAULT_JWT_SECRET = "storeit-dev-secret-storeit-dev-secret-2026";
     private static final int SECONDS_PER_MINUTE = 60;
     private static final int HOURS_PER_DAY = 24;
     private static final int MINUTES_PER_HOUR = 60;
@@ -67,6 +67,10 @@ public class TokenService {
         return parseToken(token, "refresh");
     }
 
+    public Claims parseAccessTokenAllowExpired(String token) {
+        return parseTokenAllowExpired(token, "access");
+    }
+
     public int getAccessTokenMaxAgeSeconds() {
         return accessTokenMinutes * SECONDS_PER_MINUTE;
     }
@@ -77,31 +81,49 @@ public class TokenService {
 
     private Claims parseToken(String token, String expectedType) {
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(jwtSigningKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-            String actualType = claims.get("type", String.class);
-            if (actualType == null || !expectedType.equalsIgnoreCase(actualType)) {
-                throw new RuntimeException("Invalid token type.");
-            }
-
-            return claims;
+            return parseClaims(token, expectedType);
         } catch (JwtException | IllegalArgumentException e) {
             throw new RuntimeException("Invalid or expired token.", e);
         }
     }
 
+    private Claims parseTokenAllowExpired(String token, String expectedType) {
+        try {
+            return parseClaims(token, expectedType);
+        } catch (ExpiredJwtException e) {
+            Claims claims = e.getClaims();
+            validateTokenType(claims, expectedType);
+            return claims;
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new RuntimeException("Invalid token.", e);
+        }
+    }
+
+    private Claims parseClaims(String token, String expectedType) {
+        Claims claims = Jwts.parser()
+                .verifyWith(jwtSigningKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        validateTokenType(claims, expectedType);
+        return claims;
+    }
+
+    private void validateTokenType(Claims claims, String expectedType) {
+        String actualType = claims.get("type", String.class);
+        if (actualType == null || !expectedType.equalsIgnoreCase(actualType)) {
+            throw new RuntimeException("Invalid token type.");
+        }
+    }
+
     private String resolveJwtSecret() {
-        String secret = ConfigService.getOrDefault("JWT_SECRET", DEFAULT_JWT_SECRET);
-        if (secret == null) {
-            secret = DEFAULT_JWT_SECRET;
+        String secret = ConfigService.get("JWT_SECRET");
+        if (secret == null || secret.trim().isBlank()) {
+            throw new IllegalStateException("JWT_SECRET is required.");
         }
         secret = secret.trim();
         if (secret.length() < authConfig.getJwtSecretMinLength()) {
-            secret = secret + DEFAULT_JWT_SECRET;
+            throw new IllegalStateException("JWT_SECRET is too short.");
         }
         return secret;
     }

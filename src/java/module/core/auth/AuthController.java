@@ -50,12 +50,6 @@ public class AuthController extends HttpServlet {
             case "verifyEmail":
                 request.getRequestDispatcher("/views/auth/verify-email.jsp").forward(request, response);
                 break;
-            case "refresh":
-                handleRefreshToken(request, response);
-                break;
-            case "profile":
-                handleProfile(request, response);
-                break;
             case "signin":
             default:
                 request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
@@ -166,6 +160,7 @@ public class AuthController extends HttpServlet {
         RefreshTokenRequestDto dto = new RefreshTokenRequestDto();
         dto.setAccessToken(resolveTokenValue(request, "accessToken"));
         dto.setRefreshToken(resolveTokenValue(request, "refreshToken"));
+        dto.setSessionId(resolveTokenValue(request, "sessionId"));
 
         RefreshTokenResponseDto result = authService.refreshToken(dto);
         if (!result.isSuccess()) {
@@ -221,12 +216,8 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        if (result.getUserEmail() != null) {
-            request.getSession(true).setAttribute("authUserName", result.getUserName());
-            request.getSession().setAttribute("authUserEmail", result.getUserEmail());
-            request.getSession().setAttribute("authUserRole", result.getUserRole());
-        }
-        response.sendRedirect(request.getContextPath() + "/product");
+        request.setAttribute("success", "Your password has been reset. Please sign in.");
+        request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
     private void handleVerifyEmail(HttpServletRequest request, HttpServletResponse response)
@@ -246,22 +237,6 @@ public class AuthController extends HttpServlet {
 
         request.setAttribute("success", result.getSuccessMessage());
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
-    }
-
-    private void handleProfile(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        ProfileRequestDto dto = new ProfileRequestDto();
-        Object authEmail = request.getSession(false) == null ? null : request.getSession(false).getAttribute("authUserEmail");
-        dto.setAuthUserEmail(authEmail == null ? "" : authEmail.toString());
-
-        ProfileResponseDto result = authService.getProfile(dto);
-        if (!result.isSuccess()) {
-            request.setAttribute("error", result.getErrorMessage());
-        } else {
-            request.setAttribute("profileUser", result.getProfileUser());
-        }
-
-        request.getRequestDispatcher("/views/auth/profile.jsp").forward(request, response);
     }
 
     private String value(String input) {
