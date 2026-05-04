@@ -1,22 +1,13 @@
 package module.core.auth;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.security.MessageDigest;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Base64;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import entity.OutBoxEntity;
 import entity.SessionEntity;
 import entity.UserEntity;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import module.bussiness.notification.EmailService;
 import module.core.auth.dto.ForgotPasswordRequestDto;
 import module.core.auth.dto.ProfileRequestDto;
@@ -31,7 +22,6 @@ import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
 import module.core.auth.response_dto.SignupResponseDto;
 import module.core.auth.response_dto.VerifyEmailCodeResponseDto;
-import module.core.config.ConfigService;
 import module.core.coreInterface.CoreInterface;
 import module.core.coreInterface.RetryDto;
 import module.core.outbox.OutBoxRepository;
@@ -40,17 +30,13 @@ import module.core.user.UserService;
 import module.core.user.dto.CreateUserDto;
 
 public class AuthService {
-    private static final String DEFAULT_JWT_SECRET = "storeit-dev-secret-storeit-dev-secret-2026";
-
     private final UserService userService;
     private final OutBoxRepository outBoxRepository;
     private final EmailService emailService;
     private final RetryDto retryDto;
     private final TypeEvent typeEventOubox;
     private final SessionRepository sessionRepository;
-    private final Key jwtSigningKey;
-    private final int accessTokenMinutes;
-    private final int refreshTokenDays;
+    private final TokenService tokenService;
 
     public AuthService() {
         this.userService = new UserService();
@@ -59,13 +45,11 @@ public class AuthService {
         this.retryDto = new RetryDto();
         this.typeEventOubox = new TypeEvent();
         this.sessionRepository = new SessionRepository();
+        this.tokenService = new TokenService();
         this.retryDto.maxRetry = 3;
         this.retryDto.retryTime = 200;
         this.retryDto.maxTimeRetry = 1000;
         this.retryDto.randomState = 1;
-        this.jwtSigningKey = Keys.hmacShaKeyFor(resolveJwtSecret().getBytes(StandardCharsets.UTF_8));
-        this.accessTokenMinutes = Math.max(1, ConfigService.getInt("JWT_ACCESS_TOKEN_MINUTES", 15));
-        this.refreshTokenDays = Math.max(1, ConfigService.getInt("JWT_REFRESH_TOKEN_DAYS", 30));
     }
 
     public SignupResponseDto signup(SignupRequestDto req) {
@@ -195,8 +179,8 @@ public class AuthService {
             return res;
         }
 
-        String refreshToken = generateRefreshToken(matched);
-        String hashRefreshToken = sha256(refreshToken);
+        String refreshToken = tokenService.generateRefreshToken(matched);
+        String hashRefreshToken = hashArgon2(refreshToken);
         SessionEntity session;
         try {
             List<SessionEntity> sameIpSessions = CoreInterface.retryInterface(
@@ -222,7 +206,7 @@ public class AuthService {
             return res;
         }
 
-        String accessToken = generateAccessToken(matched, session.getId());
+        String accessToken = tokenService.generateAccessToken(matched, session.getId());
 
         res.setSuccess(true);
         res.setUserName(matched.getName());
@@ -349,22 +333,6 @@ public class AuthService {
         return res;
     }
 
-    public ProfileResponseDto getProfile(ProfileRequestDto req) {
-        ProfileResponseDto res = new ProfileResponseDto();
-
-        String authUserEmail = value(req.getAuthUserEmail());
-        UserEntity matched = userService.getUserByEmail(authUserEmail);
-        if (matched == null) {
-            res.setSuccess(false);
-            res.setErrorMessage("Account information could not be found. Please sign in again.");
-            return res;
-        }
-
-        res.setSuccess(true);
-        res.setProfileUser(matched);
-        return res;
-    }
-
     private void sendLoginAlertAsyncSafe(UserEntity user, String ipAddress) {
         try {
             OutBoxEntity outbox = CoreInterface.retryInterface(
@@ -388,56 +356,9 @@ public class AuthService {
         }
     }
 
-    private String generateAccessToken(UserEntity user, String sessionId) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(accessTokenMinutes * 60L);
-        return Jwts.builder()
-                .subject(user.getId())
-                .claim("email", user.getEmail())
-                .claim("role", user.getRole())
-                .claim("sessionId", sessionId)
-                .claim("type", "access")
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiresAt))
-                .signWith(jwtSigningKey)
-                .compact();
-    }
-
-    private String generateRefreshToken(UserEntity user) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(refreshTokenDays * 24L * 60L * 60L);
-        return Jwts.builder()
-                .subject(user.getId())
-                .claim("email", user.getEmail())
-                .claim("type", "refresh")
-                .claim("nonce", UUID.randomUUID().toString())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiresAt))
-                .signWith(jwtSigningKey)
-                .compact();
-    }
-
     private String normalizeIp(String ipAddress) {
         String normalized = value(ipAddress);
         return normalized.isBlank() ? "unknown" : normalized;
-    }
-
-    private String resolveJwtSecret() {
-        String secret = value(ConfigService.getOrDefault("JWT_SECRET", DEFAULT_JWT_SECRET));
-        if (secret.length() < 32) {
-            secret = (secret + DEFAULT_JWT_SECRET);
-        }
-        return secret;
-    }
-
-    private String sha256(String raw) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(value(raw).getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hashed);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to hash value", e);
-        }
     }
 
     private String value(String input) {
