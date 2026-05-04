@@ -53,9 +53,6 @@ public class AuthController extends HttpServlet {
             case "refresh":
                 handleRefreshToken(request, response);
                 break;
-            case "profile":
-                handleProfile(request, response);
-                break;
             case "signin":
             default:
                 request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
@@ -246,22 +243,6 @@ public class AuthController extends HttpServlet {
 
         request.setAttribute("success", result.getSuccessMessage());
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
-    }
-
-    private void handleProfile(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        ProfileRequestDto dto = new ProfileRequestDto();
-        Object authEmail = request.getSession(false) == null ? null : request.getSession(false).getAttribute("authUserEmail");
-        dto.setAuthUserEmail(authEmail == null ? "" : authEmail.toString());
-
-        ProfileResponseDto result = authService.getProfile(dto);
-        if (!result.isSuccess()) {
-            request.setAttribute("error", result.getErrorMessage());
-        } else {
-            request.setAttribute("profileUser", result.getProfileUser());
-        }
-
-        request.getRequestDispatcher("/views/auth/profile.jsp").forward(request, response);
     }
 
     private String value(String input) {
