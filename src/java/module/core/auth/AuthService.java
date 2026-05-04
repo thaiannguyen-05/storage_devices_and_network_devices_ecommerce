@@ -1,5 +1,6 @@
 package module.core.auth;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -8,9 +9,11 @@ import de.mkammerer.argon2.Argon2Factory;
 import entity.OutBoxEntity;
 import entity.SessionEntity;
 import entity.UserEntity;
+import io.jsonwebtoken.Claims;
 import module.bussiness.notification.EmailService;
 import module.core.auth.dto.ForgotPasswordRequestDto;
 import module.core.auth.dto.ProfileRequestDto;
+import module.core.auth.dto.RefreshTokenRequestDto;
 import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
@@ -18,6 +21,7 @@ import module.core.auth.dto.VerifyEmailCodeRequestDto;
 import module.core.auth.repository.impl.SessionRepository;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
 import module.core.auth.response_dto.ProfileResponseDto;
+import module.core.auth.response_dto.RefreshTokenResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
 import module.core.auth.response_dto.SignupResponseDto;
@@ -37,19 +41,19 @@ public class AuthService {
     private final TypeEvent typeEventOubox;
     private final SessionRepository sessionRepository;
     private final TokenService tokenService;
+    private final AuthConfig authConfig;
+    private final SecureRandom secureRandom;
 
     public AuthService() {
         this.userService = new UserService();
         this.outBoxRepository = new OutBoxRepository();
         this.emailService = new EmailService();
-        this.retryDto = new RetryDto();
+        this.authConfig = new AuthConfig();
+        this.retryDto = authConfig.createRetryDto();
         this.typeEventOubox = new TypeEvent();
         this.sessionRepository = new SessionRepository();
         this.tokenService = new TokenService();
-        this.retryDto.maxRetry = 3;
-        this.retryDto.retryTime = 200;
-        this.retryDto.maxTimeRetry = 1000;
-        this.retryDto.randomState = 1;
+        this.secureRandom = new SecureRandom();
     }
 
     public SignupResponseDto signup(SignupRequestDto req) {
@@ -218,6 +222,98 @@ public class AuthService {
         return res;
     }
 
+    public RefreshTokenResponseDto refreshToken(RefreshTokenRequestDto req) {
+        RefreshTokenResponseDto res = new RefreshTokenResponseDto();
+
+        String accessToken = value(req.getAccessToken());
+        String refreshToken = value(req.getRefreshToken());
+        Claims accessClaims;
+        Claims refreshClaims;
+
+        try {
+            accessClaims = tokenService.parseAccessToken(accessToken);
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setErrorMessage("The current access token is invalid.");
+            return res;
+        }
+
+        String email = value(accessClaims.get("email", String.class)).toLowerCase();
+        String sessionId = value(accessClaims.get("sessionId", String.class));
+        String accessUserId = value(accessClaims.getSubject());
+
+        UserEntity matched = userService.getUserByEmail(email);
+        if (matched == null) {
+            res.setSuccess(false);
+            res.setErrorMessage("Account does not exist.");
+            return res;
+        }
+
+        if (!matched.getId().equals(accessUserId)) {
+            res.setSuccess(false);
+            res.setErrorMessage("The token does not match the account.");
+            return res;
+        }
+
+        SessionEntity session = sessionRepository.findById(sessionId);
+        if (session == null || !matched.getId().equals(session.getUserId())) {
+            res.setSuccess(false);
+            res.setErrorMessage("The login session does not exist.");
+            return res;
+        }
+
+        if (!verifyArgon2(refreshToken, session.getHashRefreshToken())) {
+            res.setSuccess(false);
+            res.setErrorMessage("The refresh token is invalid.");
+            return res;
+        }
+
+        try {
+            refreshClaims = tokenService.parseRefreshToken(refreshToken);
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setErrorMessage("The refresh token is invalid or expired.");
+            return res;
+        }
+
+        String refreshEmail = value(refreshClaims.get("email", String.class)).toLowerCase();
+        String refreshUserId = value(refreshClaims.getSubject());
+        if (!matched.getEmail().equalsIgnoreCase(refreshEmail) || !matched.getId().equals(refreshUserId)) {
+            res.setSuccess(false);
+            res.setErrorMessage("The refresh token does not match the account.");
+            return res;
+        }
+
+        String newAccessToken = tokenService.generateAccessToken(matched, session.getId());
+        String newRefreshToken = tokenService.generateRefreshToken(matched);
+        String newHashRefreshToken = hashArgon2(newRefreshToken);
+
+        try {
+            boolean updated = CoreInterface.retryInterface(
+                    () -> sessionRepository.updateHashRefreshToken(session.getId(), newHashRefreshToken),
+                    retryDto
+            );
+            if (!updated) {
+                res.setSuccess(false);
+                res.setErrorMessage("Unable to update the login session.");
+                return res;
+            }
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setErrorMessage("Unable to update the login session.");
+            return res;
+        }
+
+        res.setSuccess(true);
+        res.setAccessToken(newAccessToken);
+        res.setRefreshToken(newRefreshToken);
+        res.setSessionId(session.getId());
+        res.setUserName(matched.getName());
+        res.setUserEmail(matched.getEmail());
+        res.setUserRole(matched.getRole());
+        return res;
+    }
+
     public ForgotPasswordResponseDto forgotPassword(ForgotPasswordRequestDto req) {
         ForgotPasswordResponseDto res = new ForgotPasswordResponseDto();
         
@@ -369,7 +465,12 @@ public class AuthService {
         Argon2 argon2 = Argon2Factory.create();
         char[] pwd = password == null ? new char[0] : password.toCharArray();
         try {
-            return argon2.hash(3, 65536, 1, pwd);
+            return argon2.hash(
+                    authConfig.getArgon2Iterations(),
+                    authConfig.getArgon2MemoryKiB(),
+                    authConfig.getArgon2Parallelism(),
+                    pwd
+            );
         } finally {
             argon2.wipeArray(pwd);
         }
@@ -386,7 +487,16 @@ public class AuthService {
     }
 
     private String generateVerificationCode() {
-        int randomValue = 100000 + (int) (Math.random() * 900000);
+        int digits = authConfig.getVerificationCodeLength();
+        int minValue = 1;
+        int maxValue = 1;
+        for (int i = 1; i < digits; i++) {
+            minValue *= 10;
+        }
+        for (int i = 0; i < digits; i++) {
+            maxValue *= 10;
+        }
+        int randomValue = minValue + secureRandom.nextInt(maxValue - minValue);
         return String.valueOf(randomValue);
     }
 }
