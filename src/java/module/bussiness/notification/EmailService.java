@@ -13,14 +13,14 @@ import java.util.Properties;
 import module.core.config.ConfigService;
 
 public class EmailService {
+    private static final String SMTP_HOST = "smtp.gmail.com";
+    private static final int SMTP_PORT = 587;
 
     public void sendPasswordResetEmail(String toEmail, String resetLink) {
         Session session = createMailSession();
         String from = getFromAddress();
-        int port = getPort();
 
         try {
-            configureSslIfNeeded(session, port);
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
@@ -43,10 +43,8 @@ public class EmailService {
     public void sendVerificationCodeEmail(String toEmail, String fullName, String code) {
         Session session = createMailSession();
         String from = getFromAddress();
-        int port = getPort();
 
         try {
-            configureSslIfNeeded(session, port);
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
@@ -69,10 +67,8 @@ public class EmailService {
     public void sendForgotPasswordCodeEmail(String toEmail, String fullName, String code) {
         Session session = createMailSession();
         String from = getFromAddress();
-        int port = getPort();
 
         try {
-            configureSslIfNeeded(session, port);
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
@@ -95,10 +91,8 @@ public class EmailService {
     public void sendLoginAlertEmail(String toEmail, String fullName, String ipAddress) {
         Session session = createMailSession();
         String from = getFromAddress();
-        int port = getPort();
 
         try {
-            configureSslIfNeeded(session, port);
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
@@ -118,14 +112,11 @@ public class EmailService {
     }
 
     private Session createMailSession() {
-        String host = getConfig("SMTP_HOST", "");
-        int port = getPort();
         String username = getConfig("SMTP_USER", "");
         String password = getConfig("SMTP_PASS", "");
-        String from = getFromAddress();
 
-        if (host.isBlank() || username.isBlank() || password.isBlank() || from.isBlank()) {
-            throw new RuntimeException("SMTP config missing: host/user/pass/from is blank");
+        if (username.isBlank() || password.isBlank()) {
+            throw new RuntimeException("SMTP config missing: SMTP_USER/SMTP_PASS is blank");
         }
 
         Properties props = new Properties();
@@ -133,12 +124,12 @@ public class EmailService {
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.starttls.required", "true");
         props.put("mail.smtp.ssl.protocols", "TLSv1.2");
-        props.put("mail.smtp.ssl.trust", host);
+        props.put("mail.smtp.ssl.trust", SMTP_HOST);
         props.put("mail.smtp.connectiontimeout", "10000");
         props.put("mail.smtp.timeout", "10000");
         props.put("mail.smtp.writetimeout", "10000");
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", String.valueOf(port));
+        props.put("mail.smtp.host", SMTP_HOST);
+        props.put("mail.smtp.port", String.valueOf(SMTP_PORT));
 
         return Session.getInstance(props, new Authenticator() {
             @Override
@@ -148,15 +139,8 @@ public class EmailService {
         });
     }
 
-    private void configureSslIfNeeded(Session session, int port) {
-        if (port == 465) {
-            session.getProperties().put("mail.smtp.starttls.enable", "false");
-            session.getProperties().put("mail.smtp.ssl.enable", "true");
-        }
-    }
-
     private String getFromAddress() {
-        return getConfig("SMTP_FROM", getConfig("SMTP_USER", ""));
+        return getConfig("SMTP_USER", "");
     }
 
     private String getConfig(String key, String defaultValue) {
@@ -173,17 +157,5 @@ public class EmailService {
             return fromEnv;
         }
         return defaultValue;
-    }
-
-    private int getPort() {
-        return parseInt(getConfig("SMTP_PORT", "587"), 587);
-    }
-
-    private int parseInt(String raw, int fallback) {
-        try {
-            return Integer.parseInt(raw);
-        } catch (Exception e) {
-            return fallback;
-        }
     }
 }

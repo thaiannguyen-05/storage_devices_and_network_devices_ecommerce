@@ -10,6 +10,16 @@
 <project name="Ecommerce" default="default" basedir=".">
     <description>Builds, tests, and runs the project Ecommerce.</description>
     <import file="nbproject/build-impl.xml"/>
+    
+    <target name="library-inclusion-in-archive" depends="init" unless="dist.ear.dir">
+        <mkdir dir="${build.web.dir}/WEB-INF/lib"/>
+        <copy todir="${build.web.dir}/WEB-INF/lib" overwrite="true">
+            <fileset dir="lib">
+                <include name="*.jar"/>
+                <exclude name="*-sources.jar"/>
+            </fileset>
+        </copy>
+    </target>
     <!--
 
     There exist several targets which are by default empty and which can be 

@@ -115,16 +115,16 @@
                                                                 <% Object
                                                                     authUserName=session.getAttribute("authUserName");
                                                                     if (authUserName !=null) { %>
-                                                                    <a href="${pageContext.request.contextPath}/auth?action=profile"
-                                                                        class="home-login"><span
-                                                                            class="home-inline-icon"
-                                                                            aria-hidden="true"><svg viewBox="0 0 24 24"
-                                                                                focusable="false">
-                                                                                <path
-                                                                                    d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z" />
-                                                                            </svg></span>
-                                                                        <%= authUserName %>
-                                                                    </a>
+                                                                    <div class="home-account-menu" style="position:relative;">
+                                                                        <button type="button" class="home-login" style="background:none;" onclick="toggleAccountMenu(this)">
+                                                                            <span class="home-inline-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z" /></svg></span>
+                                                                            <%= authUserName %>
+                                                                        </button>
+                                                                        <div class="home-account-dropdown" style="display:none;position:absolute;top:calc(100% + 10px);right:0;min-width:180px;background:#111318;border:1px solid #272a31;border-radius:12px;padding:8px;box-shadow:0 16px 32px rgba(0,0,0,.35);z-index:120;">
+                                                                            <a href="${pageContext.request.contextPath}/auth?action=profile" style="display:block;padding:10px 12px;border-radius:8px;color:#f4f4f5;text-decoration:none;font-weight:700;">Trang cá nhân</a>
+                                                                            <a href="${pageContext.request.contextPath}/auth?action=logout" style="display:block;padding:10px 12px;border-radius:8px;color:#ef4444;text-decoration:none;font-weight:700;">Đăng xuất</a>
+                                                                        </div>
+                                                                    </div>
                                                                     <% } else { %>
                                                                         <a href="${pageContext.request.contextPath}/auth?action=signin"
                                                                             class="home-login"><span
@@ -515,6 +515,22 @@
                                                         })();
 
                                                         (function () {
+                                                            window.toggleAccountMenu = function (button) {
+                                                                const wrapper = button.closest('.home-account-menu');
+                                                                if (!wrapper) return;
+                                                                const dropdown = wrapper.querySelector('.home-account-dropdown');
+                                                                if (!dropdown) return;
+                                                                const isOpen = dropdown.style.display === 'block';
+                                                                document.querySelectorAll('.home-account-dropdown').forEach((el) => { el.style.display = 'none'; });
+                                                                dropdown.style.display = isOpen ? 'none' : 'block';
+                                                            };
+
+                                                            document.addEventListener('click', function (event) {
+                                                                if (!event.target.closest('.home-account-menu')) {
+                                                                    document.querySelectorAll('.home-account-dropdown').forEach((el) => { el.style.display = 'none'; });
+                                                                }
+                                                            });
+
                                                             const modal = document.getElementById('cartVariantModal');
                                                             const closeBtn = document.getElementById('cartVariantClose');
                                                             const titleEl = document.getElementById('cartVariantTitle');

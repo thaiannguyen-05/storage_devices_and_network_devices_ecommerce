@@ -10,14 +10,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import module.core.auth.dto.ForgotPasswordRequestDto;
-import module.core.auth.dto.ProfileRequestDto;
 import module.core.auth.dto.RefreshTokenRequestDto;
 import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
 import module.core.auth.dto.VerifyEmailCodeRequestDto;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
-import module.core.auth.response_dto.ProfileResponseDto;
 import module.core.auth.response_dto.RefreshTokenResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
@@ -53,8 +51,14 @@ public class AuthController extends HttpServlet {
             case "verifyEmail":
                 request.getRequestDispatcher("/views/auth/verify-email.jsp").forward(request, response);
                 break;
+            case "profile":
+                handleProfile(request, response);
+                break;
             case "refresh":
                 handleRefreshToken(request, response);
+                break;
+            case "logout":
+                handleLogout(request, response);
                 break;
             case "revokeSession":
                 handleRevokeSession(request, response);
@@ -101,8 +105,18 @@ public class AuthController extends HttpServlet {
             return;
         }
 
+        if ("profile".equalsIgnoreCase(action)) {
+            handleProfile(request, response);
+            return;
+        }
+
         if ("refresh".equalsIgnoreCase(action)) {
             handleRefreshToken(request, response);
+            return;
+        }
+
+        if ("logout".equalsIgnoreCase(action)) {
+            handleLogout(request, response);
             return;
         }
 
@@ -258,6 +272,28 @@ public class AuthController extends HttpServlet {
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
+    private void handleProfile(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String userId = resolveAuthUserId(request);
+        if (userId.isBlank()) {
+            clearAuthState(request, response);
+            request.setAttribute("error", "Please sign in to view your profile.");
+            request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+            return;
+        }
+
+        entity.UserEntity profileUser = authService.getProfileByUserId(userId);
+        if (profileUser == null) {
+            clearAuthState(request, response);
+            request.setAttribute("error", "Unable to load your profile. Please sign in again.");
+            request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+            return;
+        }
+
+        request.setAttribute("profileUser", profileUser);
+        request.getRequestDispatcher("/views/auth/profile.jsp").forward(request, response);
+    }
+
     private void handleRevokeSession(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         AuthPayload authPayload = (AuthPayload) request.getAttribute(AuthPayload.REQUEST_ATTRIBUTE);
@@ -288,6 +324,23 @@ public class AuthController extends HttpServlet {
         }
 
         request.setAttribute("success", "All sessions for this account have been revoked. Please sign in again.");
+        request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+    }
+
+    private void handleLogout(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String sessionId = value(resolveSessionId(request));
+        boolean loggedOut = sessionId.isBlank() || authService.logout(sessionId);
+
+        clearAuthState(request, response);
+
+        if (!loggedOut) {
+            request.setAttribute("error", "Unable to log out from the current session.");
+            request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+            return;
+        }
+
+        request.setAttribute("success", "You have been logged out.");
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
@@ -338,6 +391,40 @@ public class AuthController extends HttpServlet {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    private String resolveSessionId(HttpServletRequest request) {
+        AuthPayload authPayload = (AuthPayload) request.getAttribute(AuthPayload.REQUEST_ATTRIBUTE);
+        if (authPayload != null && !value(authPayload.getSessionId()).isBlank()) {
+            return authPayload.getSessionId();
+        }
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Object authSessionId = session.getAttribute("authSessionId");
+            if (authSessionId != null) {
+                return String.valueOf(authSessionId).trim();
+            }
+        }
+
+        return resolveTokenValue(request, "sessionId");
+    }
+
+    private String resolveAuthUserId(HttpServletRequest request) {
+        AuthPayload authPayload = (AuthPayload) request.getAttribute(AuthPayload.REQUEST_ATTRIBUTE);
+        if (authPayload != null && !value(authPayload.getUserId()).isBlank()) {
+            return authPayload.getUserId();
+        }
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Object authUserId = session.getAttribute("authUserId");
+            if (authUserId != null) {
+                return String.valueOf(authUserId).trim();
+            }
+        }
+
+        return "";
     }
 
     private void addAuthCookie(HttpServletRequest request, HttpServletResponse response, String name, String value, int maxAgeSeconds) {

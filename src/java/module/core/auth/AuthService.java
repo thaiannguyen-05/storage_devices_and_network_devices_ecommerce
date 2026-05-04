@@ -1,18 +1,18 @@
 package module.core.auth;
 
 import java.security.SecureRandom;
+import java.security.MessageDigest;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.List;
-
-import de.mkammerer.argon2.Argon2;
-import de.mkammerer.argon2.Argon2Factory;
 import entity.OutBoxEntity;
 import entity.SessionEntity;
 import entity.UserEntity;
 import io.jsonwebtoken.Claims;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import module.bussiness.notification.EmailService;
 import module.core.auth.dto.ForgotPasswordRequestDto;
-import module.core.auth.dto.ProfileRequestDto;
 import module.core.auth.dto.RefreshTokenRequestDto;
 import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
@@ -20,7 +20,6 @@ import module.core.auth.dto.SignupRequestDto;
 import module.core.auth.dto.VerifyEmailCodeRequestDto;
 import module.core.auth.repository.impl.SessionRepository;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
-import module.core.auth.response_dto.ProfileResponseDto;
 import module.core.auth.response_dto.RefreshTokenResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
@@ -34,6 +33,12 @@ import module.core.user.UserService;
 import module.core.user.dto.CreateUserDto;
 
 public class AuthService {
+    private static final String PASSWORD_SCHEME = "pbkdf2";
+    private static final String PASSWORD_ALGORITHM = "PBKDF2WithHmacSHA256";
+    private static final int PASSWORD_ITERATIONS = 120000;
+    private static final int PASSWORD_SALT_BYTES = 16;
+    private static final int PASSWORD_HASH_BYTES = 32;
+
     private final UserService userService;
     private final OutBoxRepository outBoxRepository;
     private final EmailService emailService;
@@ -445,6 +450,38 @@ public class AuthService {
         }
     }
 
+    public UserEntity getProfileByUserId(String userId) {
+        String normalizedUserId = value(userId);
+        if (normalizedUserId.isBlank()) {
+            return null;
+        }
+
+        try {
+            return CoreInterface.retryInterface(
+                    () -> userService.getUserById(normalizedUserId),
+                    retryDto
+            );
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public boolean logout(String sessionId) {
+        String normalizedSessionId = value(sessionId);
+        if (normalizedSessionId.isBlank()) {
+            return false;
+        }
+
+        try {
+            return CoreInterface.retryInterface(
+                    () -> sessionRepository.delete(normalizedSessionId),
+                    retryDto
+            );
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void sendLoginAlertAsyncSafe(UserEntity user, String ipAddress) {
         try {
             OutBoxEntity outbox = CoreInterface.retryInterface(
@@ -478,27 +515,56 @@ public class AuthService {
     }
 
     private String hashArgon2(String password) {
-        Argon2 argon2 = Argon2Factory.create();
         char[] pwd = password == null ? new char[0] : password.toCharArray();
         try {
-            return argon2.hash(
-                    authConfig.getArgon2Iterations(),
-                    authConfig.getArgon2MemoryKiB(),
-                    authConfig.getArgon2Parallelism(),
-                    pwd
-            );
+            byte[] salt = new byte[PASSWORD_SALT_BYTES];
+            secureRandom.nextBytes(salt);
+            byte[] derived = derivePassword(pwd, salt, PASSWORD_ITERATIONS, PASSWORD_HASH_BYTES);
+            return PASSWORD_SCHEME
+                    + ":" + PASSWORD_ITERATIONS
+                    + ":" + Base64.getEncoder().encodeToString(salt)
+                    + ":" + Base64.getEncoder().encodeToString(derived);
         } finally {
-            argon2.wipeArray(pwd);
+            java.util.Arrays.fill(pwd, '\0');
         }
     }
 
     private boolean verifyArgon2(String rawPassword, String hash) {
-        Argon2 argon2 = Argon2Factory.create();
-        char[] pwd = rawPassword == null ? new char[0] : rawPassword.toCharArray();
         try {
-            return hash != null && !hash.isBlank() && argon2.verify(hash, pwd);
-        } finally {
-            argon2.wipeArray(pwd);
+            if (hash == null || hash.isBlank()) {
+                return false;
+            }
+
+            String[] parts = hash.split(":");
+            if (parts.length != 4 || !PASSWORD_SCHEME.equalsIgnoreCase(parts[0])) {
+                return false;
+            }
+
+            int iterations = Integer.parseInt(parts[1]);
+            byte[] salt = Base64.getDecoder().decode(parts[2]);
+            byte[] expected = Base64.getDecoder().decode(parts[3]);
+            char[] pwd = rawPassword == null ? new char[0] : rawPassword.toCharArray();
+            try {
+                byte[] actual = derivePassword(pwd, salt, iterations, expected.length);
+                return MessageDigest.isEqual(expected, actual);
+            } finally {
+                java.util.Arrays.fill(pwd, '\0');
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private byte[] derivePassword(char[] password, byte[] salt, int iterations, int keyLengthBytes) {
+        try {
+            PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLengthBytes * 8);
+            try {
+                return SecretKeyFactory.getInstance(PASSWORD_ALGORITHM).generateSecret(spec).getEncoded();
+            } finally {
+                spec.clearPassword();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to derive password hash.", e);
         }
     }
 
