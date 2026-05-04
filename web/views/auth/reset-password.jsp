@@ -4,7 +4,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Đặt lại mật khẩu | StoreIT</title>
+        <title>Reset Password | StoreIT</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,19 +14,26 @@
         <header class="home-header"><div class="home-header-top"><a class="home-logo-wrap" href="${pageContext.request.contextPath}/product"><div class="home-logo-box">S</div><div class="home-logo-text"><strong>StoreIT</strong><span>High Performance</span></div></a></div></header>
         <main class="auth-container">
             <div class="auth-card">
-                <h2>Đặt lại mật khẩu</h2>
-                <p>Nhập mật khẩu mới cho tài khoản của bạn.</p>
+                <h2>Reset Password</h2>
+                <p>Enter your email, the reset code, and your new password.</p>
                 <form action="${pageContext.request.contextPath}/auth?action=resetPassword" method="post">
-                    <input type="hidden" name="token" value="<%= request.getAttribute("token") == null ? "" : request.getAttribute("token") %>">
                     <div class="ch-form-field">
-                        <label>Mật khẩu mới</label>
-                        <input type="password" name="newPassword" required placeholder="Nhập mật khẩu mới">
+                        <label>Email</label>
+                        <input type="email" name="email" required value="<%= request.getAttribute("email") == null ? "" : request.getAttribute("email") %>" placeholder="Enter your email">
                     </div>
                     <div class="ch-form-field">
-                        <label>Xác nhận mật khẩu mới</label>
-                        <input type="password" name="confirmNewPassword" required placeholder="Nhập lại mật khẩu mới">
+                        <label>Reset code</label>
+                        <input type="text" name="code" required value="<%= request.getAttribute("code") == null ? "" : request.getAttribute("code") %>" placeholder="Enter the reset code">
                     </div>
-                    <button type="submit" class="home-cta btn-full">CẬP NHẬT MẬT KHẨU</button>
+                    <div class="ch-form-field">
+                        <label>New password</label>
+                        <input type="password" name="newPassword" required placeholder="Enter your new password">
+                    </div>
+                    <div class="ch-form-field">
+                        <label>Confirm new password</label>
+                        <input type="password" name="confirmNewPassword" required placeholder="Re-enter your new password">
+                    </div>
+                    <button type="submit" class="home-cta btn-full">UPDATE PASSWORD</button>
                     <% if (request.getAttribute("error") != null) { %>
                         <p style="margin: 10px 0 0; color: #ef4444; font-size: 13px;"><%= request.getAttribute("error") %></p>
                     <% } %>

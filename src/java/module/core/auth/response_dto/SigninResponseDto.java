@@ -7,6 +7,9 @@ public class SigninResponseDto {
     private String userName;
     private String userEmail;
     private String userRole;
+    private String accessToken;
+    private String refreshToken;
+    private String sessionId;
 
     public boolean isSuccess() {
         return success;
@@ -54,5 +57,29 @@ public class SigninResponseDto {
 
     public void setUserRole(String userRole) {
         this.userRole = userRole;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }

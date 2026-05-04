@@ -4,20 +4,24 @@ import java.time.LocalDateTime;
 
 public class OutBoxEntity {
     private String id;
-    private String payload;
+    private String code;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String type;
+    private String userId;
 
     public OutBoxEntity() {
     }
 
-    public OutBoxEntity(String id, String payload, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public OutBoxEntity(String id, String code, String status, LocalDateTime createdAt, LocalDateTime updatedAt, String type, String userId) {
         this.id = id;
-        this.payload = payload;
+        this.code = code;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.type = type;
+        this.userId = userId;
     }
 
     public String getId() {
@@ -28,12 +32,12 @@ public class OutBoxEntity {
         this.id = id;
     }
 
-    public String getPayload() {
-        return payload;
+    public String getCode() {
+        return code;
     }
 
-    public void setPayload(String payload) {
-        this.payload = payload;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getStatus() {
@@ -58,5 +62,21 @@ public class OutBoxEntity {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
