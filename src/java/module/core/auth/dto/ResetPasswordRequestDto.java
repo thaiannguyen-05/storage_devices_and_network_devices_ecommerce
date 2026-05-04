@@ -1,16 +1,25 @@
 package module.core.auth.dto;
 
 public class ResetPasswordRequestDto {
-    private String token;
+    private String email;
+    private String code;
     private String newPassword;
     private String confirmNewPassword;
 
-    public String getToken() {
-        return token;
+    public String getEmail() {
+        return email;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getNewPassword() {

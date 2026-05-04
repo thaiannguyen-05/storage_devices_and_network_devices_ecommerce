@@ -41,11 +41,6 @@ public class AuthController extends HttpServlet {
                 request.getRequestDispatcher("/views/auth/forgot-password.jsp").forward(request, response);
                 break;
             case "resetPassword":
-                String token = value(request.getParameter("token"));
-                request.setAttribute("token", token);
-                if (token.isBlank()) {
-                    request.setAttribute("error", "The password reset link is invalid.");
-                }
                 request.getRequestDispatcher("/views/auth/reset-password.jsp").forward(request, response);
                 break;
             case "verifyEmail":
@@ -157,8 +152,6 @@ public class AuthController extends HttpServlet {
             throws ServletException, IOException {
         ForgotPasswordRequestDto dto = new ForgotPasswordRequestDto();
         dto.setEmail(value(request.getParameter("email")));
-        String fallbackBaseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
-        dto.setBaseUrl(fallbackBaseUrl);
 
         ForgotPasswordResponseDto result = authService.forgotPassword(dto);
         request.setAttribute("email", result.getEmail());
@@ -176,12 +169,14 @@ public class AuthController extends HttpServlet {
     private void handleResetPassword(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         ResetPasswordRequestDto dto = new ResetPasswordRequestDto();
-        dto.setToken(value(request.getParameter("token")));
+        dto.setEmail(value(request.getParameter("email")));
+        dto.setCode(value(request.getParameter("code")));
         dto.setNewPassword(value(request.getParameter("newPassword")));
         dto.setConfirmNewPassword(value(request.getParameter("confirmNewPassword")));
 
         ResetPasswordResponseDto result = authService.resetPassword(dto);
-        request.setAttribute("token", result.getToken());
+        request.setAttribute("email", dto.getEmail());
+        request.setAttribute("code", dto.getCode());
 
         if (!result.isSuccess()) {
             request.setAttribute("error", result.getErrorMessage());

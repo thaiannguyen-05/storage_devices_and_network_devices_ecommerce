@@ -13,7 +13,6 @@ import java.util.UUID;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import entity.OutBoxEntity;
-import entity.PasswordResetTokenEntity;
 import entity.SessionEntity;
 import entity.UserEntity;
 import io.jsonwebtoken.Jwts;
@@ -25,7 +24,6 @@ import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
 import module.core.auth.dto.VerifyEmailCodeRequestDto;
-import module.core.auth.repository.impl.PasswordResetTokenRepository;
 import module.core.auth.repository.impl.SessionRepository;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
 import module.core.auth.response_dto.ProfileResponseDto;
@@ -287,21 +285,47 @@ public class AuthService {
     public ResetPasswordResponseDto resetPassword(ResetPasswordRequestDto req) {
         ResetPasswordResponseDto res = new ResetPasswordResponseDto();
 
-        String token = value(req.getToken());
+        String email = value(req.getEmail()).toLowerCase();
+        String code = value(req.getCode());
         String newPassword = value(req.getNewPassword());
-        res.setToken(token);
+        String confirmNewPassword = value(req.getConfirmNewPassword());
+        res.setToken(code);
 
-        String tokenHash = sha256(token);
-        PasswordResetTokenEntity validToken = passwordResetTokenRepository.findValidByTokenHash(tokenHash);
-        if (validToken == null) {
+        UserEntity matched = userService.getUserByEmail(email);
+        if (matched == null) {
             res.setSuccess(false);
-            res.setErrorMessage("The reset link is invalid or has expired.");
+            res.setErrorMessage("Account does not exist.");
+            return res;
+        }
+
+        if (newPassword.isBlank() || !newPassword.equals(confirmNewPassword)) {
+            res.setSuccess(false);
+            res.setErrorMessage("The password confirmation does not match.");
+            return res;
+        }
+
+        OutBoxEntity outbox = outBoxRepository.findByUserIdAndType(matched.getId(), typeEventOubox.getSendForgotPasswordCode());
+        if (outbox == null) {
+            res.setSuccess(false);
+            res.setErrorMessage("No reset code was found for this account.");
+            return res;
+        }
+
+        if (!"PENDING".equalsIgnoreCase(outbox.getStatus()) && !"PROCESSED".equalsIgnoreCase(outbox.getStatus())) {
+            res.setSuccess(false);
+            res.setErrorMessage("The reset code is not available.");
+            return res;
+        }
+
+        if (!verifyArgon2(code, outbox.getCode())) {
+            res.setSuccess(false);
+            res.setErrorMessage("The reset code is incorrect.");
             return res;
         }
 
         try {
             boolean updated = CoreInterface.retryInterface(
-                    () -> userService.updatePasswordById(validToken.getUserId(), hashArgon2(newPassword)),
+                    () -> userService.updatePasswordById(matched.getId(), hashArgon2(newPassword)),
                     retryDto
             );
             if (!updated) {
@@ -309,16 +333,13 @@ public class AuthService {
                 res.setErrorMessage("Unable to update the password. Please try again.");
                 return res;
             }
-
-            CoreInterface.retryInterface(() -> passwordResetTokenRepository.markUsed(validToken.getId()), retryDto);
-            CoreInterface.retryInterface(() -> passwordResetTokenRepository.invalidateAllByUserId(validToken.getUserId()), retryDto);
         } catch (Exception e) {
             res.setSuccess(false);
             res.setErrorMessage("Unable to update the password. Please try again.");
             return res;
         }
 
-        UserEntity updatedUser = userService.getUserById(validToken.getUserId());
+        UserEntity updatedUser = userService.getUserById(matched.getId());
         res.setSuccess(true);
         if (updatedUser != null) {
             res.setUserName(updatedUser.getName());
@@ -346,10 +367,23 @@ public class AuthService {
 
     private void sendLoginAlertAsyncSafe(UserEntity user, String ipAddress) {
         try {
-            CoreInterface.retryInterface(() -> {
-                emailService.sendLoginAlertEmail(user.getEmail(), user.getName(), ipAddress);
-                return true;
-            }, retryDto);
+            OutBoxEntity outbox = CoreInterface.retryInterface(
+                    () -> outBoxRepository.create(user.getId(), value(ipAddress), typeEventOubox.getSendLoginAlertEmail()),
+                    retryDto
+            );
+
+            try {
+                CoreInterface.retryInterface(() -> {
+                    emailService.sendLoginAlertEmail(user.getEmail(), user.getName(), ipAddress);
+                    return true;
+                }, retryDto);
+                CoreInterface.retryInterface(() -> outBoxRepository.markProcessed(outbox.getId()), retryDto);
+            } catch (Exception e) {
+                try {
+                    CoreInterface.retryInterface(() -> outBoxRepository.markFailed(outbox.getId()), retryDto);
+                } catch (Exception ignored) {
+                }
+            }
         } catch (Exception ignored) {
         }
     }
