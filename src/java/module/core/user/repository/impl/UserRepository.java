@@ -111,6 +111,23 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
+    public UserEntity findByEmail(String email) {
+        String sql = "SELECT `id`, `name`, `dateOfBirth`, `hashPassword`, `status`, `role`, `email`, `createdAt`, `updatedAt` FROM `User` WHERE `email` = ? LIMIT 1";
+
+        try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToUser(rs);
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find user by email", e);
+        }
+    }
+
+    @Override
     public boolean update(String id, UpdateUserDto dto) {
         String sql = "UPDATE `User` SET `name` = ?, `dateOfBirth` = ?, `status` = ?, `role` = ?, `email` = ?, `updatedAt` = NOW() WHERE `id` = ?";
 

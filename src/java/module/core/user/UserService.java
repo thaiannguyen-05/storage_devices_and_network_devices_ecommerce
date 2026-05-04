@@ -35,6 +35,18 @@ public class UserService {
         return this.userRepository.findById(id);
     }
 
+    public UserEntity getUserByEmail(String email) {
+        return this.userRepository.findByEmail(email);
+    }
+
+    public boolean updatePasswordById(String id, String hashPassword) {
+        return this.userRepository.updatePasswordById(id, hashPassword);
+    }
+
+    public boolean activateUserById(String id) {
+        return this.userRepository.activateById(id);
+    }
+
     public boolean updateUser(String id, UpdateUserDto dto) {
         return this.userRepository.update(id, dto);
     }

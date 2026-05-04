@@ -2,6 +2,7 @@ package module.core.auth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,7 +44,7 @@ public class AuthController extends HttpServlet {
                 String token = value(request.getParameter("token"));
                 request.setAttribute("token", token);
                 if (token.isBlank()) {
-                    request.setAttribute("error", "Link đặt lại mật khẩu không hợp lệ.");
+                    request.setAttribute("error", "The password reset link is invalid.");
                 }
                 request.getRequestDispatcher("/views/auth/reset-password.jsp").forward(request, response);
                 break;
@@ -122,7 +123,7 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        request.setAttribute("success", "Đăng ký thành công. Vui lòng nhập mã xác thực đã gửi qua email.");
+        request.setAttribute("success", "Registration succeeded. Please enter the verification code sent to your email.");
         request.setAttribute("email", result.getUserEmail());
         request.getRequestDispatcher("/views/auth/verify-email.jsp").forward(request, response);
     }
@@ -132,6 +133,7 @@ public class AuthController extends HttpServlet {
         SigninRequestDto dto = new SigninRequestDto();
         dto.setUsername(value(request.getParameter("username")));
         dto.setPassword(value(request.getParameter("password")));
+        dto.setIpAddress(resolveClientIp(request));
 
         SigninResponseDto result = authService.signin(dto);
         if (!result.isSuccess()) {
@@ -144,6 +146,10 @@ public class AuthController extends HttpServlet {
         request.getSession(true).setAttribute("authUserName", result.getUserName());
         request.getSession().setAttribute("authUserEmail", result.getUserEmail());
         request.getSession().setAttribute("authUserRole", result.getUserRole());
+        request.getSession().setAttribute("authSessionId", result.getSessionId());
+
+        addAuthCookie(response, "accessToken", result.getAccessToken(), 15 * 60);
+        addAuthCookie(response, "sessionId", result.getSessionId(), 30 * 24 * 60 * 60);
         response.sendRedirect(request.getContextPath() + "/product");
     }
 
@@ -228,6 +234,28 @@ public class AuthController extends HttpServlet {
 
     private String value(String input) {
         return input == null ? "" : input.trim();
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String[] headerNames = new String[]{"X-Forwarded-For", "X-Real-IP", "CF-Connecting-IP"};
+        for (String header : headerNames) {
+            String raw = request.getHeader(header);
+            if (raw != null && !raw.isBlank() && !"unknown".equalsIgnoreCase(raw)) {
+                return raw.split(",")[0].trim();
+            }
+        }
+
+        String remoteAddr = request.getRemoteAddr();
+        return remoteAddr == null ? "unknown" : remoteAddr;
+    }
+
+    private void addAuthCookie(HttpServletResponse response, String name, String value, int maxAgeSeconds) {
+        Cookie cookie = new Cookie(name, value == null ? "" : value);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAgeSeconds);
+        response.addCookie(cookie);
     }
 
     @Override

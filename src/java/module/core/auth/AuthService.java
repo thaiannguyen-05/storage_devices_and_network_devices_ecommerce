@@ -1,15 +1,23 @@
 package module.core.auth;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.security.MessageDigest;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
-import entity.EmailVerificationCodeEntity;
 import entity.OutBoxEntity;
 import entity.PasswordResetTokenEntity;
+import entity.SessionEntity;
 import entity.UserEntity;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import module.bussiness.notification.EmailService;
 import module.core.auth.dto.ForgotPasswordRequestDto;
 import module.core.auth.dto.ProfileRequestDto;
@@ -17,6 +25,8 @@ import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
 import module.core.auth.dto.VerifyEmailCodeRequestDto;
+import module.core.auth.repository.impl.PasswordResetTokenRepository;
+import module.core.auth.repository.impl.SessionRepository;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
 import module.core.auth.response_dto.ProfileResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
@@ -28,26 +38,36 @@ import module.core.coreInterface.CoreInterface;
 import module.core.coreInterface.RetryDto;
 import module.core.outbox.OutBoxRepository;
 import module.core.outbox.TypeEvent;
+import module.core.user.UserService;
 import module.core.user.dto.CreateUserDto;
-import module.core.user.repository.impl.UserRepository;
 
 public class AuthService {
-    private final UserRepository userRepository;
+    private static final String DEFAULT_JWT_SECRET = "storeit-dev-secret-storeit-dev-secret-2026";
+
+    private final UserService userService;
     private final OutBoxRepository outBoxRepository;
     private final EmailService emailService;
     private final RetryDto retryDto;
     private final TypeEvent typeEventOubox;
+    private final SessionRepository sessionRepository;
+    private final Key jwtSigningKey;
+    private final int accessTokenMinutes;
+    private final int refreshTokenDays;
 
     public AuthService() {
-        this.userRepository = new UserRepository();
+        this.userService = new UserService();
         this.outBoxRepository = new OutBoxRepository();
         this.emailService = new EmailService();
         this.retryDto = new RetryDto();
         this.typeEventOubox = new TypeEvent();
+        this.sessionRepository = new SessionRepository();
         this.retryDto.maxRetry = 3;
         this.retryDto.retryTime = 200;
         this.retryDto.maxTimeRetry = 1000;
         this.retryDto.randomState = 1;
+        this.jwtSigningKey = Keys.hmacShaKeyFor(resolveJwtSecret().getBytes(StandardCharsets.UTF_8));
+        this.accessTokenMinutes = Math.max(1, ConfigService.getInt("JWT_ACCESS_TOKEN_MINUTES", 15));
+        this.refreshTokenDays = Math.max(1, ConfigService.getInt("JWT_REFRESH_TOKEN_DAYS", 30));
     }
 
     public SignupResponseDto signup(SignupRequestDto req) {
@@ -55,10 +75,10 @@ public class AuthService {
         String fullname = value(req.getFullname());
         String email = value(req.getEmail()).toLowerCase();
         String password = value(req.getPassword());
-        UserEntity existed = findUserByEmail(email);
+        UserEntity existed = userService.getUserByEmail(email);
         if (existed != null) {
             res.setSuccess(false);
-            res.setErrorMessage("Email đã tồn tại.");
+            res.setErrorMessage("Email already exists.");
             return res;
         }
 
@@ -69,11 +89,14 @@ public class AuthService {
         dto.setHashPassword(hashArgon2(password));
 
         try {
-            UserEntity createdUser = CoreInterface.retryInterface(() -> userRepository.createUser(dto), retryDto);
+            UserEntity createdUser = CoreInterface.retryInterface(() -> userService.createUser(dto), retryDto);
             String rawCode = generateVerificationCode();
             String codeHash = hashArgon2(rawCode);
 
-            OutBoxEntity outbox = CoreInterface.retryInterface(() -> outBoxRepository.create(createdUser.getId(), codeHash, typeEventOubox.getSendVerifyEmail()), retryDto);
+            OutBoxEntity outbox = CoreInterface.retryInterface(
+                    () -> outBoxRepository.create(createdUser.getId(), codeHash, typeEventOubox.getSendVerifyEmail()),
+                    retryDto
+            );
 
             try {
                 CoreInterface.retryInterface(() -> {
@@ -92,11 +115,11 @@ public class AuthService {
                 } catch (Exception ignored) {
                 }
                 res.setSuccess(false);
-                res.setErrorMessage("Đăng ký thành công nhưng chưa gửi được mã xác thực. Vui lòng thử lại sau.");
+                res.setErrorMessage("Registration succeeded, but the verification code could not be sent. Please try again later.");
                 return res;
             }
         } catch (Exception e) {
-            String message = e.getMessage() == null ? "Không thể tạo tài khoản. Vui lòng thử lại." : e.getMessage();
+            String message = e.getMessage() == null ? "Unable to create the account. Please try again." : e.getMessage();
             res.setSuccess(false);
             res.setErrorMessage(message);
             return res;
@@ -109,42 +132,41 @@ public class AuthService {
         String email = value(req.getEmail()).toLowerCase();
         String code = value(req.getCode());
 
-        UserEntity user = findUserByEmail(email);
+        UserEntity user = userService.getUserByEmail(email);
         if (user == null) {
             res.setSuccess(false);
-            res.setErrorMessage("Tài khoản không tồn tại.");
+            res.setErrorMessage("Account does not exist.");
             return res;
         }
 
         OutBoxEntity outbox = outBoxRepository.findByUserIdAndType(user.getId(), TypeEvent.SEND_VERIFY_EMAIL);
         if (outbox == null) {
             res.setSuccess(false);
-            res.setErrorMessage("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+            res.setErrorMessage("The verification code is invalid or has expired.");
             return res;
         }
 
         if (!verifyArgon2(code, outbox.getCode())) {
             res.setSuccess(false);
-            res.setErrorMessage("Mã xác thực không đúng.");
+            res.setErrorMessage("The verification code is incorrect.");
             return res;
         }
 
         try {
-            boolean activated = CoreInterface.retryInterface(() -> userRepository.activateById(user.getId()), retryDto);
+            boolean activated = CoreInterface.retryInterface(() -> userService.activateUserById(user.getId()), retryDto);
             if (!activated) {
                 res.setSuccess(false);
-                res.setErrorMessage("Không thể kích hoạt tài khoản. Vui lòng thử lại.");
+                res.setErrorMessage("Unable to activate the account. Please try again.");
                 return res;
             }
         } catch (Exception e) {
             res.setSuccess(false);
-            res.setErrorMessage("Không thể kích hoạt tài khoản. Vui lòng thử lại.");
+            res.setErrorMessage("Unable to activate the account. Please try again.");
             return res;
         }
 
-
         res.setSuccess(true);
-        res.setSuccessMessage("Xác thực email thành công. Bạn có thể đăng nhập.");
+        res.setSuccessMessage("Email verification succeeded. You can now sign in.");
         return res;
     }
 
@@ -153,66 +175,113 @@ public class AuthService {
 
         String username = value(req.getUsername()).toLowerCase();
         String password = value(req.getPassword());
+        String ipAddress = normalizeIp(req.getIpAddress());
         res.setUsername(username);
 
-        UserEntity matched = findUserByEmail(username);
+        UserEntity matched = userService.getUserByEmail(username);
         if (matched == null) {
             res.setSuccess(false);
-            res.setErrorMessage("Tài khoản không tồn tại.");
+            res.setErrorMessage("Account does not exist.");
             return res;
         }
 
         if (!"ACTIVE".equalsIgnoreCase(matched.getStatus())) {
             res.setSuccess(false);
-            res.setErrorMessage("Tài khoản chưa xác thực email.");
+            res.setErrorMessage("The account has not been verified by email yet.");
             return res;
         }
 
-        if (!verifyPassword(password, matched.gethashArgon2())) {
+        if (!verifyArgon2(password, matched.getHashPassword())) {
             res.setSuccess(false);
-            res.setErrorMessage("Mật khẩu không đúng.");
+            res.setErrorMessage("Incorrect password.");
             return res;
         }
+
+        String refreshToken = generateRefreshToken(matched);
+        String hashRefreshToken = sha256(refreshToken);
+        SessionEntity session;
+        try {
+            List<SessionEntity> sameIpSessions = CoreInterface.retryInterface(
+                    () -> sessionRepository.findByUserIdAndIp(matched.getId(), ipAddress),
+                    retryDto
+            );
+
+            boolean firstSeenIp = sameIpSessions == null || sameIpSessions.isEmpty();
+            session = firstSeenIp
+                    ? CoreInterface.retryInterface(() -> sessionRepository.create(matched.getId(), hashRefreshToken, ipAddress), retryDto)
+                    : sameIpSessions.get(0);
+
+            if (!firstSeenIp) {
+                final String sessionId = session.getId();
+                CoreInterface.retryInterface(() -> sessionRepository.updateHashRefreshToken(sessionId, hashRefreshToken), retryDto);
+                session.setHashRefreshToken(hashRefreshToken);
+            } else {
+                sendLoginAlertAsyncSafe(matched, ipAddress);
+            }
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setErrorMessage("Unable to create the login session. Please try again.");
+            return res;
+        }
+
+        String accessToken = generateAccessToken(matched, session.getId());
 
         res.setSuccess(true);
         res.setUserName(matched.getName());
         res.setUserEmail(matched.getEmail());
         res.setUserRole(matched.getRole());
+        res.setAccessToken(accessToken);
+        res.setRefreshToken(refreshToken);
+        res.setSessionId(session.getId());
         return res;
     }
 
     public ForgotPasswordResponseDto forgotPassword(ForgotPasswordRequestDto req) {
         ForgotPasswordResponseDto res = new ForgotPasswordResponseDto();
-
+        
         String email = value(req.getEmail()).toLowerCase();
-        String fallbackBaseUrl = value(req.getBaseUrl());
         res.setEmail(email);
 
-        UserEntity matched = findUserByEmail(email);
-        if (matched != null) {
-            try {
-                CoreInterface.retryInterface(() -> passwordResetTokenRepository.invalidateAllByUserId(matched.getId()), retryDto);
-                String rawToken = UUID.randomUUID().toString() + UUID.randomUUID().toString().replace("-", "");
-                String tokenHash = sha256(rawToken);
-                CoreInterface.retryInterface(() -> passwordResetTokenRepository.create(matched.getId(), tokenHash, 15), retryDto);
-
-                String baseUrl = ConfigService.getOrDefault("APP_BASE_URL", fallbackBaseUrl);
-                String resetLink = baseUrl + "/auth?action=resetPassword&token=" + rawToken;
-                CoreInterface.retryInterface(() -> {
-                    emailService.sendPasswordResetEmail(matched.getEmail(), resetLink);
-                    return true;
-                }, retryDto);
-            } catch (Exception e) {
-                String msg = e.getMessage() == null ? "Không thể gửi email lúc này." : e.getMessage();
-                res.setSuccess(false);
-                res.setErrorMessage(msg);
-                return res;
-            }
+        UserEntity matched = userService.getUserByEmail(email);
+        if (matched == null) {
+            res.setSuccess(false);
+            res.setErrorMessage("Account does not exist.");
+            return res;
         }
 
-        res.setSuccess(true);
-        res.setSuccessMessage("Nếu email tồn tại, hệ thống đã gửi link đặt lại mật khẩu (hiệu lực 15 phút).");
-        return res;
+        String rawCode = generateVerificationCode();
+        String codeHash = hashArgon2(rawCode);
+
+        try {
+            OutBoxEntity outbox = CoreInterface.retryInterface(
+                    () -> outBoxRepository.create(matched.getId(), codeHash, typeEventOubox.getSendForgotPasswordCode()),
+                    retryDto
+            );
+
+            try {
+                CoreInterface.retryInterface(() -> {
+                    emailService.sendForgotPasswordCodeEmail(matched.getEmail(), matched.getName(), rawCode);
+                    return true;
+                }, retryDto);
+                CoreInterface.retryInterface(() -> outBoxRepository.markProcessed(outbox.getId()), retryDto);
+                res.setSuccess(true);
+                res.setSuccessMessage("A password reset code has been sent to your email.");
+                return res;
+            } catch (Exception e) {
+                try {
+                    CoreInterface.retryInterface(() -> outBoxRepository.markFailed(outbox.getId()), retryDto);
+                } catch (Exception ignored) {
+                }
+                res.setSuccess(false);
+                res.setErrorMessage("The reset code was created, but the email could not be sent. Please try again later.");
+                return res;
+            }
+        } catch (Exception e) {
+            String msg = e.getMessage() == null ? "Unable to create the reset code. Please try again." : e.getMessage();
+            res.setSuccess(false);
+            res.setErrorMessage(msg);
+            return res;
+        }
     }
 
     public ResetPasswordResponseDto resetPassword(ResetPasswordRequestDto req) {
@@ -226,15 +295,18 @@ public class AuthService {
         PasswordResetTokenEntity validToken = passwordResetTokenRepository.findValidByTokenHash(tokenHash);
         if (validToken == null) {
             res.setSuccess(false);
-            res.setErrorMessage("Link không hợp lệ hoặc đã hết hạn.");
+            res.setErrorMessage("The reset link is invalid or has expired.");
             return res;
         }
 
         try {
-            boolean updated = CoreInterface.retryInterface(() -> userRepository.updatePasswordById(validToken.getUserId(), hashArgon2(newPassword)), retryDto);
+            boolean updated = CoreInterface.retryInterface(
+                    () -> userService.updatePasswordById(validToken.getUserId(), hashArgon2(newPassword)),
+                    retryDto
+            );
             if (!updated) {
                 res.setSuccess(false);
-                res.setErrorMessage("Không thể cập nhật mật khẩu. Vui lòng thử lại.");
+                res.setErrorMessage("Unable to update the password. Please try again.");
                 return res;
             }
 
@@ -242,11 +314,11 @@ public class AuthService {
             CoreInterface.retryInterface(() -> passwordResetTokenRepository.invalidateAllByUserId(validToken.getUserId()), retryDto);
         } catch (Exception e) {
             res.setSuccess(false);
-            res.setErrorMessage("Không thể cập nhật mật khẩu. Vui lòng thử lại.");
+            res.setErrorMessage("Unable to update the password. Please try again.");
             return res;
         }
 
-        UserEntity updatedUser = userRepository.findById(validToken.getUserId());
+        UserEntity updatedUser = userService.getUserById(validToken.getUserId());
         res.setSuccess(true);
         if (updatedUser != null) {
             res.setUserName(updatedUser.getName());
@@ -260,10 +332,10 @@ public class AuthService {
         ProfileResponseDto res = new ProfileResponseDto();
 
         String authUserEmail = value(req.getAuthUserEmail());
-        UserEntity matched = findUserByEmail(authUserEmail);
+        UserEntity matched = userService.getUserByEmail(authUserEmail);
         if (matched == null) {
             res.setSuccess(false);
-            res.setErrorMessage("Không tìm thấy thông tin tài khoản. Vui lòng đăng nhập lại.");
+            res.setErrorMessage("Account information could not be found. Please sign in again.");
             return res;
         }
 
@@ -272,14 +344,66 @@ public class AuthService {
         return res;
     }
 
-    private UserEntity findUserByEmail(String email) {
-        List<UserEntity> users = userRepository.findAll();
-        for (UserEntity user : users) {
-            if (email.equalsIgnoreCase(user.getEmail())) {
-                return user;
-            }
+    private void sendLoginAlertAsyncSafe(UserEntity user, String ipAddress) {
+        try {
+            CoreInterface.retryInterface(() -> {
+                emailService.sendLoginAlertEmail(user.getEmail(), user.getName(), ipAddress);
+                return true;
+            }, retryDto);
+        } catch (Exception ignored) {
         }
-        return null;
+    }
+
+    private String generateAccessToken(UserEntity user, String sessionId) {
+        Instant now = Instant.now();
+        Instant expiresAt = now.plusSeconds(accessTokenMinutes * 60L);
+        return Jwts.builder()
+                .subject(user.getId())
+                .claim("email", user.getEmail())
+                .claim("role", user.getRole())
+                .claim("sessionId", sessionId)
+                .claim("type", "access")
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiresAt))
+                .signWith(jwtSigningKey)
+                .compact();
+    }
+
+    private String generateRefreshToken(UserEntity user) {
+        Instant now = Instant.now();
+        Instant expiresAt = now.plusSeconds(refreshTokenDays * 24L * 60L * 60L);
+        return Jwts.builder()
+                .subject(user.getId())
+                .claim("email", user.getEmail())
+                .claim("type", "refresh")
+                .claim("nonce", UUID.randomUUID().toString())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiresAt))
+                .signWith(jwtSigningKey)
+                .compact();
+    }
+
+    private String normalizeIp(String ipAddress) {
+        String normalized = value(ipAddress);
+        return normalized.isBlank() ? "unknown" : normalized;
+    }
+
+    private String resolveJwtSecret() {
+        String secret = value(ConfigService.getOrDefault("JWT_SECRET", DEFAULT_JWT_SECRET));
+        if (secret.length() < 32) {
+            secret = (secret + DEFAULT_JWT_SECRET);
+        }
+        return secret;
+    }
+
+    private String sha256(String raw) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashed = digest.digest(value(raw).getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hashed);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to hash value", e);
+        }
     }
 
     private String value(String input) {
@@ -300,14 +424,14 @@ public class AuthService {
         Argon2 argon2 = Argon2Factory.create();
         char[] pwd = rawPassword == null ? new char[0] : rawPassword.toCharArray();
         try {
-            return argon2.verify(hash, pwd);
+            return hash != null && !hash.isBlank() && argon2.verify(hash, pwd);
         } finally {
             argon2.wipeArray(pwd);
         }
     }
 
     private String generateVerificationCode() {
-        int value = 100000 + (int) (Math.random() * 900000);
-        return String.valueOf(value);
+        int randomValue = 100000 + (int) (Math.random() * 900000);
+        return String.valueOf(randomValue);
     }
 }

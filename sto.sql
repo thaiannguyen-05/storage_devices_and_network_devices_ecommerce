@@ -32,11 +32,16 @@ CREATE TABLE `User` (
 
 CREATE TABLE `OutBox` (
     `id` CHAR(36) NOT NULL,
-    `payload` JSON NOT NULL,
+    `code` VARCHAR(255) NOT NULL,
     `status` ENUM('PENDING', 'PROCESSED', 'FAILED') NOT NULL DEFAULT 'PENDING',
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    `type` VARCHAR(100) NOT NULL,
+    `userId` CHAR(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `outbox_userid_index` (`userId`),
+    KEY `outbox_userid_type_status_createdat_index` (`userId`, `type`, `status`, `createdAt`),
+    CONSTRAINT `outbox_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `EmailVerificationCode` (
@@ -167,10 +172,12 @@ CREATE TABLE `Session` (
     `id` CHAR(36) NOT NULL,
     `hashRefreshToken` VARCHAR(255) NOT NULL,
     `userId` CHAR(36) NOT NULL,
+    `ip` VARCHAR(45) NOT NULL,
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `session_userid_index` (`userId`),
+    KEY `session_userid_ip_createdat_index` (`userId`, `ip`, `createdAt`),
     CONSTRAINT `session_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
