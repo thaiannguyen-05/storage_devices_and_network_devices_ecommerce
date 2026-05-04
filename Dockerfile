@@ -7,12 +7,14 @@ ENV GLASSFISH_HOME=/opt/glassfish \
 ADD https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-bin.zip /tmp/ant.zip
 RUN cd /opt \
     && jar xf /tmp/ant.zip \
+    && find /opt/apache-ant-1.10.14/bin -type f -exec chmod +x {} \; \
     && ln -s /opt/apache-ant-1.10.14 /opt/apache-ant \
     && rm /tmp/ant.zip
 
 ADD https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip /tmp/glassfish.zip
 RUN cd /opt \
     && jar xf /tmp/glassfish.zip \
+    && find /opt/glassfish7/glassfish/bin -type f -exec chmod +x {} \; \
     && rm /tmp/glassfish.zip \
     && ln -s /opt/glassfish7/glassfish /opt/glassfish
 
