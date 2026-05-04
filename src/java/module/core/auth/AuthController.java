@@ -9,12 +9,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import module.core.auth.dto.ForgotPasswordRequestDto;
 import module.core.auth.dto.ProfileRequestDto;
+import module.core.auth.dto.RefreshTokenRequestDto;
 import module.core.auth.dto.ResetPasswordRequestDto;
 import module.core.auth.dto.SigninRequestDto;
 import module.core.auth.dto.SignupRequestDto;
 import module.core.auth.dto.VerifyEmailCodeRequestDto;
 import module.core.auth.response_dto.ForgotPasswordResponseDto;
 import module.core.auth.response_dto.ProfileResponseDto;
+import module.core.auth.response_dto.RefreshTokenResponseDto;
 import module.core.auth.response_dto.ResetPasswordResponseDto;
 import module.core.auth.response_dto.SigninResponseDto;
 import module.core.auth.response_dto.SignupResponseDto;
@@ -25,6 +27,7 @@ import module.core.config.ConfigService;
 public class AuthController extends HttpServlet {
 
     private final AuthService authService = new AuthService();
+    private final TokenService tokenService = new TokenService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -46,6 +49,9 @@ public class AuthController extends HttpServlet {
                 break;
             case "verifyEmail":
                 request.getRequestDispatcher("/views/auth/verify-email.jsp").forward(request, response);
+                break;
+            case "refresh":
+                handleRefreshToken(request, response);
                 break;
             case "profile":
                 handleProfile(request, response);
@@ -89,6 +95,11 @@ public class AuthController extends HttpServlet {
 
         if ("verifyEmail".equalsIgnoreCase(action)) {
             handleVerifyEmail(request, response);
+            return;
+        }
+
+        if ("refresh".equalsIgnoreCase(action)) {
+            handleRefreshToken(request, response);
             return;
         }
 
@@ -144,8 +155,33 @@ public class AuthController extends HttpServlet {
         request.getSession().setAttribute("authUserRole", result.getUserRole());
         request.getSession().setAttribute("authSessionId", result.getSessionId());
 
-        addAuthCookie(request, response, "accessToken", result.getAccessToken(), 15 * 60);
-        addAuthCookie(request, response, "sessionId", result.getSessionId(), 30 * 24 * 60 * 60);
+        addAuthCookie(request, response, "accessToken", result.getAccessToken(), tokenService.getAccessTokenMaxAgeSeconds());
+        addAuthCookie(request, response, "refreshToken", result.getRefreshToken(), tokenService.getRefreshTokenMaxAgeSeconds());
+        addAuthCookie(request, response, "sessionId", result.getSessionId(), tokenService.getRefreshTokenMaxAgeSeconds());
+        response.sendRedirect(request.getContextPath() + "/product");
+    }
+
+    private void handleRefreshToken(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        RefreshTokenRequestDto dto = new RefreshTokenRequestDto();
+        dto.setAccessToken(resolveTokenValue(request, "accessToken"));
+        dto.setRefreshToken(resolveTokenValue(request, "refreshToken"));
+
+        RefreshTokenResponseDto result = authService.refreshToken(dto);
+        if (!result.isSuccess()) {
+            request.setAttribute("error", result.getErrorMessage());
+            request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+            return;
+        }
+
+        request.getSession(true).setAttribute("authUserName", result.getUserName());
+        request.getSession().setAttribute("authUserEmail", result.getUserEmail());
+        request.getSession().setAttribute("authUserRole", result.getUserRole());
+        request.getSession().setAttribute("authSessionId", result.getSessionId());
+
+        addAuthCookie(request, response, "accessToken", result.getAccessToken(), tokenService.getAccessTokenMaxAgeSeconds());
+        addAuthCookie(request, response, "refreshToken", result.getRefreshToken(), tokenService.getRefreshTokenMaxAgeSeconds());
+        addAuthCookie(request, response, "sessionId", result.getSessionId(), tokenService.getRefreshTokenMaxAgeSeconds());
         response.sendRedirect(request.getContextPath() + "/product");
     }
 
@@ -243,6 +279,25 @@ public class AuthController extends HttpServlet {
 
         String remoteAddr = request.getRemoteAddr();
         return remoteAddr == null ? "unknown" : remoteAddr;
+    }
+
+    private String resolveTokenValue(HttpServletRequest request, String name) {
+        String fromParam = value(request.getParameter(name));
+        if (!fromParam.isBlank()) {
+            return fromParam;
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return "";
+        }
+
+        for (Cookie cookie : cookies) {
+            if (name.equals(cookie.getName())) {
+                return value(cookie.getValue());
+            }
+        }
+        return "";
     }
 
     private void addAuthCookie(HttpServletRequest request, HttpServletResponse response, String name, String value, int maxAgeSeconds) {
