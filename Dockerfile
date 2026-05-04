@@ -13,9 +13,12 @@ RUN curl -fsSL "https://repo1.maven.org/maven2/org/glassfish/main/distributions/
 
 FROM glassfish-base AS builder
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ant \
-    && rm -rf /var/lib/apt/lists/*
+ENV PATH="/opt/apache-ant/bin:${PATH}"
+
+RUN curl -4 -fsSL "https://archive.apache.org/dist/ant/binaries/apache-ant-1.10.14-bin.zip" -o /tmp/ant.zip \
+    && unzip /tmp/ant.zip -d /opt \
+    && ln -s /opt/apache-ant-1.10.14 /opt/apache-ant \
+    && rm /tmp/ant.zip
 
 WORKDIR /app
 
