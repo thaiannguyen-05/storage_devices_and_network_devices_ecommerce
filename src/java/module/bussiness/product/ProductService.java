@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import module.bussiness.product.dto.CreateProduct;
@@ -33,6 +35,7 @@ import module.bussiness.product.repository.interfaces.IProductVariantRepository;
 import module.core.sql.ConnecDb;
 
 public class ProductService {
+    private static final Logger LOGGER = Logger.getLogger(ProductService.class.getName());
     private final IProductRepository productRepository;
     private final IProductVariantRepository productVariantRepository;
     private final IBrandRepository brandRepository;
@@ -341,7 +344,8 @@ public class ProductService {
             }
             return result;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get product reviews", e);
+            LOGGER.log(Level.WARNING, "Skipping product reviews for productId=" + productId + " due to query/schema issue", e);
+            return Collections.emptyList();
         }
     }
 
@@ -373,7 +377,8 @@ public class ProductService {
             }
             return result;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load review statistics", e);
+            LOGGER.log(Level.WARNING, "Skipping product review statistics due to query/schema issue", e);
+            return Collections.emptyMap();
         }
     }
 
