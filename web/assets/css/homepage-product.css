@@ -23,6 +23,26 @@
     --rounded-lg: 12px;
     --rounded-pill: 9999px;
     --spacing-section: 96px;
+    color-scheme: dark;
+}
+
+html[data-theme="light"] {
+    --ch-primary: #1d4ed8;
+    --ch-primary-active: #1e40af;
+    --ch-on-primary: #f8fafc;
+    --ch-canvas: #f3f6fb;
+    --ch-surface-card: #ffffff;
+    --ch-surface-soft: #eef2f7;
+    --ch-surface-elevated: #e2e8f0;
+    --ch-ink: #0f172a;
+    --ch-body: #334155;
+    --ch-body-strong: #1e293b;
+    --ch-muted: #64748b;
+    --ch-hairline: #d8e1ec;
+    --ch-hairline-strong: #b8c4d6;
+    --glow-primary: rgba(29, 78, 216, 0.14);
+    --grid-pattern: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.05) 1px, transparent 0);
+    color-scheme: light;
 }
 
 * {
@@ -42,6 +62,7 @@ body {
     color: var(--ch-body);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Typography */
@@ -66,6 +87,11 @@ strong {
     position: sticky;
     top: 0;
     z-index: 1000;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+html[data-theme="light"] .home-header {
+    background: rgba(243, 246, 251, 0.88);
 }
 
 .home-header-top {
@@ -202,7 +228,65 @@ strong {
 .home-header-right {
     display: flex;
     align-items: center;
+    margin-left: auto;
     gap: 32px;
+}
+
+.home-theme-toggle {
+    width: 54px;
+    height: 40px;
+    border-radius: 9999px;
+    border: 1px solid var(--ch-hairline);
+    background: var(--ch-surface-card);
+    color: var(--ch-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 8px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-theme-toggle:hover {
+    border-color: var(--ch-primary);
+    box-shadow: 0 0 0 4px var(--glow-primary);
+}
+
+.home-theme-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    fill: currentColor;
+}
+
+.home-theme-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.55;
+    transform: scale(0.92);
+    transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.home-theme-icon--moon {
+    color: var(--ch-primary);
+    opacity: 1;
+    transform: scale(1);
+}
+
+html[data-theme="light"] .home-theme-icon--moon {
+    color: var(--ch-muted);
+    opacity: 0.55;
+    transform: scale(0.92);
+}
+
+html[data-theme="light"] .home-theme-icon--sun {
+    color: var(--ch-primary);
+    opacity: 1;
+    transform: scale(1);
 }
 
 .home-hotline {
@@ -410,6 +494,43 @@ strong {
 
 .home-hero:hover .home-hero-image img {
     transform: scale(1.02);
+}
+
+html[data-theme="light"] .home-hero {
+    background:
+        radial-gradient(circle at top right, rgba(29, 78, 216, 0.12), transparent 52%),
+        linear-gradient(135deg, #ffffff 0%, #edf4ff 48%, #dbeafe 100%);
+    box-shadow: 0 18px 36px rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="light"] .home-hero::before {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.82) 38%, rgba(255, 255, 255, 0.28) 68%, rgba(255, 255, 255, 0.08) 100%);
+}
+
+html[data-theme="light"] .home-hero-tag {
+    color: #1d4ed8;
+    opacity: 1;
+}
+
+html[data-theme="light"] .home-hero h1 {
+    color: #0f172a;
+}
+
+html[data-theme="light"] .home-hero h1 span {
+    color: #2563eb;
+    text-shadow: none;
+}
+
+html[data-theme="light"] .home-hero-content p {
+    color: #334155;
+}
+
+html[data-theme="light"] .home-hero-image {
+    background: transparent;
+}
+
+html[data-theme="light"] .home-hero-image img {
+    opacity: 0.88;
 }
 
 /* Stat Numbers - "The Credibility Moment" */
@@ -705,6 +826,15 @@ strong {
     position: relative;
 }
 
+html[data-theme="light"] .home-featured-nav {
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 10px 24px rgba(148, 163, 184, 0.22);
+}
+
+html[data-theme="light"] .home-product-img-wrap {
+    background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+}
+
 .home-product-img {
     max-width: 100%;
     max-height: 100%;
@@ -894,11 +1024,20 @@ strong {
     .home-header-top {
         padding: 0 16px;
         gap: 16px;
+        height: auto;
+        min-height: 72px;
+        flex-wrap: wrap;
+        padding-top: 12px;
+        padding-bottom: 12px;
     }
 
     .home-search,
     .home-hotline {
         display: none;
+    }
+
+    .home-header-right {
+        gap: 14px;
     }
 
     .home-stats,
