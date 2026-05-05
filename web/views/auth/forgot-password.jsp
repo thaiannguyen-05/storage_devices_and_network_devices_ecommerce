@@ -16,13 +16,13 @@
         <main class="auth-container">
             <div class="auth-card">
                 <h2>Quên mật khẩu</h2>
-                <p>Nhập email tài khoản để nhận link đặt lại mật khẩu.</p>
+                <p>Nhập email tài khoản của bạn để đặt lại mật khẩu.</p>
                 <form action="${pageContext.request.contextPath}/auth?action=forgotPassword" method="post">
                     <div class="ch-form-field">
                         <label>Email</label>
                         <input type="email" name="email" required placeholder="you@example.com" value="<%= request.getAttribute("email") == null ? "" : request.getAttribute("email") %>">
                     </div>
-                    <button type="submit" class="home-cta btn-full">GỬI LINK ĐẶT LẠI MẬT KHẨU</button>
+                    <button type="submit" class="home-cta btn-full">Quên mật khẩu</button>
                     <% if (request.getAttribute("error") != null) { %>
                         <p style="margin: 10px 0 0; color: #ef4444; font-size: 13px;"><%= request.getAttribute("error") %></p>
                     <% } %>
