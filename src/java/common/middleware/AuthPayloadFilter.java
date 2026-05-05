@@ -24,11 +24,14 @@ public class AuthPayloadFilter implements Filter {
 
     private final TokenService tokenService = new TokenService();
     private final UserService userService = new UserService();
+    private static final String UTF_8 = "UTF-8";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        request.setCharacterEncoding(UTF_8);
+        response.setCharacterEncoding(UTF_8);
         if (isPublicRoute(httpRequest)) {
             chain.doFilter(request, response);
             return;

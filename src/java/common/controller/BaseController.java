@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public abstract class BaseController extends HttpServlet {
+    private static final String UTF_8 = "UTF-8";
 
     @FunctionalInterface
     protected interface RouteHandler {
@@ -73,6 +74,8 @@ public abstract class BaseController extends HttpServlet {
 
     private void dispatch(HttpServletRequest request, HttpServletResponse response, Map<String, RouteHandler> routes)
             throws ServletException, IOException {
+        request.setCharacterEncoding(UTF_8);
+        response.setCharacterEncoding(UTF_8);
         ensureRoutesRegistered();
         String path = normalizePath(request.getPathInfo());
         RouteHandler handler = routes.get(path);

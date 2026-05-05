@@ -16,11 +16,14 @@ import java.util.UUID;
 public class RequestIdFilter implements Filter {
     public static final String REQUEST_ID_KEY = "X-Request-Id";
     public static final String REQUEST_ID_ATTRIBUTE = "requestId";
+    private static final String UTF_8 = "UTF-8";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+        request.setCharacterEncoding(UTF_8);
+        response.setCharacterEncoding(UTF_8);
 
         String requestId = httpRequest.getHeader(REQUEST_ID_KEY);
         if (requestId == null || requestId.isBlank()) {

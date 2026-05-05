@@ -20,10 +20,13 @@ import java.time.Instant;
 public class TransformFilter implements Filter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String UTF_8 = "UTF-8";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+        request.setCharacterEncoding(UTF_8);
+        response.setCharacterEncoding(UTF_8);
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String uri = httpRequest.getRequestURI();
