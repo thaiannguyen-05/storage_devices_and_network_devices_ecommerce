@@ -6,7 +6,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Thanh toán | StoreIT</title>
+        <title>Thanh toán | LinhNamStore</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -48,9 +48,9 @@
         <header class="home-header">
             <div class="home-header-top">
                 <a class="home-logo-wrap" href="${pageContext.request.contextPath}/product">
-                    <div class="home-logo-box">S</div>
+                    <div class="home-logo-box">L</div>
                     <div class="home-logo-text">
-                        <strong>StoreIT</strong>
+                        <strong>LinhNamStore</strong>
                         <span>High Performance</span>
                     </div>
                 </a>
@@ -260,3 +260,4 @@
         </script>
     </body>
 </html>
+

@@ -9,7 +9,7 @@
                     <head>
                         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>StoreIT | Nền tảng thiết bị lưu trữ</title>
+                        <title>LinhNamStore | Nền tảng thiết bị lưu trữ</title>
                         <link rel="preconnect" href="https://fonts.googleapis.com">
                         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                         <link
@@ -70,9 +70,9 @@
                                                         <div class="home-header-top">
                                                             <a class="home-logo-wrap"
                                                                 href="${pageContext.request.contextPath}/product">
-                                                                <div class="home-logo-box">S</div>
+                                                                <div class="home-logo-box">L</div>
                                                                 <div class="home-logo-text">
-                                                                    <strong>StoreIT</strong>
+                                                                    <strong>LinhNamStore</strong>
                                                                     <span>High Performance</span>
                                                                 </div>
                                                             </a>
@@ -122,8 +122,8 @@
                                                                             <%= authUserName %>
                                                                         </button>
                                                                         <div class="home-account-dropdown">
-                                                                            <a href="${pageContext.request.contextPath}/auth?action=profile" style="display:block;padding:10px 12px;border-radius:8px;color:#f4f4f5;text-decoration:none;font-weight:700;">Trang cá nhân</a>
-                                                                            <a href="${pageContext.request.contextPath}/auth?action=logout" style="display:block;padding:10px 12px;border-radius:8px;color:#ef4444;text-decoration:none;font-weight:700;">Đăng xuất</a>
+                                                                            <a href="${pageContext.request.contextPath}/auth?action=profile">Trang cá nhân</a>
+                                                                            <a href="${pageContext.request.contextPath}/auth?action=logout">Đăng xuất</a>
                                                                         </div>
                                                                     </div>
                                                                     <% } else { %>
@@ -408,7 +408,7 @@
                                                                     <h2>Triển khai hạ tầng của bạn ngay hôm nay.</h2>
                                                                     <p style="margin-bottom: 32px; font-size: 18px;">
                                                                         Tham gia cùng hàng ngàn kỹ sư đang vận hành trên
-                                                                        phần cứng StoreIT.</p>
+                                                                        phần cứng LinhNamStore.</p>
                                                                     <a href="#all-hardware" class="btn-black">MUA SẮM
                                                                         NGAY</a>
                                                                 </section>
@@ -564,16 +564,10 @@
                                                             const chooseVariant = (variant, chip) => {
                                                                 activeVariant = variant;
                                                                 listEl.querySelectorAll('button').forEach(btn => {
-                                                                    btn.style.borderColor = '#2a2f3a';
-                                                                    btn.style.background = '#121317';
-                                                                    btn.style.color = '#e5e7eb';
-                                                                    btn.style.boxShadow = 'none';
+                                                                    btn.classList.remove('is-active');
                                                                 });
                                                                 if (chip) {
-                                                                    chip.style.borderColor = '#f5f768';
-                                                                    chip.style.background = 'rgba(245,247,104,0.16)';
-                                                                    chip.style.color = '#f5f768';
-                                                                    chip.style.boxShadow = '0 0 0 1px rgba(245,247,104,0.25), 0 0 14px rgba(245,247,104,0.22)';
+                                                                    chip.classList.add('is-active');
                                                                 }
 
                                                                 const stock = Number(variant.stock || 0);
@@ -629,6 +623,9 @@
                                                                     chip.style.width = 'auto';
                                                                     chip.style.padding = '8px 12px';
                                                                     chip.style.transition = 'all .16s ease';
+                                                                    if (Number(variant.stock || 0) <= 0) {
+                                                                        chip.classList.add('is-disabled');
+                                                                    }
                                                                     chip.textContent = variant.sku || (variant.variantId || 'Mặc định');
                                                                     chip.addEventListener('click', () => chooseVariant(variant, chip));
                                                                     listEl.appendChild(chip);
@@ -822,3 +819,5 @@
                     </body>
 
                     </html>
+
+

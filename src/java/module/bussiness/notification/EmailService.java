@@ -24,13 +24,13 @@ public class EmailService {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("[StoreIT] Password reset link");
+            message.setSubject("[LinhNamStore] Password reset link");
             message.setText("Hello,\n\n"
-                    + "Use the link below to reset your StoreIT account password:\n"
+                    + "Use the link below to reset your LinhNamStore account password:\n"
                     + resetLink + "\n\n"
                     + "This link is valid for 15 minutes.\n"
                     + "If you did not request this, please ignore this email.\n\n"
-                    + "Best regards,\nStoreIT");
+                    + "Best regards,\nLinhNamStore");
             Transport.send(message);
         } catch (AuthenticationFailedException e) {
             throw new RuntimeException("SMTP auth failed: check SMTP_USER/SMTP_PASS (App Password)", e);
@@ -48,13 +48,13 @@ public class EmailService {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("[StoreIT] Account verification code");
+            message.setSubject("[LinhNamStore] Account verification code");
             message.setText("Hello " + (fullName == null ? "there" : fullName) + ",\n\n"
-                    + "Use the following code to verify your StoreIT account:\n"
+                    + "Use the following code to verify your LinhNamStore account:\n"
                     + code + "\n\n"
                     + "This code is valid for 10 minutes.\n"
                     + "If you did not create this account, please ignore this email.\n\n"
-                    + "Best regards,\nStoreIT");
+                    + "Best regards,\nLinhNamStore");
             Transport.send(message);
         } catch (AuthenticationFailedException e) {
             throw new RuntimeException("SMTP auth failed: check SMTP_USER/SMTP_PASS (App Password)", e);
@@ -72,13 +72,13 @@ public class EmailService {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("[StoreIT] Password reset verification code");
+            message.setSubject("[LinhNamStore] Password reset verification code");
             message.setText("Hello " + (fullName == null ? "there" : fullName) + ",\n\n"
-                    + "Use the following code to reset your StoreIT account password:\n"
+                    + "Use the following code to reset your LinhNamStore account password:\n"
                     + code + "\n\n"
                     + "This code is valid for 10 minutes.\n"
                     + "If you did not request this, please ignore this email.\n\n"
-                    + "Best regards,\nStoreIT");
+                    + "Best regards,\nLinhNamStore");
             Transport.send(message);
         } catch (AuthenticationFailedException e) {
             throw new RuntimeException("SMTP auth failed: check SMTP_USER/SMTP_PASS (App Password)", e);
@@ -96,12 +96,12 @@ public class EmailService {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("[StoreIT] New sign-in detected");
+            message.setSubject("[LinhNamStore] New sign-in detected");
             message.setText("Hello " + (fullName == null ? "there" : fullName) + ",\n\n"
-                    + "A new sign-in to your StoreIT account was detected from IP address: " + (ipAddress == null ? "unknown" : ipAddress) + "\n"
+                    + "A new sign-in to your LinhNamStore account was detected from IP address: " + (ipAddress == null ? "unknown" : ipAddress) + "\n"
                     + "Time: " + LocalDateTime.now() + "\n\n"
                     + "If this was not you, please change your password immediately.\n\n"
-                    + "Best regards,\nStoreIT");
+                    + "Best regards,\nLinhNamStore");
             Transport.send(message);
         } catch (AuthenticationFailedException e) {
             throw new RuntimeException("SMTP auth failed: check SMTP_USER/SMTP_PASS (App Password)", e);
@@ -159,3 +159,4 @@ public class EmailService {
         return defaultValue;
     }
 }
+

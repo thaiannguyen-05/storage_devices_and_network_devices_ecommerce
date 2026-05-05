@@ -10,7 +10,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Chi tiết sản phẩm | StoreIT</title>
+        <title>Chi tiết sản phẩm | LinhNamStore</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -179,9 +179,9 @@
         <header class="home-header">
             <div class="home-header-top">
                 <a class="home-logo-wrap" href="${pageContext.request.contextPath}/product">
-                    <div class="home-logo-box">S</div>
+                    <div class="home-logo-box">L</div>
                     <div class="home-logo-text">
-                        <strong>StoreIT</strong>
+                        <strong>LinhNamStore</strong>
                         <span>High Performance</span>
                     </div>
                 </a>
@@ -222,8 +222,8 @@
                             <span class="home-inline-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg></span><%= authUserName %>
                         </button>
                         <div class="home-account-dropdown">
-                            <a href="${pageContext.request.contextPath}/auth?action=profile" style="display:block;padding:10px 12px;border-radius:8px;color:#f4f4f5;text-decoration:none;font-weight:700;">Trang cá nhân</a>
-                            <a href="${pageContext.request.contextPath}/auth?action=logout" style="display:block;padding:10px 12px;border-radius:8px;color:#ef4444;text-decoration:none;font-weight:700;">Đăng xuất</a>
+                            <a href="${pageContext.request.contextPath}/auth?action=profile">Trang cá nhân</a>
+                            <a href="${pageContext.request.contextPath}/auth?action=logout">Đăng xuất</a>
                         </div>
                     </div>
                     <%
@@ -629,3 +629,5 @@
         </script>
     </body>
 </html>
+
+

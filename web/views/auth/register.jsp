@@ -4,7 +4,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Đăng ký | StoreIT</title>
+        <title>Đăng ký | LinhNamStore</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -15,9 +15,9 @@
         <header class="home-header">
             <div class="home-header-top">
                 <a class="home-logo-wrap" href="${pageContext.request.contextPath}/product">
-                    <div class="home-logo-box">S</div>
+                    <div class="home-logo-box">L</div>
                     <div class="home-logo-text">
-                        <strong>StoreIT</strong>
+                        <strong>LinhNamStore</strong>
                         <span>High Performance</span>
                     </div>
                 </a>
@@ -61,7 +61,7 @@
                     <div class="ch-form-field" style="margin-top:4px;">
                         <label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-transform:none;letter-spacing:0;">
                             <input type="checkbox" name="acceptTerms" value="1" required style="width:auto;min-width:0;height:auto;box-shadow:none;accent-color:#a855f7;" <%= request.getAttribute("acceptTerms") != null ? "checked" : "" %>>
-                            <span>Tôi đồng ý với điều khoản và quy định của StoreIT.</span>
+                            <span>Tôi đồng ý với điều khoản và quy định của LinhNamStore.</span>
                         </label>
                     </div>
                     <button type="submit" class="home-cta btn-full">ĐĂNG KÝ</button>
@@ -80,3 +80,4 @@
         </main>
     </body>
 </html>
+
