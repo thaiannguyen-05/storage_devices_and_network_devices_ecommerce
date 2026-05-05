@@ -18,11 +18,6 @@ public class ConnecDb {
         String user = ConfigService.get("DB_USER");
         String password = ConfigService.get("DB_PASSWORD");
 
-        System.out.println("[DB_CONFIG] user.dir=" + System.getProperty("user.dir"));
-        System.out.println("[DB_CONFIG] com.sun.aas.instanceRoot=" + System.getProperty("com.sun.aas.instanceRoot"));
-        System.out.println("[DB_CONFIG] com.sun.aas.installRoot=" + System.getProperty("com.sun.aas.installRoot"));
-        System.out.println("[DB_CONFIG] host=" + host + ", port=" + port + ", dbName=" + dbName + ", user=" + user + ", hasPassword=" + (password != null && !password.isBlank()));
-
         String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
                 + "&useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci";
@@ -48,13 +43,5 @@ public class ConnecDb {
 
     public static Connection getConnection() throws SQLException {
         return dataSource.getConnection();
-    }
-
-    public static void main(String[] args) {
-        try (Connection ignored = getConnection()) {
-            System.out.println("Connection successful!");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

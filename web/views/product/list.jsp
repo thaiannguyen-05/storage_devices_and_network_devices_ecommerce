@@ -425,29 +425,29 @@
                                                     <div id="cartAddedToast" style="position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:4000;background:rgba(22,163,74,.96);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:opacity .35s ease,transform .35s ease;">Thêm vào giỏ hàng thành công</div>
                                                     <% } %>
 
-                                                    <div id="cartVariantModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:3000;align-items:center;justify-content:center;padding:16px;">
-                                                        <div style="width:min(640px,96vw);background:#121317;border:1px solid #2a2f3a;border-radius:14px;padding:16px;">
-                                                            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-                                                                <h3 id="cartVariantTitle" style="margin:0;font-size:20px;">Chọn phân loại</h3>
-                                                                <button type="button" id="cartVariantClose" class="btn-cart" style="width:auto;padding:8px 12px;">Đóng</button>
+                                                    <div id="cartVariantModal" class="cart-variant-overlay">
+                                                        <div class="cart-variant-dialog">
+                                                            <div class="cart-variant-head">
+                                                                <h3 id="cartVariantTitle" class="cart-variant-title">Chọn phân loại</h3>
+                                                                <button type="button" id="cartVariantClose" class="cart-variant-close">Đóng</button>
                                                             </div>
-                                                            <div style="display:grid;grid-template-columns:130px 1fr;gap:14px;margin-top:12px;align-items:start;">
-                                                                <img id="cartVariantImage" src="" alt="variant" style="width:130px;height:130px;object-fit:cover;border:1px solid #2a2f3a;border-radius:10px;background:#0c0d10;">
+                                                            <div class="cart-variant-body">
+                                                                <img id="cartVariantImage" class="cart-variant-image" src="" alt="variant">
                                                                 <div>
-                                                                    <div id="cartVariantList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-                                                                    <p id="cartVariantPrice" style="margin:12px 0 6px;color:#f5f768;font-weight:800;font-size:24px;">0 VND</p>
-                                                                    <p id="cartVariantStock" style="margin:0 0 12px;color:#d1d5db;">Tồn kho: 0</p>
-                                                                    <label style="display:block;font-size:14px;color:#d1d5db;margin-bottom:6px;">Số lượng</label>
-                                                                    <div style="display:flex;align-items:center;gap:8px;max-width:176px;">
-                                                                        <input id="cartVariantQty" type="number" min="1" value="1" style="flex:1;height:32px;border-radius:8px;border:1px solid #2a2f3a;background:#0c0d10;color:#fff;padding:0 8px;font-size:15px;line-height:32px;text-align:center;text-align-last:center;appearance:textfield;-moz-appearance:textfield;">
-                                                                        <div style="display:flex;flex-direction:column;gap:4px;">
-                                                                            <button type="button" id="cartQtyPlus" class="btn-cart" style="width:32px;height:32px;min-height:32px;padding:0;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
-                                                                            <button type="button" id="cartQtyMinus" class="btn-cart" style="width:32px;height:32px;min-height:32px;padding:0;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;">-</button>
+                                                                    <div id="cartVariantList" class="cart-variant-list"></div>
+                                                                    <p id="cartVariantPrice" class="cart-variant-price">0 VND</p>
+                                                                    <p id="cartVariantStock" class="cart-variant-stock">Tồn kho: 0</p>
+                                                                    <label class="cart-variant-label">Số lượng</label>
+                                                                    <div class="cart-variant-qty-wrap">
+                                                                        <input id="cartVariantQty" class="cart-variant-qty" type="number" min="1" value="1">
+                                                                        <div class="cart-variant-qty-buttons">
+                                                                            <button type="button" id="cartQtyPlus" class="cart-variant-qty-btn">+</button>
+                                                                            <button type="button" id="cartQtyMinus" class="cart-variant-qty-btn">-</button>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <form id="popupActionForm" method="post" action="${pageContext.request.contextPath}/cart?action=add" style="margin-top:14px;">
+                                                            <form id="popupActionForm" class="cart-variant-form" method="post" action="${pageContext.request.contextPath}/cart?action=add">
                                                                 <input type="hidden" name="source" value="buyNow">
                                                                 <input type="hidden" name="productId">
                                                                 <input type="hidden" name="name">
@@ -459,7 +459,7 @@
                                                                 <input type="hidden" name="quantity">
                                                                 <input type="hidden" name="variantId">
                                                                 <input type="hidden" name="sku">
-                                                                <button type="submit" id="popupSubmitBtn" class="btn-buy" style="width:100%;height:48px;font-size:19px;font-weight:900;font-family:&quot;Inter&quot;,&quot;Segoe UI&quot;,Arial,sans-serif;text-transform:uppercase;letter-spacing:.6px;">THÊM VÀO GIỎ</button>
+                                                                <button type="submit" id="popupSubmitBtn" class="btn-buy cart-variant-submit">THÊM VÀO GIỎ</button>
                                                             </form>
                                                         </div>
                                                     </div>
@@ -619,10 +619,7 @@
                                                                 variants.forEach((variant) => {
                                                                     const chip = document.createElement('button');
                                                                     chip.type = 'button';
-                                                                    chip.className = 'btn-cart';
-                                                                    chip.style.width = 'auto';
-                                                                    chip.style.padding = '8px 12px';
-                                                                    chip.style.transition = 'all .16s ease';
+                                                                    chip.className = 'cart-variant-chip';
                                                                     if (Number(variant.stock || 0) <= 0) {
                                                                         chip.classList.add('is-disabled');
                                                                     }
@@ -819,5 +816,9 @@
                     </body>
 
                     </html>
+
+
+
+
 
 
