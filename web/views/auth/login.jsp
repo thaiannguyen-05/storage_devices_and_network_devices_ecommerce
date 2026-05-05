@@ -13,7 +13,7 @@
     </head>
     <body>
         <header class="home-header">
-            <div class="home-header-top">
+        <div class="home-header-top">
                 <a class="home-logo-wrap" href="${pageContext.request.contextPath}/product">
                     <div class="home-logo-box">L</div>
                     <div class="home-logo-text">
