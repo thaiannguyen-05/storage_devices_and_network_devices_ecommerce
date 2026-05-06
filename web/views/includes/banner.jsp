@@ -9,15 +9,6 @@
             </div>
         </a>
 
-        <a class="home-category-btn" href="#categories">
-            <span class="home-menu-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false">
-                    <path d="M4 7h16a1 1 0 1 0 0-2H4a1 1 0 0 0 0 2zm16 4H4a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2zm0 6H4a1 1 0 0 0 0 2h16a1 1 0 1 0 0-2z" />
-                </svg>
-            </span>
-            Danh mục
-        </a>
-
         <form class="home-search" method="get" action="${pageContext.request.contextPath}/product">
             <input type="text" name="q" placeholder="Tìm theo tên sản phẩm hoặc danh mục..." value="<%= request.getParameter("q") == null ? "" : request.getParameter("q") %>">
             <button type="submit" aria-label="Tìm kiếm">
@@ -38,8 +29,6 @@
             </div>
             <%
                 Object bannerAuthUserName = session.getAttribute("authUserName");
-                Integer bannerCartCount = (Integer) request.getAttribute("cartCount");
-                int bannerItemCount = bannerCartCount == null ? 0 : bannerCartCount;
                 if (bannerAuthUserName != null) {
             %>
             <div class="home-account-menu">
@@ -66,14 +55,6 @@
                 Tài khoản
             </a>
             <% } %>
-            <a class="home-cart" href="${pageContext.request.contextPath}/cart">
-                <span class="home-inline-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" focusable="false">
-                        <path d="M7 18a2 2 0 1 0 2 2 2 2 0 0 0-2-2zm10 0a2 2 0 1 0 2 2 2 2 0 0 0-2-2zM7.16 14h9.59a2 2 0 0 0 1.95-1.57L20 6H6.21l-.27-1.37A1 1 0 0 0 4.96 4H3a1 1 0 1 0 0 2h1.14l2.03 10.17A3 3 0 0 0 9.11 19H19a1 1 0 1 0 0-2H9.11a1 1 0 0 1-.98-.8L8 15h-.84z" />
-                    </svg>
-                </span>
-                Giỏ hàng <span id="headerCartCount"><%= bannerItemCount %></span>
-            </a>
         </div>
     </div>
 </header>
