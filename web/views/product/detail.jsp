@@ -5,6 +5,9 @@
 <%@page import="entity.ProductVariantEntity"%>
 <%@page import="module.bussiness.product.dto.ProductCardView"%>
 <%@page import="module.bussiness.product.dto.ProductDetailView"%>
+<%
+    request.setAttribute("pageTitle", "Chi tiết sản phẩm | LinhNamStore");
+%>
 <%@include file="../includes/layout.jsp" %>
 <% String pageTitle = "Chi tiết sản phẩm | LinhNamStore"; %>
 

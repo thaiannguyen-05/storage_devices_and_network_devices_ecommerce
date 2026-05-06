@@ -4,17 +4,17 @@
     <div class="left-menu-section">
         <h3 class="left-menu-title">Danh mục</h3>
         <%
-            Set<String> categories = (Set<String>) request.getAttribute("categories");
-            String selectedCategory = (String) request.getAttribute("selectedCategory");
+            Set<String> sidebarCategories = (Set<String>) request.getAttribute("categories");
+            String sidebarSelectedCategory = (String) request.getAttribute("selectedCategory");
             java.util.Map<String, String> categoryLabels = new java.util.LinkedHashMap<>();
             categoryLabels.put("STORAGE_DEVICE", "Thiết bị lưu trữ");
             categoryLabels.put("NETWORK_DEVICE", "Thiết bị mạng");
             categoryLabels.put("ACCESSORY", "Phụ kiện");
 
-            if (categories != null && !categories.isEmpty()) {
-                for (String cat : categories) {
+            if (sidebarCategories != null && !sidebarCategories.isEmpty()) {
+                for (String cat : sidebarCategories) {
                     String label = categoryLabels.getOrDefault(cat, cat.replace('_', ' '));
-                    boolean isActive = cat.equals(selectedCategory);
+                    boolean isActive = cat.equals(sidebarSelectedCategory);
         %>
         <a href="${pageContext.request.contextPath}/product?category=<%= cat %>"
            class="left-menu-item<%= isActive ? " active" : "" %>">

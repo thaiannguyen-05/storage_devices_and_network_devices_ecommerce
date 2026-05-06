@@ -3,6 +3,9 @@
 <%@page import="java.util.ArrayList" %>
 <%@page import="java.util.Set" %>
 <%@page import="module.bussiness.product.dto.ProductCardView" %>
+<%
+    request.setAttribute("pageTitle", "LinhNamStore | Nền tảng thiết bị lưu trữ");
+%>
 <%@include file="../includes/layout.jsp" %>
 <%
     String pageTitle = "LinhNamStore | Nền tảng thiết bị lưu trữ";
