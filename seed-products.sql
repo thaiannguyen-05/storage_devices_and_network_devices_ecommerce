@@ -16,6 +16,12 @@ ON DUPLICATE KEY UPDATE
 `role` = VALUES(`role`),
 `updatedAt` = NOW();
 
+INSERT INTO `OrderCart` (`id`, `userId`, `createdAt`, `updatedAt`)
+VALUES
+('c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+`updatedAt` = NOW();
+
 INSERT INTO `Brand` (`id`, `name`, `userId`, `description`, `status`, `createdAt`, `updatedAt`)
 VALUES
 ('b1111111-1111-1111-1111-111111111111', 'Samsung', '11111111-1111-1111-1111-111111111111', 'Consumer and professional SSD solutions.', 'ACTIVE', NOW(), NOW()),

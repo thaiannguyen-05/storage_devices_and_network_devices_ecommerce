@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS `PasswordResetToken`;
 DROP TABLE IF EXISTS `EmailVerificationCode`;
 DROP TABLE IF EXISTS `Session`;
 DROP TABLE IF EXISTS `SavedProduct`;
+DROP TABLE IF EXISTS `ItemCart`;
 DROP TABLE IF EXISTS `OrderCart`;
 DROP TABLE IF EXISTS `Voucher`;
 DROP TABLE IF EXISTS `Order`;
@@ -153,9 +154,29 @@ CREATE TABLE `OrderCart` (
     `id` CHAR(36) NOT NULL,
     `userId` CHAR(36) NOT NULL,
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `ordercart_userid_unique` (`userId`),
     KEY `ordercart_userid_index` (`userId`),
     CONSTRAINT `ordercart_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `ItemCart` (
+    `id` CHAR(36) NOT NULL,
+    `cartId` CHAR(36) NOT NULL,
+    `productId` CHAR(36) NOT NULL,
+    `variantId` CHAR(36) NULL,
+    `quantity` INT NOT NULL,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `itemcart_cartid_productid_variantid_unique` (`cartId`, `productId`, `variantId`),
+    KEY `itemcart_cartid_index` (`cartId`),
+    KEY `itemcart_productid_index` (`productId`),
+    KEY `itemcart_variantid_index` (`variantId`),
+    CONSTRAINT `itemcart_cartid_foreign` FOREIGN KEY (`cartId`) REFERENCES `OrderCart` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `itemcart_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`),
+    CONSTRAINT `itemcart_variantid_foreign` FOREIGN KEY (`variantId`) REFERENCES `ProductVariant` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `SavedProduct` (
@@ -191,6 +212,10 @@ CREATE TABLE `Session` (
 INSERT INTO `User` (`id`, `name`, `dateOfBirth`, `hashPassword`, `status`, `role`, `email`)
 VALUES
 ('11111111-1111-1111-1111-111111111111', 'StoreIT Admin', '1998-06-15', 'pbkdf2:120000:iM2RxQ8TJc0L0FI1xu3eyg==:ErcoDn/QVGXRqs/54LGi5b22XPrpI7zPGyx2q/3nVDU=', 'ACTIVE', 'ADMIN', 'admin@storeit.local');
+
+INSERT INTO `OrderCart` (`id`, `userId`)
+VALUES
+('c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111');
 
 INSERT INTO `Brand` (`id`, `name`, `userId`, `description`, `status`)
 VALUES

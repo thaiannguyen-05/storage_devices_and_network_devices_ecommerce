@@ -2,6 +2,8 @@ package module.core.user;
 
 import entity.UserEntity;
 import java.util.List;
+import module.bussiness.cart.CartService;
+import module.bussiness.cart.dto.CreateCartDto;
 import module.core.user.repository.interfaces.IUserRepository;
 import module.core.user.repository.impl.UserRepository;
 import module.core.user.dto.CreateUserDto;
@@ -10,17 +12,35 @@ import module.core.user.dto.UpdateUserDto;
 public class UserService {
 
     private final IUserRepository userRepository;
+    private final CartService cartService;
+
+    public UserService(IUserRepository userRepository, CartService cartService) {
+        this.userRepository = userRepository;
+        this.cartService = cartService;
+    }
 
     public UserService(IUserRepository userRepository) {
-        this.userRepository = userRepository;
+        this(userRepository, new CartService());
     }
 
     public UserService() {
-        this(new UserRepository());
+        this(new UserRepository(), new CartService());
     }
 
     public UserEntity createUser(CreateUserDto dto) {
-        return this.userRepository.createUser(dto);
+        UserEntity createdUser = this.userRepository.createUser(dto);
+
+        try {
+            CreateCartDto createCartDto = new CreateCartDto(createdUser.getId());
+            this.cartService.createCart(createCartDto);
+            return createdUser;
+        } catch (Exception e) {
+            try {
+                this.userRepository.delete(createdUser.getId());
+            } catch (Exception ignored) {
+            }
+            throw new RuntimeException("Failed to create cart for user", e);
+        }
     }
 
     public List<UserEntity> getAllUsers() {

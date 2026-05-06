@@ -10,7 +10,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import entity.OrderEntity;
+import entity.ItemCartEntity;
+import entity.OrderCartEntity;
 import entity.ProductEntity;
 import entity.ProductVariantEntity;
 import java.text.DecimalFormat;
@@ -22,7 +23,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import module.bussiness.cart.dto.CartItemView;
-import module.bussiness.order.OrderService;
+import module.bussiness.cart.dto.CreateCartDto;
+import module.bussiness.cart.repository.impl.ItemCartRepository;
 import module.bussiness.product.repository.impl.ProductRepository;
 import module.bussiness.product.repository.impl.ProductVariantRepository;
 
@@ -31,7 +33,8 @@ public class CartController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(CartController.class.getName());
 
-    private final OrderService orderService = new OrderService();
+    private final CartService cartService = new CartService();
+    private final ItemCartRepository itemCartRepository = new ItemCartRepository();
     private final ProductRepository productRepository = new ProductRepository();
     private final ProductVariantRepository productVariantRepository = new ProductVariantRepository();
 
@@ -41,7 +44,7 @@ public class CartController extends HttpServlet {
         HttpSession session = request.getSession(true);
         String authUserId = resolveAuthUserId(session);
         if (!authUserId.isBlank()) {
-            syncCartFromOrder(session, authUserId);
+            syncCartFromDb(session, authUserId);
         }
         Map<String, CartItemView> cart = getCartMap(session);
 
@@ -216,7 +219,13 @@ public class CartController extends HttpServlet {
 
         String authUserId = resolveAuthUserId(session);
         if (!authUserId.isBlank()) {
-            orderService.saveCartOrder(authUserId, item.getProductId(), item.getVariantId(), item.getQuantity());
+            OrderCartEntity userCart = requireUserCart(authUserId);
+            ItemCartEntity savedItem = itemCartRepository.findByCartIdAndProductAndVariant(userCart.getId(), item.getProductId(), item.getVariantId());
+            if (savedItem == null) {
+                itemCartRepository.create(userCart.getId(), item.getProductId(), item.getVariantId(), item.getQuantity());
+            } else {
+                itemCartRepository.updateQuantity(savedItem.getId(), item.getQuantity());
+            }
         }
     }
 
@@ -246,7 +255,11 @@ public class CartController extends HttpServlet {
 
         String authUserId = resolveAuthUserId(session);
         if (!authUserId.isBlank()) {
-            orderService.updateCartQuantity(authUserId, item.getProductId(), item.getVariantId(), item.getQuantity());
+            OrderCartEntity userCart = requireUserCart(authUserId);
+            ItemCartEntity savedItem = itemCartRepository.findByCartIdAndProductAndVariant(userCart.getId(), item.getProductId(), item.getVariantId());
+            if (savedItem != null) {
+                itemCartRepository.updateQuantity(savedItem.getId(), item.getQuantity());
+            }
         }
     }
 
@@ -257,7 +270,8 @@ public class CartController extends HttpServlet {
 
         String authUserId = resolveAuthUserId(session);
         if (!authUserId.isBlank()) {
-            orderService.removeCartOrder(authUserId, productId, variantId);
+            OrderCartEntity userCart = requireUserCart(authUserId);
+            itemCartRepository.deleteByCartIdAndProductAndVariant(userCart.getId(), productId, variantId);
         }
     }
 
@@ -311,7 +325,8 @@ public class CartController extends HttpServlet {
         cart.clear();
         String authUserId = resolveAuthUserId(session);
         if (!authUserId.isBlank()) {
-            orderService.clearCartOrders(authUserId);
+            OrderCartEntity userCart = requireUserCart(authUserId);
+            itemCartRepository.clearByCartId(userCart.getId());
         }
     }
 
@@ -327,12 +342,13 @@ public class CartController extends HttpServlet {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
-    private void syncCartFromOrder(HttpSession session, String authUserId) {
-        List<OrderEntity> orders = orderService.getCartOrders(authUserId);
+    private void syncCartFromDb(HttpSession session, String authUserId) {
+        OrderCartEntity userCart = requireUserCart(authUserId);
+        List<ItemCartEntity> cartItems = itemCartRepository.findByCartId(userCart.getId());
         Map<String, CartItemView> dbCart = new LinkedHashMap<>();
-        for (OrderEntity order : orders) {
-            String productId = safe(order.getProductId());
-            String variantId = safe(order.getVariantId());
+        for (ItemCartEntity cartItem : cartItems) {
+            String productId = safe(cartItem.getProductId());
+            String variantId = safe(cartItem.getVariantId());
             if (productId.isBlank()) {
                 continue;
             }
@@ -356,7 +372,7 @@ public class CartController extends HttpServlet {
             item.setName(product.getName());
             item.setCategory(product.getCategory());
             item.setBrandId(product.getBrandId());
-            item.setQuantity(Math.max(1, order.getQuantity()));
+            item.setQuantity(Math.max(1, cartItem.getQuantity()));
 
             if (variant != null) {
                 item.setSku(safe(variant.getSku()));
@@ -374,5 +390,13 @@ public class CartController extends HttpServlet {
             dbCart.put(key, item);
         }
         session.setAttribute("cartItems", dbCart);
+    }
+
+    private OrderCartEntity requireUserCart(String authUserId) {
+        OrderCartEntity userCart = cartService.getCartByUserId(authUserId);
+        if (userCart != null) {
+            return userCart;
+        }
+        return cartService.createCart(new CreateCartDto(authUserId));
     }
 }
