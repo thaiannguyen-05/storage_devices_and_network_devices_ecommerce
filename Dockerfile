@@ -32,6 +32,7 @@ ENV GLASSFISH_HOME=/opt/glassfish7/glassfish \
 COPY --from=builder /opt/glassfish7 /opt/glassfish7
 COPY --from=builder /app/dist/Ecommerce.war ${GLASSFISH_HOME}/domains/${DOMAIN_NAME}/autodeploy/Ecommerce.war
 
+
 RUN cat > /tmp/gf-jvm-options.xml <<'EOF'
         <!-- VPS JVM options -->
         <jvm-options>--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED</jvm-options>
