@@ -174,14 +174,18 @@ public class ProductService {
                 }
                 String imageUrl = v.getImageUrl() == null ? "" : v.getImageUrl();
                 String sku = v.getSku() == null ? "" : v.getSku();
+                long priceVal = v.getPrice() == null ? 0 : v.getPrice().longValue();
+                String priceDisplay = v.getPrice() == null ? "0 VND" : format.format(v.getPrice()) + " VND";
                 variantsJson.append("{\"productId\":\"")
                         .append(escapeJson(p.getId()))
                         .append("\",\"variantId\":\"")
                         .append(escapeJson(v.getId()))
                         .append("\",\"sku\":\"")
                         .append(escapeJson(sku))
+                        .append("\",\"priceText\":\"")
+                        .append(escapeJson(priceDisplay))
                         .append("\",\"priceValue\":")
-                        .append(v.getPrice() == null ? 0 : v.getPrice().longValue())
+                        .append(priceVal)
                         .append(",\"stock\":")
                         .append(v.getQuantity())
                         .append(",\"imageUrl\":\"")

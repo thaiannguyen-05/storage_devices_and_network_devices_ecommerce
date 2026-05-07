@@ -85,12 +85,14 @@
             <div class="ch-form-field">
                 <label>Phương thức thanh toán</label>
                 <select id="paymentMethod" name="paymentMethod">
-                    <option value="COD">Thanh toán khi nhận hàng</option>
+                    <option value="COD">Thanh toán khi nhận hàng (COD)</option>
                     <option value="SEPAY">Thanh toán online qua SePay</option>
                     <option value="BANK_TRANSFER">Chuyển khoản ngân hàng</option>
-                    <option value="VISA">Thẻ Visa / MasterCard</option>
-                    <option value="ATM">Thẻ ATM nội địa</option>
                 </select>
+            </div>
+
+            <div id="sepayInfoBox" style="display: none; background: var(--ch-surface-soft); padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid var(--ch-hairline);">
+                <p style="margin: 0; font-size: 14px; color: var(--ch-muted);">Bạn sẽ được chuyển đến trang thanh toán SePay để hoàn tất giao dịch.</p>
             </div>
 
             <div id="cardPaymentBox" style="display: none; background: var(--ch-surface-soft); padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid var(--ch-hairline);">
@@ -126,7 +128,7 @@
 
 <script>
 (function () { var toast = document.getElementById('paymentDoneToast'); if (!toast) return; var dismissed = false; var dismiss = function () { if (dismissed || !toast.parentNode) return; dismissed = true; toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(-8px)'; window.removeEventListener('pointerdown', onPointerDown, true); setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); window.location.href = '${pageContext.request.contextPath}/payment/done'; }, 360); }; var onPointerDown = function () { dismiss(); }; window.addEventListener('pointerdown', onPointerDown, true); setTimeout(dismiss, 2000); })();
-(function () { var methodEl = document.getElementById("paymentMethod"); var boxEl = document.getElementById("cardPaymentBox"); var cardInputs = [document.getElementById("cardHolder"), document.getElementById("cardNumber"), document.getElementById("cardExpiry"), document.getElementById("cardCvv")]; function isCardMethod(value) { return value === "VISA" || value === "ATM"; } function toggleCardFields() { var show = isCardMethod(methodEl.value); boxEl.style.display = show ? "block" : "none"; for (var i = 0; i < cardInputs.length; i++) { if (cardInputs[i]) cardInputs[i].required = show; } } methodEl.addEventListener("change", toggleCardFields); toggleCardFields(); })();
+(function () { var methodEl = document.getElementById("paymentMethod"); var boxEl = document.getElementById("cardPaymentBox"); var sepayEl = document.getElementById("sepayInfoBox"); var cardInputs = [document.getElementById("cardHolder"), document.getElementById("cardNumber"), document.getElementById("cardExpiry"), document.getElementById("cardCvv")]; function isCardMethod(value) { return value === "VISA" || value === "ATM"; } function toggleCardFields() { var show = isCardMethod(methodEl.value); boxEl.style.display = show ? "block" : "none"; for (var i = 0; i < cardInputs.length; i++) { if (cardInputs[i]) cardInputs[i].required = show; } if (sepayEl) sepayEl.style.display = methodEl.value === "SEPAY" ? "block" : "none"; } methodEl.addEventListener("change", toggleCardFields); toggleCardFields(); })();
 </script>
 
 <%@include file="../includes/layout-end.jsp" %>

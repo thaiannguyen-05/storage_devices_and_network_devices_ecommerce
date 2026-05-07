@@ -123,7 +123,7 @@ public class ProductController extends HttpServlet {
                     return;
                 }
                 productService.createReview(productId, finalReviewerName.trim(), rating, comment);
-                response.sendRedirect(request.getContextPath() + "/product?id=" + productId);
+                response.sendRedirect("/product?id=" + productId);
             } catch (Exception e) {
                 try {
                     renderProductDetail(request, response, productId, "Gửi đánh giá thất bại: " + e.getMessage());
@@ -152,7 +152,7 @@ public class ProductController extends HttpServlet {
 
         try {
             productService.createProduct(dto);
-            response.sendRedirect(request.getContextPath() + "/product?admin=1");
+            response.sendRedirect("/product?admin=1");
         } catch (Exception e) {
             request.setAttribute("error", "Create product failed: " + e.getMessage());
             doGet(request, response);

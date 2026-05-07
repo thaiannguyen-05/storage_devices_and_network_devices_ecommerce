@@ -172,6 +172,18 @@ public class OrderRepository implements IOrderRepository {
         }
     }
 
+    public void updateStatusByOrderId(String orderId, String status) {
+        String sql = "UPDATE `Order` SET status = ?, updatedAt = NOW() WHERE id = ?";
+        try (Connection conn = ConnecDb.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setString(2, orderId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update order status by orderId", e);
+        }
+    }
+
     private String emptyToNull(String value) {
         if (value == null) {
             return null;

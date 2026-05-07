@@ -73,7 +73,7 @@ public class CartController extends HttpServlet {
         if ("add".equals(action) && authUserId.isBlank()) {
             LOGGER.info("[CART_ADD_AUTH_REQUIRED] traceId=" + traceId + " action=" + action + " productId=" + safe(request.getParameter("productId")) + " variantId=" + safe(request.getParameter("variantId")) + " quantity=" + safe(request.getParameter("quantity")));
             String next = encodeUrl(resolveCurrentUrl(request));
-            String loginUrl = request.getContextPath() + "/auth?action=signin&next=" + next;
+            String loginUrl = "/auth?action=signin&next=" + next;
             if (isAjax) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
@@ -138,11 +138,11 @@ public class CartController extends HttpServlet {
                 response.sendRedirect(redirectUrl);
                 return;
             }
-            response.sendRedirect(contextPath + "/product?cartAdded=1");
+            response.sendRedirect("/product?cartAdded=1");
             return;
         }
 
-        response.sendRedirect(request.getContextPath() + "/cart");
+        response.sendRedirect("/cart");
     }
 
     @SuppressWarnings("unchecked")
@@ -335,7 +335,7 @@ public class CartController extends HttpServlet {
         if (referer != null && !referer.isBlank()) {
             return referer;
         }
-        return request.getContextPath() + "/product";
+        return "/product";
     }
 
     private String encodeUrl(String value) {
