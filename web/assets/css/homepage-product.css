@@ -2512,6 +2512,12 @@ html[data-theme="light"] .left-menu-item.active {
     transform: translateY(-50%) scaleY(1);
 }
 
+/* Subcategory indentation */
+.left-menu-subitem {
+    padding-left: 32px;
+    font-size: 13px;
+}
+
 .left-menu-dot {
     width: 6px;
     height: 6px;

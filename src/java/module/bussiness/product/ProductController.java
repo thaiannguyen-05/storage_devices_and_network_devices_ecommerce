@@ -50,11 +50,12 @@ public class ProductController extends HttpServlet {
         }
 
         String category = request.getParameter("category");
+        String subcategory = request.getParameter("subcategory");
         List<ProductCardView> productCards;
         List<ProductCardView> allCards;
         try {
             allCards = productService.getProductCards();
-            productCards = filterByCategory(allCards, category);
+            productCards = filterByCategory(allCards, category, subcategory);
         } catch (Throwable e) {
             request.setAttribute("error", "Cannot load products: " + e.getMessage());
             productCards = Collections.emptyList();
@@ -95,6 +96,7 @@ public class ProductController extends HttpServlet {
         request.setAttribute("categories", categories);
         request.setAttribute("categoryCounts", categoryCounts);
         request.setAttribute("selectedCategory", category == null ? "" : category.trim().toUpperCase());
+        request.setAttribute("selectedSubcategory", subcategory == null ? "" : subcategory.trim().toUpperCase());
         request.setAttribute("isAdmin", isAdmin);
         request.setAttribute("cartCount", countCartQuantity(request.getSession(false)));
         request.getRequestDispatcher("/views/product/list.jsp").forward(request, response);
@@ -262,19 +264,22 @@ public class ProductController extends HttpServlet {
         }
     }
 
-    private List<ProductCardView> filterByCategory(List<ProductCardView> source, String category) {
+    private List<ProductCardView> filterByCategory(List<ProductCardView> source, String category, String subcategory) {
         if (source == null || source.isEmpty()) {
             return Collections.emptyList();
         }
-        String normalized = category == null ? "" : category.trim().toUpperCase();
-        if (normalized.isEmpty()) {
+        String normalizedCat = category == null ? "" : category.trim().toUpperCase();
+        String normalizedSub = subcategory == null ? "" : subcategory.trim().toUpperCase();
+        if (normalizedCat.isEmpty() && normalizedSub.isEmpty()) {
             return source;
         }
 
         java.util.ArrayList<ProductCardView> filtered = new java.util.ArrayList<>();
         for (ProductCardView card : source) {
             String c = card.getCategory() == null ? "" : card.getCategory().trim().toUpperCase();
-            if (normalized.equals(c)) {
+            boolean matchCat = normalizedCat.isEmpty() || normalizedCat.equals(c);
+            boolean matchSub = normalizedSub.isEmpty() || c.contains(normalizedSub);
+            if (matchCat && matchSub) {
                 filtered.add(card);
             }
         }
