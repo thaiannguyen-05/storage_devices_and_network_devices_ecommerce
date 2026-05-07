@@ -17,9 +17,13 @@
 </head>
 <body>
     <%@include file="banner.jsp" %>
+    <% if (session.getAttribute("authUserName") != null) { %>
     <%@include file="topmenu.jsp" %>
 
     <div class="page-layout">
         <%@include file="leftmenu.jsp" %>
 
         <main class="content-area">
+    <% } else { %>
+    <main class="content-area auth-standalone">
+    <% } %>
