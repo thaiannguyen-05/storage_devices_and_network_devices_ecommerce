@@ -133,13 +133,28 @@ doFilter():
 - Response: log nếu content-type là `application/json` hoặc `text/*`
 - Binary responses: skip body, chỉ log status + size
 
+**Error detection for JSP responses:**
+- Nếu response body chứa `class="signup-msg error"` hoặc `class="error"` trong form context → flag `isError=true`
+- Extract error message từ HTML: `<p class="signup-msg error">Failed to create user</p>` → parse vào `errorMessage` field
+- Áp dụng tương tự cho login, forgot password, verify email forms
+
+**Log level phân loại:**
+- `2xx` (success) → `Level.INFO`
+- `4xx` (client error) → `Level.WARNING`
+- `5xx` (server error) → `Level.SEVERE`
+- HTML response chứa error class → `Level.WARNING` (dù status 200)
+
+**Stack trace capture:**
+- Nếu exception xảy ra trong filter chain → lưu stack trace vào `AuditLogEntry.stackTrace`
+- Nếu controller bắt exception + forward error → audit log vẫn thấy `isError=true` + `errorMessage`
+
 **Performance:**
 - Không block chain — audit log async (dùng `CompletableFuture.runAsync` với default executor)
 - Body size limit: request 10KB, response 50KB
 - Timeout: nếu chain > 30s, log warning
 
 **Error handling:**
-- Nếu chain throw exception: catch, set `isError=true`, `errorMessage=...`
+- Nếu chain throw exception: catch, set `isError=true`, `errorMessage=...`, `stackTrace=...`
 - Vẫn log audit entry trước khi re-throw cho ExceptionFilter xử lý
 
 ### 5. Mở rộng `LoggerService`
