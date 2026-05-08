@@ -1,12 +1,15 @@
 package common.logger;
 
+import common.logger.audit.AuditLogEntry;
 import common.middleware.RequestIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import java.lang.reflect.Array;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
@@ -62,6 +65,14 @@ public class LoggerService {
 
     public void error(HttpServletRequest request, String message, Throwable throwable) {
         log(Level.SEVERE, request, message, throwable);
+    }
+
+    public void audit(AuditLogEntry entry) {
+        if (entry == null) {
+            return;
+        }
+
+        logger.log(Level.INFO, toJson(entry.toMap()));
     }
 
     private void log(Level level, HttpServletRequest request, String message, Throwable throwable) {
@@ -150,26 +161,67 @@ public class LoggerService {
     }
 
     private String toJson(Map<String, Object> payload) {
+        return toJsonObject(payload);
+    }
+
+    private String toJsonObject(Map<?, ?> payload) {
         StringBuilder builder = new StringBuilder();
         builder.append('{');
         boolean first = true;
 
-        for (Map.Entry<String, Object> entry : payload.entrySet()) {
+        for (Map.Entry<?, ?> entry : payload.entrySet()) {
             if (!first) {
                 builder.append(',');
             }
             first = false;
 
-            builder.append('"').append(escapeJson(entry.getKey())).append('"').append(':');
-            Object value = entry.getValue();
-            if (value == null) {
-                builder.append("null");
-            } else {
-                builder.append('"').append(escapeJson(String.valueOf(value))).append('"');
-            }
+            builder.append('"').append(escapeJson(String.valueOf(entry.getKey()))).append('"').append(':');
+            builder.append(toJsonValue(entry.getValue()));
         }
 
         builder.append('}');
+        return builder.toString();
+    }
+
+    private String toJsonValue(Object value) {
+        if (value == null) {
+            return "null";
+        }
+
+        if (value instanceof Number || value instanceof Boolean) {
+            return String.valueOf(value);
+        }
+
+        if (value instanceof Map<?, ?> map) {
+            return toJsonObject(map);
+        }
+
+        if (value instanceof Collection<?> collection) {
+            return toJsonArray(collection.toArray());
+        }
+
+        if (value.getClass().isArray()) {
+            int length = Array.getLength(value);
+            Object[] values = new Object[length];
+            for (int i = 0; i < length; i++) {
+                values[i] = Array.get(value, i);
+            }
+            return toJsonArray(values);
+        }
+
+        return '"' + escapeJson(String.valueOf(value)) + '"';
+    }
+
+    private String toJsonArray(Object[] values) {
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                builder.append(',');
+            }
+            builder.append(toJsonValue(values[i]));
+        }
+        builder.append(']');
         return builder.toString();
     }
 

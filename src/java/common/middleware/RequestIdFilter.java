@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
 
-@WebFilter(urlPatterns = "/*", filterName = "RequestIdFilter")
+@WebFilter(urlPatterns = "/*", filterName = "01_RequestIdFilter")
 public class RequestIdFilter implements Filter {
     public static final String REQUEST_ID_KEY = "X-Request-Id";
     public static final String REQUEST_ID_ATTRIBUTE = "requestId";

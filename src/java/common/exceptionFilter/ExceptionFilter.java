@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Date;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebFilter("/*")
+@WebFilter(urlPatterns = "/*", filterName = "07_ExceptionFilter")
 public class ExceptionFilter implements Filter {
 
     @Override

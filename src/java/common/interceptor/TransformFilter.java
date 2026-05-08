@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Instant;
 
-@WebFilter("/*")
+@WebFilter(urlPatterns = "/*", filterName = "06_TransformFilter")
 public class TransformFilter implements Filter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

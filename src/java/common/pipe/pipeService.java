@@ -10,7 +10,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import java.io.IOException;
-@WebFilter("/*")
+@WebFilter(urlPatterns = "/*", filterName = "04_pipeService")
 public class pipeService implements Filter {
 
     @Override

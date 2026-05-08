@@ -19,7 +19,7 @@ import module.core.auth.AuthPayload;
 import module.core.auth.TokenService;
 import module.core.user.UserService;
 
-@WebFilter(urlPatterns = "/*", filterName = "AuthPayloadFilter")
+@WebFilter(urlPatterns = "/*", filterName = "02_AuthPayloadFilter")
 public class AuthPayloadFilter implements Filter {
 
     private final TokenService tokenService = new TokenService();
