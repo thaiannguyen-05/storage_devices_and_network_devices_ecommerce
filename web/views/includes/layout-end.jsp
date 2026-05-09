@@ -4,6 +4,8 @@
     </div>
     <% } %>
 
+    <% if (session.getAttribute("authUserName") != null) { %>
     <%@include file="footer.jsp" %>
+    <% } %>
 </body>
 </html>
