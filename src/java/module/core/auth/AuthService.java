@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import entity.OutBoxEntity;
 import entity.SessionEntity;
 import entity.UserEntity;
@@ -33,6 +35,7 @@ import module.core.user.UserService;
 import module.core.user.dto.CreateUserDto;
 
 public class AuthService {
+    private static final Logger LOGGER = Logger.getLogger(AuthService.class.getName());
     private static final String PASSWORD_SCHEME = "pbkdf2";
     private static final String PASSWORD_ALGORITHM = "PBKDF2WithHmacSHA256";
     private static final int PASSWORD_ITERATIONS = 120000;
@@ -110,7 +113,12 @@ public class AuthService {
                 return res;
             }
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Signup failed for email={0}", email);
+            LOGGER.log(Level.SEVERE, "Signup exception", e);
             String message = e.getMessage() == null ? "Unable to create the account. Please try again." : e.getMessage();
+            if (e.getCause() != null) {
+                message = e.getCause().getMessage();
+            }
             res.setSuccess(false);
             res.setErrorMessage(message);
             return res;

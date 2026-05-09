@@ -7,6 +7,7 @@ public class AuditSupportTest {
         masksSensitiveJsonFields();
         masksSensitiveFormFields();
         truncatesLongBodiesWithSize();
+        skipsHtmlResponseBodies();
         identifiesSkippedAuditPaths();
     }
 
@@ -39,6 +40,18 @@ public class AuditSupportTest {
         String truncated = BodyExtractor.truncate("1234567890", 4);
 
         assertEquals("1234 [truncated - size: 10 bytes]", truncated);
+    }
+
+    private static void skipsHtmlResponseBodies() {
+        String html = "<!DOCTYPE html><html><body>signup page</body></html>";
+
+        String extracted = BodyExtractor.extractResponseBody(
+                "text/html;charset=UTF-8",
+                html.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                "UTF-8"
+        );
+
+        assertEquals("[html response skipped - size: 52 bytes]", extracted);
     }
 
     private static void identifiesSkippedAuditPaths() {

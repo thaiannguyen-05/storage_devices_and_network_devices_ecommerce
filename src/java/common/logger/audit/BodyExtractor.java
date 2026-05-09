@@ -62,6 +62,10 @@ public final class BodyExtractor {
         }
 
         String normalizedContentType = normalize(contentType);
+        if (normalizedContentType.contains("text/html")) {
+            return skippedHtmlMessage(body.length);
+        }
+
         if (!isTextResponse(normalizedContentType)) {
             return isBinaryContent(normalizedContentType) ? "[binary response]" : "";
         }
@@ -148,9 +152,13 @@ public final class BodyExtractor {
     private static boolean isTextResponse(String contentType) {
         String normalized = normalize(contentType);
         return normalized.contains("application/json")
-                || normalized.startsWith("text/")
+                || normalized.startsWith("text/plain")
                 || normalized.contains("application/xml")
                 || normalized.contains("+json");
+    }
+
+    private static String skippedHtmlMessage(int size) {
+        return "[html response skipped - size: " + size + " bytes]";
     }
 
     private static String prettyJson(String value) {
