@@ -1956,6 +1956,13 @@ html[data-theme="light"] #cartVariantClose {
 /* Auth Pages */
 .auth-standalone {
     min-height: calc(100vh - 72px);
+    max-width: 1560px;
+    margin: 0 auto;
+    padding: 40px 32px;
+}
+
+/* Center only actual auth forms, not product pages */
+.auth-standalone:has(.auth-container) {
     display: flex;
     align-items: center;
     justify-content: center;
