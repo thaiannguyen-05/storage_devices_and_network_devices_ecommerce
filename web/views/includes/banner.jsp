@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <header class="home-header">
     <div class="home-header-top">
-        <a class="home-logo-wrap" href="${pageContext.request.contextPath}/product">
+        <a class="home-logo-wrap" href="${pageContext.request.contextPath}/">
             <div class="home-logo-box">L</div>
             <div class="home-logo-text">
                 <strong>LinhNamStore</strong>
@@ -9,6 +9,7 @@
             </div>
         </a>
 
+        <% if (session.getAttribute("authUserName") != null) { %>
         <form class="home-search" method="get" action="${pageContext.request.contextPath}/product">
             <input type="text" name="q" placeholder="Tìm theo tên sản phẩm hoặc danh mục..." value="<%= request.getParameter("q") == null ? "" : request.getParameter("q") %>">
             <button type="submit" aria-label="Tìm kiếm">
@@ -17,6 +18,7 @@
                 </svg>
             </button>
         </form>
+        <% } %>
 
         <div class="home-header-right">
             <div class="home-hotline">
