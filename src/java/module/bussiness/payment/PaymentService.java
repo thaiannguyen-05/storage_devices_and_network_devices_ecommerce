@@ -161,8 +161,30 @@ public class PaymentService implements IPayment {
 
     @Override
     public Map<String, Object> handleSePayWebhook(Map<String, Object> payload) {
-        Object status = payload.get("status");
-        return Map.of("success", true, "receivedStatus", status == null ? "" : String.valueOf(status));
+        Object statusObj = payload.get("status");
+        String providerStatus = statusObj == null ? "" : String.valueOf(statusObj).trim().toUpperCase();
+        String mappedStatus = mapProviderStatus(providerStatus);
+        String invoiceNumber = safe(payload.get("order_invoice_number"), "");
+        String transactionId = safe(payload.get("transaction_id"), "");
+
+        String webhookKey = invoiceNumber + ":" + transactionId;
+        if (PROCESSED_WEBHOOK_KEYS.containsKey(webhookKey)) {
+            return Map.of("success", true, "message", "Already processed", "key", webhookKey);
+        }
+
+        if (!invoiceNumber.isBlank() && !mappedStatus.isBlank()) {
+            try {
+                paymentRepository.updateStatusByOrderId(invoiceNumber, mappedStatus);
+                syncOrderStatus(invoiceNumber, mappedStatus);
+                PROCESSED_WEBHOOK_KEYS.put(webhookKey, Boolean.TRUE);
+            } catch (Exception e) {
+                return Map.of("success", false, "code", 500, "message", "Failed to process webhook: " + e.getMessage());
+            }
+        } else {
+            return Map.of("success", false, "code", 400, "message", "Invalid webhook payload: missing orderId or unknown status");
+        }
+
+        return Map.of("success", true, "message", "Webhook processed", "status", mappedStatus, "orderId", invoiceNumber);
     }
 
     private String normalizePaymentMethod(String method) {

@@ -26,6 +26,7 @@ import module.bussiness.order.OrderService;
 import module.bussiness.product.repository.impl.ProductRepository;
 import module.bussiness.product.repository.impl.ProductVariantRepository;
 import module.bussiness.payment.repository.impl.PaymentRepository;
+import module.bussiness.payment.repository.impl.VoucherRepository;
 import module.core.user.repository.impl.UserRepository;
 import entity.UserEntity;
 
@@ -38,6 +39,7 @@ public class PaymentController extends HttpServlet {
 
     private final PaymentService paymentService = new PaymentService();
     private final PaymentRepository paymentRepository = new PaymentRepository();
+    private final VoucherRepository voucherRepository = new VoucherRepository();
     private final OrderService orderService = new OrderService();
     private final ProductRepository productRepository = new ProductRepository();
     private final ProductVariantRepository productVariantRepository = new ProductVariantRepository();
@@ -124,6 +126,15 @@ public class PaymentController extends HttpServlet {
 
         long subtotal = total(checkoutItems);
         long discount = 0;
+
+        Object sessionVoucher = session.getAttribute("appliedVoucher");
+        if (sessionVoucher != null && !authUserId.isBlank()) {
+            String voucherId = String.valueOf(sessionVoucher).trim();
+            if (!voucherId.isBlank()) {
+                discount = voucherRepository.calculateDiscount(voucherId, subtotal);
+            }
+        }
+
         request.setAttribute("subtotalText", formatVnd(subtotal));
         request.setAttribute("discountText", "-" + formatVnd(discount));
         request.setAttribute("totalPriceText", formatVnd(Math.max(0, subtotal - discount)));
@@ -355,13 +366,8 @@ public class PaymentController extends HttpServlet {
         if (!id.isBlank()) {
             entity = paymentRepository.findById(id);
         } else if (!orderId.isBlank()) {
-            // Find by orderId - need to add this method or use findAll + filter
-            for (PaymentEntity p : paymentRepository.findAll()) {
-                if (orderId.equals(p.getOrderId())) {
-                    entity = p;
-                    break;
-                }
-            }
+            List<PaymentEntity> payments = paymentRepository.findByOrderId(orderId);
+            if (!payments.isEmpty()) entity = payments.get(0);
         }
 
         if (entity != null) {
@@ -557,11 +563,29 @@ public class PaymentController extends HttpServlet {
     }
 
     private void applyVoucher(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(true);
+        String authUserId = session.getAttribute("authUserId") == null ? "" : String.valueOf(session.getAttribute("authUserId")).trim();
         String voucherCode = value(request, "voucherCode");
-        request.setAttribute("voucherCode", voucherCode);
-        if (!voucherCode.isEmpty()) {
-            request.setAttribute("voucherSummary", "0 VND (demo)");
+
+        List<CartItemView> checkoutItems = resolveCheckoutItems(request, session);
+        long subtotal = total(checkoutItems);
+        long discount = 0;
+
+        if (!voucherCode.isBlank() && !authUserId.isBlank()) {
+            discount = voucherRepository.calculateDiscount(voucherCode, subtotal);
+            if (discount > 0) {
+                session.setAttribute("appliedVoucher", voucherCode);
+            } else {
+                session.removeAttribute("appliedVoucher");
+            }
         }
+
+        request.setAttribute("voucherCode", voucherCode);
+        request.setAttribute("voucherSummary", discount > 0 ? formatVnd(discount) : "Không hợp lệ");
+        request.setAttribute("subtotalText", formatVnd(subtotal));
+        request.setAttribute("discountText", "-" + formatVnd(discount));
+        request.setAttribute("totalPriceText", formatVnd(Math.max(0, subtotal - discount)));
+
         showPaymentPage(request, response);
     }
 }

@@ -86,6 +86,21 @@ public class PaymentRepository implements IPaymentRepository {
         return result;
     }
 
+    @Override
+    public List<PaymentEntity> findByOrderId(String orderId) {
+        String sql = "SELECT * FROM `Payment` WHERE orderId = ? ORDER BY createdAt DESC";
+        List<PaymentEntity> result = new ArrayList<>();
+        try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) result.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find payments by orderId", e);
+        }
+        return result;
+    }
+
     public List<PaymentEntity> findAll() {
         String sql = "SELECT * FROM `Payment` ORDER BY createdAt DESC";
         List<PaymentEntity> result = new ArrayList<>();
