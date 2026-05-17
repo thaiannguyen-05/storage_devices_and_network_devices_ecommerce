@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "admin-dashboard"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "17"
+  GLASSFISH_VERSION: "7.0.12"
+  GLASSFISH_CACHE_DIR: /home/runner/.cache/glassfish
+
+jobs:
+  build:
+    name: Build, test, JSP compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache GlassFish
+        id: cache-glassfish
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.GLASSFISH_CACHE_DIR }}/${{ env.GLASSFISH_VERSION }}
+          key: glassfish-${{ runner.os }}-${{ env.GLASSFISH_VERSION }}
+
+      - name: Install OS tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+
+      - name: Install GlassFish
+        if: steps.cache-glassfish.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p "${GLASSFISH_CACHE_DIR}/${GLASSFISH_VERSION}"
+          curl -fsSL \
+            "https://repo1.maven.org/maven2/org/glassfish/main/distributions/glassfish/${GLASSFISH_VERSION}/glassfish-${GLASSFISH_VERSION}.zip" \
+            -o /tmp/glassfish.zip
+          unzip -q /tmp/glassfish.zip -d "${GLASSFISH_CACHE_DIR}/${GLASSFISH_VERSION}"
+          rm /tmp/glassfish.zip
+
+      - name: Run CI script
+        env:
+          GLASSFISH_HOME: ${{ env.GLASSFISH_CACHE_DIR }}/${{ env.GLASSFISH_VERSION }}/glassfish7/glassfish
+        run: bash scripts/ci.sh
+
+      - name: Upload WAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ecommerce-war-${{ github.sha }}
+          path: dist/*.war
+          if-no-files-found: error
+          retention-days: 7
+
+  docker-smoke:
+    name: Docker build smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image without pushing
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: ecommerce:ci-${{ github.sha }}
+          build-args: |
+            GLASSFISH_VERSION=${{ env.GLASSFISH_VERSION }}
