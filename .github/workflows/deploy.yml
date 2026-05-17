@@ -1,7 +1,9 @@
 name: Build & Deploy Docker to VPS
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: ["main"]
   workflow_dispatch:
 
@@ -9,9 +11,11 @@ env:
   APP_NAME: ecommerce
   CONTAINER_NAME: ecommerce
   APP_PORT: "8080"
+  SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
 jobs:
   build_and_push:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.meta.outputs.image }}
@@ -20,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -63,7 +69,7 @@ jobs:
           NAMESPACE="${NAMESPACE%/}"
           NAMESPACE="$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')"
 
-          IMAGE="$HOST/$NAMESPACE/${{ env.APP_NAME }}:${GITHUB_SHA}"
+          IMAGE="$HOST/$NAMESPACE/${{ env.APP_NAME }}:${{ env.SOURCE_SHA }}"
 
           echo "registry_host=$HOST" >> "$GITHUB_OUTPUT"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
@@ -101,7 +107,7 @@ jobs:
           REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ env.SOURCE_SHA }}
           APP_NAME: ${{ env.APP_NAME }}
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
           APP_PORT: ${{ env.APP_PORT }}
