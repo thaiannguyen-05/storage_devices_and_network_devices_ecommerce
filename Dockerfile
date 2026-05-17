@@ -50,19 +50,16 @@ RUN cat > /tmp/gf-jvm-options.xml <<'EOF'
         <jvm-options>-Djava.security.auth.login.config=${com.sun.aas.instanceRoot}/config/login.conf</jvm-options>
         <jvm-options>-Dfelix.fileinstall.disableConfigSave=false</jvm-options>
         <jvm-options>-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy</jvm-options>
-        <jvm-options>-DDB_HOST=20.189.125.186</jvm-options>
+        <jvm-options>-DDATABASE_URL=postgresql://neondb_owner:npg_c0UrYT7QsLpI@ep-withered-meadow-apop5gmt-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require</jvm-options>
         <jvm-options>-Djavax.xml.accessExternalSchema=all</jvm-options>
-        <jvm-options>-DAUTH_RETRY_MAX_TIME_MS=1000</jvm-options>
-        <jvm-options>-DDB_USER=andev</jvm-options>
         <jvm-options>-Dfelix.fileinstall.log.level=2</jvm-options>
+        <jvm-options>-DAUTH_RETRY_MAX_TIME_MS=1000</jvm-options>
         <jvm-options>-Dfelix.fileinstall.poll=5000</jvm-options>
         <jvm-options>-DSMTP_USER=thaiandev05@gmail.com</jvm-options>
         <jvm-options>-Djdbc.drivers=org.apache.derby.jdbc.ClientDriver</jvm-options>
         <jvm-options>-Dfelix.fileinstall.dir=${com.sun.aas.installRoot}/modules/autostart/</jvm-options>
         <jvm-options>-Xbootclasspath/a:${com.sun.aas.installRoot}/lib/grizzly-npn-api.jar</jvm-options>
-        <jvm-options>-DDB_NAME=mydb</jvm-options>
         <jvm-options>-Xmx512m</jvm-options>
-        <jvm-options>-DDB_PASSWORD=andev2005@</jvm-options>
         <jvm-options>-DAUTH_ARGON2_ITERATIONS=3</jvm-options>
         <jvm-options>-Dorg.glassfish.grizzly.nio.multipleUpperBoundsException=true</jvm-options>
         <jvm-options>-DJWT_REFRESH_TOKEN_DAYS=7</jvm-options>
@@ -81,7 +78,6 @@ RUN cat > /tmp/gf-jvm-options.xml <<'EOF'
         <jvm-options>-DJWT_ACCESS_TOKEN_MINUTES=15</jvm-options>
         <jvm-options>-Dosgi.shell.telnet.port=6666</jvm-options>
         <jvm-options>-Djava.awt.headless=true</jvm-options>
-        <jvm-options>-DDB_PORT=3306</jvm-options>
         <jvm-options>-XX:+UnlockDiagnosticVMOptions</jvm-options>
         <jvm-options>--add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED</jvm-options>
         <jvm-options>-Djavax.net.ssl.keyStore=${com.sun.aas.instanceRoot}/config/keystore.jks</jvm-options>
