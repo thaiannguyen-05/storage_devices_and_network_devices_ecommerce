@@ -18,7 +18,7 @@ public class ProductReviewRepository implements IProductReviewRepository {
 
     @Override
     public boolean isAvailable() {
-        String sql = "SELECT 1 FROM ProductReview LIMIT 1";
+        String sql = "SELECT 1 FROM \"ProductReview\" LIMIT 1";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -34,7 +34,7 @@ public class ProductReviewRepository implements IProductReviewRepository {
         List<ProductReviewEntity> reviews = new ArrayList<>();
         String where = reviewWhere(search);
         String sql = "SELECT id, \"productId\", \"reviewerName\", rating, comment, \"reviewedAt\" "
-                + "FROM ProductReview " + where + " ORDER BY \"reviewedAt\" DESC LIMIT ? OFFSET ?";
+                + "FROM \"ProductReview\" " + where + " ORDER BY \"reviewedAt\" DESC LIMIT ? OFFSET ?";
         int safePage = Math.max(page, 1);
         int safePageSize = Math.max(pageSize, 1);
         try (Connection conn = ConnecDb.getConnection();
@@ -56,7 +56,7 @@ public class ProductReviewRepository implements IProductReviewRepository {
     @Override
     public int count(String search) {
         String where = reviewWhere(search);
-        String sql = "SELECT COUNT(*) FROM ProductReview " + where;
+        String sql = "SELECT COUNT(*) FROM \"ProductReview\" " + where;
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             bindSearch(ps, search, 1);
@@ -73,7 +73,7 @@ public class ProductReviewRepository implements IProductReviewRepository {
 
     @Override
     public boolean delete(String id) {
-        String sql = "DELETE FROM ProductReview WHERE id = ?";
+        String sql = "DELETE FROM \"ProductReview\" WHERE id = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
@@ -86,7 +86,7 @@ public class ProductReviewRepository implements IProductReviewRepository {
 
     @Override
     public boolean update(String id, int rating, String comment) {
-        String sql = "UPDATE ProductReview SET rating = ?, comment = ? WHERE id = ?";
+        String sql = "UPDATE \"ProductReview\" SET rating = ?, comment = ? WHERE id = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, Math.max(1, Math.min(5, rating)));
@@ -103,7 +103,7 @@ public class ProductReviewRepository implements IProductReviewRepository {
         if (search == null || search.trim().isEmpty()) {
             return "";
         }
-        return "WHERE LOWER(reviewerName) LIKE ? OR LOWER(productId) LIKE ?";
+        return "WHERE LOWER(\"reviewerName\") LIKE ? OR LOWER(\"productId\") LIKE ?";
     }
 
     private int bindSearch(PreparedStatement ps, String search, int start) throws SQLException {

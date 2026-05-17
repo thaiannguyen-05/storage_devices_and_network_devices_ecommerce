@@ -15,6 +15,7 @@ public class ConnecDb {
         String databaseUrl = ConfigService.get("DATABASE_URL");
 
         if (databaseUrl != null && !databaseUrl.isEmpty()) {
+            // Use full DATABASE_URL (recommended for cloud providers)
             try {
                 Class.forName(PG_DRIVER_CLASS);
             } catch (ClassNotFoundException e) {
@@ -22,8 +23,8 @@ public class ConnecDb {
             }
 
             HikariConfig config = new HikariConfig();
-            config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-            config.addDataSourceProperty("url", databaseUrl.startsWith("jdbc:") ? databaseUrl : "jdbc:" + databaseUrl);
+            config.setDriverClassName(PG_DRIVER_CLASS);
+            config.setJdbcUrl("jdbc:" + databaseUrl);
             config.setMaximumPoolSize(10);
             config.setMinimumIdle(2);
             config.setConnectionTimeout(10000);
@@ -37,6 +38,9 @@ public class ConnecDb {
             String user = ConfigService.get("DB_USER");
             String password = ConfigService.get("DB_PASSWORD");
 
+            String url = "jdbc:postgresql://" + host + ":" + port + "/" + dbName
+                    + "?sslmode=disable&stringtype=unspecified";
+
             try {
                 Class.forName(PG_DRIVER_CLASS);
             } catch (ClassNotFoundException e) {
@@ -44,11 +48,8 @@ public class ConnecDb {
             }
 
             HikariConfig config = new HikariConfig();
-            config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-            config.addDataSourceProperty("serverName", host);
-            config.addDataSourceProperty("portNumber", port);
-            config.addDataSourceProperty("databaseName", dbName);
-            config.addDataSourceProperty("sslmode", "require");
+            config.setDriverClassName(PG_DRIVER_CLASS);
+            config.setJdbcUrl(url);
             config.setUsername(user);
             config.setPassword(password);
             config.setMaximumPoolSize(10);

@@ -19,7 +19,7 @@ public class OrderCartRepository implements IOrderCartRepository {
 
     @Override
     public OrderCartEntity registerCart(CreateCartDto dto) {
-        String sql = "INSERT INTO OrderCart (id, \"userId\", \"createdAt\", \"updatedAt\") VALUES (?, ?, NOW(), NOW())";
+        String sql = "INSERT INTO \"OrderCart\" (id, \"userId\", \"createdAt\", \"updatedAt\") VALUES (?, ?, NOW(), NOW())";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             String id = UUID.randomUUID().toString();
@@ -40,7 +40,7 @@ public class OrderCartRepository implements IOrderCartRepository {
 
     @Override
     public List<OrderCartEntity> findAll() {
-        String sql = "SELECT id, \"userId\", \"createdAt\", \"updatedAt\" FROM OrderCart ORDER BY \"createdAt\" DESC";
+        String sql = "SELECT id, \"userId\", \"createdAt\", \"updatedAt\" FROM \"OrderCart\" ORDER BY \"createdAt\" DESC";
         List<OrderCartEntity> carts = new ArrayList<>();
 
         try (Connection conn = ConnecDb.getConnection();
@@ -57,7 +57,7 @@ public class OrderCartRepository implements IOrderCartRepository {
 
     @Override
     public OrderCartEntity findById(String id) {
-        String sql = "SELECT id, \"userId\", \"createdAt\", \"updatedAt\" FROM OrderCart WHERE id = ?";
+        String sql = "SELECT id, \"userId\", \"createdAt\", \"updatedAt\" FROM \"OrderCart\" WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -75,7 +75,7 @@ public class OrderCartRepository implements IOrderCartRepository {
 
     @Override
     public OrderCartEntity findByUserId(String userId) {
-        String sql = "SELECT id, \"userId\", \"createdAt\", \"updatedAt\" FROM OrderCart WHERE \"userId\" = ? LIMIT 1";
+        String sql = "SELECT id, \"userId\", \"createdAt\", \"updatedAt\" FROM \"OrderCart\" WHERE \"userId\" = ? LIMIT 1";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -93,7 +93,7 @@ public class OrderCartRepository implements IOrderCartRepository {
 
     @Override
     public boolean update(String id, UpdateCartDto dto) {
-        String sql = "UPDATE OrderCart SET \"userId\" = ?, \"createdAt\" = ?, \"updatedAt\" = NOW() WHERE id = ?";
+        String sql = "UPDATE \"OrderCart\" SET \"userId\" = ?, \"createdAt\" = ?, \"updatedAt\" = NOW() WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -108,7 +108,7 @@ public class OrderCartRepository implements IOrderCartRepository {
 
     @Override
     public boolean delete(String id) {
-        String sql = "DELETE FROM OrderCart WHERE id = ?";
+        String sql = "DELETE FROM \"OrderCart\" WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

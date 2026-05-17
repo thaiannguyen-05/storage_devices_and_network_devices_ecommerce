@@ -328,7 +328,7 @@ public class ProductService {
     }
 
     public List<ProductReviewEntity> getProductReviews(String productId) {
-        String sql = "SELECT id, \"productId\", \"reviewerName\", rating, comment, \"reviewedAt\" FROM ProductReview WHERE \"productId\" = ? ORDER BY \"reviewedAt\" DESC";
+        String sql = "SELECT id, \"productId\", \"reviewerName\", rating, comment, \"reviewedAt\" FROM \"ProductReview\" WHERE \"productId\" = ? ORDER BY \"reviewedAt\" DESC";
         List<ProductReviewEntity> result = new ArrayList<>();
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -354,7 +354,7 @@ public class ProductService {
     }
 
     public boolean createReview(String productId, String reviewerName, int rating, String comment) {
-        String sql = "INSERT INTO ProductReview (\"productId\", \"reviewerName\", rating, comment, \"reviewedAt\") VALUES (?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO \"ProductReview\" (\"productId\", \"reviewerName\", rating, comment, \"reviewedAt\") VALUES (?, ?, ?, ?, NOW())";
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, productId);
@@ -368,7 +368,7 @@ public class ProductService {
     }
 
     private Map<String, ReviewStats> getReviewStatsMap() {
-        String sql = "SELECT \"productId\", COUNT(*) AS reviewCount, COALESCE(SUM(rating), 0) AS ratingSum FROM ProductReview GROUP BY productId";
+        String sql = "SELECT \"productId\", COUNT(*) AS reviewCount, COALESCE(SUM(rating), 0) AS ratingSum FROM \"ProductReview\" GROUP BY \"productId\"";
         Map<String, ReviewStats> result = new HashMap<>();
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);

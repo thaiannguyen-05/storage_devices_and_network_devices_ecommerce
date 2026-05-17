@@ -21,10 +21,10 @@ public class AdminStatsRepository implements IAdminStatsRepository {
     @Override
     public AdminDashboardStatsDto getDashboardStats() {
         AdminDashboardStatsDto stats = new AdminDashboardStatsDto();
-        stats.setTotalUsers(countValue("SELECT COUNT(*) FROM User", stats, "total users"));
-        stats.setTotalProducts(countValue("SELECT COUNT(*) FROM Product", stats, "total products"));
-        stats.setTotalOrders(countValue("SELECT COUNT(*) FROM Order", stats, "total orders"));
-        stats.setPendingOrders(countValue("SELECT COUNT(*) FROM Order WHERE status = 'PENDING'", stats, "pending orders"));
+        stats.setTotalUsers(countValue("SELECT COUNT(*) FROM \"User\"", stats, "total users"));
+        stats.setTotalProducts(countValue("SELECT COUNT(*) FROM \"Product\"", stats, "total products"));
+        stats.setTotalOrders(countValue("SELECT COUNT(*) FROM \"Order\"", stats, "total orders"));
+        stats.setPendingOrders(countValue("SELECT COUNT(*) FROM \"Order\" WHERE status = 'PENDING'", stats, "pending orders"));
         loadTotalRevenue(stats);
         loadRevenueTrend(stats, 7);
         loadRevenueTrend(stats, 30);
@@ -49,7 +49,7 @@ public class AdminStatsRepository implements IAdminStatsRepository {
     }
 
     private void loadTotalRevenue(AdminDashboardStatsDto stats) {
-        String sql = "SELECT COALESCE(SUM(amount), 0) FROM Payment WHERE status = 'SUCCESS'";
+        String sql = "SELECT COALESCE(SUM(amount), 0) FROM \"Payment\" WHERE status = 'SUCCESS'";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -65,7 +65,7 @@ public class AdminStatsRepository implements IAdminStatsRepository {
 
     private void loadRevenueTrend(AdminDashboardStatsDto stats, int days) {
         String sql = "SELECT DATE(\"createdAt\") AS day, COALESCE(SUM(amount), 0) AS amount "
-                + "FROM Payment WHERE status = 'SUCCESS' AND \"createdAt\" >= NOW() - (? || ' days')::interval "
+                + "FROM \"Payment\" WHERE status = 'SUCCESS' AND \"createdAt\" >= NOW() - (? || ' days')::interval "
                 + "GROUP BY DATE(\"createdAt\") ORDER BY day ASC";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -89,7 +89,7 @@ public class AdminStatsRepository implements IAdminStatsRepository {
 
     private void loadTopProducts(AdminDashboardStatsDto stats) {
         String sql = "SELECT o.\"productId\", p.name AS productName, SUM(o.quantity) AS soldQuantity "
-                + "FROM Order o LEFT JOIN Product p ON p.id = o.\"productId\" "
+                + "FROM \"Order\" o LEFT JOIN \"Product\" p ON p.id = o.\"productId\" "
                 + "GROUP BY o.\"productId\", p.name ORDER BY soldQuantity DESC LIMIT 10";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -108,7 +108,7 @@ public class AdminStatsRepository implements IAdminStatsRepository {
 
     private void loadLowStockVariants(AdminDashboardStatsDto stats) {
         String sql = "SELECT pv.id, pv.\"productId\", pv.sku, pv.quantity, p.name AS productName "
-                + "FROM ProductVariant pv JOIN Product p ON pv.\"productId\" = p.id "
+                + "FROM \"ProductVariant\" pv JOIN \"Product\" p ON pv.\"productId\" = p.id "
                 + "WHERE pv.quantity <= 5 AND pv.status = 'ACTIVE' ORDER BY pv.quantity ASC LIMIT 10";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -129,7 +129,7 @@ public class AdminStatsRepository implements IAdminStatsRepository {
 
     private void loadUserRegistrationTrend(AdminDashboardStatsDto stats) {
         String sql = "SELECT DATE(\"createdAt\") AS day, COUNT(*) AS countValue "
-                + "FROM User WHERE \"createdAt\" >= NOW() - INTERVAL '30 days' "
+                + "FROM \"User\" WHERE \"createdAt\" >= NOW() - INTERVAL '30 days' "
                 + "GROUP BY DATE(\"createdAt\") ORDER BY day ASC";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -147,8 +147,8 @@ public class AdminStatsRepository implements IAdminStatsRepository {
 
     private void loadRecentOrders(AdminDashboardStatsDto stats) {
         String sql = "SELECT o.id, u.name AS userName, p.name AS productName, o.status, o.\"createdAt\" "
-                + "FROM Order o LEFT JOIN User u ON u.id = o.\"userId\" "
-                + "LEFT JOIN Product p ON p.id = o.\"productId\" ORDER BY o.\"createdAt\" DESC LIMIT 10";
+                + "FROM \"Order\" o LEFT JOIN \"User\" u ON u.id = o.\"userId\" "
+                + "LEFT JOIN \"Product\" p ON p.id = o.\"productId\" ORDER BY o.\"createdAt\" DESC LIMIT 10";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
