@@ -16,7 +16,7 @@ import java.util.UUID;
 public class ProductRepository implements IProductRepository {
     @Override
     public List<ProductEntity> findAll() {
-        String sql = "SELECT id , name , description, brandId, status, userId, category FROM Product ORDER BY createdAt DESC";
+        String sql = "SELECT id , name , description, \"brandId\", status, \"userId\", category FROM Product ORDER BY \"createdAt\" DESC";
         List<ProductEntity> products = new ArrayList<>();
 
         try (Connection con = ConnecDb.getConnection();
@@ -33,7 +33,7 @@ public class ProductRepository implements IProductRepository {
 
     @Override
     public ProductEntity findById(String id) {
-        String sql = "SELECT id, name, description, brandId, status, userId, category FROM Product WHERE id = ?";
+        String sql = "SELECT id, name, description, \"brandId\", status, \"userId\", category FROM Product WHERE id = ?";
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, id);
@@ -50,7 +50,7 @@ public class ProductRepository implements IProductRepository {
 
     @Override
     public boolean create(CreateProduct dto) {
-        String sql = "INSERT INTO Product (id, name, description, brandId, status, userId, createdAt, updatedAt, category) "
+        String sql = "INSERT INTO Product (id, name, description, \"brandId\", status, \"userId\", \"createdAt\", \"updatedAt\", category) "
                 + "VALUES(?,?,?,?,?,?,NOW(),NOW(),?)";
 
         try (Connection con = ConnecDb.getConnection();
@@ -71,7 +71,7 @@ public class ProductRepository implements IProductRepository {
 
     @Override
     public boolean update(String id, UpdateProduct dto) {
-        String sql = "UPDATE Product SET name = ? , description = ? , brandId = ? , status = ?, category = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE Product SET name = ? , description = ? , \"brandId\" = ? , status = ?, category = ?, \"updatedAt\" = NOW() WHERE id = ?";
 
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {

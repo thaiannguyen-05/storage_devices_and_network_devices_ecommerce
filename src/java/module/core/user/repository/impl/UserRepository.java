@@ -20,7 +20,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public UserEntity createUser(CreateUserDto dto) {
-        String sql = "INSERT INTO User (id, name, dateOfBirth, hashPassword, status, role, email, createdAt, updatedAt) "
+        String sql = "INSERT INTO User (id, name, \"dateOfBirth\", \"hashPassword\", status, role, email, \"createdAt\", \"updatedAt\") "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -57,7 +57,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public List<UserEntity> findAll() {
-        String sql = "SELECT id, name, dateOfBirth, hashPassword, status, role, email, createdAt, updatedAt FROM User ORDER BY createdAt DESC";
+        String sql = "SELECT id, name, \"dateOfBirth\", \"hashPassword\", status, role, email, \"createdAt\", \"updatedAt\" FROM User ORDER BY \"createdAt\" DESC";
         List<UserEntity> users = new ArrayList<>();
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
@@ -72,7 +72,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public List<UserEntity> findAll(int page, int pageSize) {
-        String sql = "SELECT id, name, dateOfBirth, hashPassword, status, role, email, createdAt, updatedAt FROM User ORDER BY createdAt DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT id, name, \"dateOfBirth\", \"hashPassword\", status, role, email, \"createdAt\", \"updatedAt\" FROM User ORDER BY \"createdAt\" DESC LIMIT ? OFFSET ?";
         List<UserEntity> users = new ArrayList<>();
 
         int safePage = Math.max(page, 1);
@@ -95,7 +95,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public UserEntity findById(String id) {
-        String sql = "SELECT id, name, dateOfBirth, hashPassword, status, role, email, createdAt, updatedAt FROM User WHERE id = ?";
+        String sql = "SELECT id, name, \"dateOfBirth\", \"hashPassword\", status, role, email, \"createdAt\", \"updatedAt\" FROM User WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
@@ -112,7 +112,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public UserEntity findByEmail(String email) {
-        String sql = "SELECT id, name, dateOfBirth, hashPassword, status, role, email, createdAt, updatedAt FROM User WHERE email = ? LIMIT 1";
+        String sql = "SELECT id, name, \"dateOfBirth\", \"hashPassword\", status, role, email, \"createdAt\", \"updatedAt\" FROM User WHERE email = ? LIMIT 1";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -129,7 +129,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public boolean update(String id, UpdateUserDto dto) {
-        String sql = "UPDATE User SET name = ?, dateOfBirth = ?, status = ?, role = ?, email = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE User SET name = ?, \"dateOfBirth\" = ?, status = ?, role = ?, email = ?, \"updatedAt\" = NOW() WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, dto.getName());
@@ -146,7 +146,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public boolean updatePasswordById(String id, String hashPassword) {
-        String sql = "UPDATE User SET hashPassword = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE User SET \"hashPassword\" = ?, \"updatedAt\" = NOW() WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, hashPassword);
@@ -159,7 +159,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public boolean activateById(String id) {
-        String sql = "UPDATE User SET status = 'ACTIVE', updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE User SET status = 'ACTIVE', \"updatedAt\" = NOW() WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);

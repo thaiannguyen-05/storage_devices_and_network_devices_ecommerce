@@ -30,7 +30,7 @@ public class VoucherRepository implements IVoucherRepository {
     }
 
     public List<VoucherEntity> findByUserId(String userId) {
-        String sql = "SELECT * FROM Voucher WHERE userId = ? AND expTime >= CURRENT_DATE AND quantity > 0 ORDER BY percent DESC";
+        String sql = "SELECT * FROM Voucher WHERE \"userId\" = ? AND \"expTime\" >= CURRENT_DATE AND quantity > 0 ORDER BY percent DESC";
         List<VoucherEntity> result = new ArrayList<>();
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId);
@@ -44,7 +44,7 @@ public class VoucherRepository implements IVoucherRepository {
     }
 
     public boolean create(String userId, Double percent, LocalDate expTime, Integer quantity) {
-        String sql = "INSERT INTO Voucher (id, userId, percent, expTime, quantity, createdAt) VALUES (?, ?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO Voucher (id, \"userId\", percent, \"expTime\", quantity, \"createdAt\") VALUES (?, ?, ?, ?, ?, NOW())";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, UUID.randomUUID().toString());
             ps.setString(2, userId);

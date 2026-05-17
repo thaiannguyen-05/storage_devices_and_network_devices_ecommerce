@@ -14,7 +14,7 @@ import java.util.List;
 public class ProductVariantRepository implements IProductVariantRepository {
     @Override
     public List<ProductVariantEntity> findAll() {
-        String sql = "SELECT id, productId, price, imageUrl, status, sku, quantity FROM ProductVariant ORDER BY createdAt DESC";
+        String sql = "SELECT id, \"productId\", price, imageUrl, status, sku, quantity FROM ProductVariant ORDER BY \"createdAt\" DESC";
         List<ProductVariantEntity> variants = new ArrayList<>();
 
         try (Connection con = ConnecDb.getConnection();
@@ -31,7 +31,7 @@ public class ProductVariantRepository implements IProductVariantRepository {
 
     @Override
     public ProductVariantEntity findById(String id) {
-        String sql = "SELECT id, productId, price, imageUrl, status, sku, quantity FROM ProductVariant WHERE id = ?";
+        String sql = "SELECT id, \"productId\", price, imageUrl, status, sku, quantity FROM ProductVariant WHERE id = ?";
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, id);
@@ -48,7 +48,7 @@ public class ProductVariantRepository implements IProductVariantRepository {
 
     @Override
     public ProductVariantEntity findFirstByProductId(String productId) {
-        String sql = "SELECT id, productId, price, imageUrl, status, sku, quantity FROM ProductVariant WHERE productId = ? ORDER BY createdAt DESC LIMIT 1";
+        String sql = "SELECT id, \"productId\", price, imageUrl, status, sku, quantity FROM ProductVariant WHERE \"productId\" = ? ORDER BY \"createdAt\" DESC LIMIT 1";
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, productId);
@@ -65,7 +65,7 @@ public class ProductVariantRepository implements IProductVariantRepository {
 
     @Override
     public List<ProductVariantEntity> findByProductId(String productId) {
-        String sql = "SELECT id, productId, price, imageUrl, status, sku, quantity FROM ProductVariant WHERE productId = ? ORDER BY createdAt DESC";
+        String sql = "SELECT id, \"productId\", price, imageUrl, status, sku, quantity FROM ProductVariant WHERE \"productId\" = ? ORDER BY \"createdAt\" DESC";
         List<ProductVariantEntity> variants = new ArrayList<>();
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {

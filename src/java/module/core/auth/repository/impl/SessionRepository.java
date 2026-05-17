@@ -17,7 +17,7 @@ public class SessionRepository implements ISessionRepository {
 
     @Override
     public SessionEntity create(String userId, String hashRefreshToken, String ip) {
-        String sql = "INSERT INTO Session (id, hashRefreshToken, userId, ip, createdAt, updatedAt) VALUES (?, ?, ?, ?, NOW(), NOW())";
+        String sql = "INSERT INTO Session (id, \"hashRefreshToken\", \"userId\", ip, \"createdAt\", \"updatedAt\") VALUES (?, ?, ?, ?, NOW(), NOW())";
         String id = UUID.randomUUID().toString();
         LocalDateTime now = LocalDateTime.now();
 
@@ -40,7 +40,7 @@ public class SessionRepository implements ISessionRepository {
 
     @Override
     public List<SessionEntity> findAll() {
-        String sql = "SELECT id, hashRefreshToken, userId, ip, createdAt, updatedAt FROM Session ORDER BY createdAt DESC";
+        String sql = "SELECT id, \"hashRefreshToken\", \"userId\", ip, \"createdAt\", \"updatedAt\" FROM Session ORDER BY \"createdAt\" DESC";
         List<SessionEntity> sessions = new ArrayList<>();
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
@@ -55,7 +55,7 @@ public class SessionRepository implements ISessionRepository {
 
     @Override
     public SessionEntity findById(String id) {
-        String sql = "SELECT id, hashRefreshToken, userId, ip, createdAt, updatedAt FROM Session WHERE id = ?";
+        String sql = "SELECT id, \"hashRefreshToken\", \"userId\", ip, \"createdAt\", \"updatedAt\" FROM Session WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
@@ -72,7 +72,7 @@ public class SessionRepository implements ISessionRepository {
 
     @Override
     public SessionEntity findByHashRefreshToken(String hashRefreshToken) {
-        String sql = "SELECT id, hashRefreshToken, userId, ip, createdAt, updatedAt FROM Session WHERE hashRefreshToken = ? ORDER BY createdAt DESC LIMIT 1";
+        String sql = "SELECT id, \"hashRefreshToken\", \"userId\", ip, \"createdAt\", \"updatedAt\" FROM Session WHERE \"hashRefreshToken\" = ? ORDER BY \"createdAt\" DESC LIMIT 1";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, hashRefreshToken);
@@ -89,7 +89,7 @@ public class SessionRepository implements ISessionRepository {
 
     @Override
     public List<SessionEntity> findByUserIdAndIp(String userId, String ip) {
-        String sql = "SELECT id, hashRefreshToken, userId, ip, createdAt, updatedAt FROM Session WHERE userId = ? AND ip = ? ORDER BY createdAt DESC";
+        String sql = "SELECT id, \"hashRefreshToken\", \"userId\", ip, \"createdAt\", \"updatedAt\" FROM Session WHERE \"userId\" = ? AND ip = ? ORDER BY \"createdAt\" DESC";
         List<SessionEntity> sessions = new ArrayList<>();
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -108,7 +108,7 @@ public class SessionRepository implements ISessionRepository {
 
     @Override
     public boolean updateHashRefreshToken(String id, String hashRefreshToken) {
-        String sql = "UPDATE Session SET hashRefreshToken = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE Session SET \"hashRefreshToken\" = ?, \"updatedAt\" = NOW() WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, hashRefreshToken);
@@ -133,7 +133,7 @@ public class SessionRepository implements ISessionRepository {
 
     @Override
     public boolean deleteByUserId(String userId) {
-        String sql = "DELETE FROM Session WHERE userId = ?";
+        String sql = "DELETE FROM Session WHERE \"userId\" = ?";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId);

@@ -33,8 +33,8 @@ public class ProductReviewRepository implements IProductReviewRepository {
     public List<ProductReviewEntity> findAll(String search, int page, int pageSize) {
         List<ProductReviewEntity> reviews = new ArrayList<>();
         String where = reviewWhere(search);
-        String sql = "SELECT id, productId, reviewerName, rating, comment, reviewedAt "
-                + "FROM ProductReview " + where + " ORDER BY reviewedAt DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT id, \"productId\", \"reviewerName\", rating, comment, \"reviewedAt\" "
+                + "FROM ProductReview " + where + " ORDER BY \"reviewedAt\" DESC LIMIT ? OFFSET ?";
         int safePage = Math.max(page, 1);
         int safePageSize = Math.max(pageSize, 1);
         try (Connection conn = ConnecDb.getConnection();
