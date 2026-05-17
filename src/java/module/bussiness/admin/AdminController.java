@@ -1,5 +1,6 @@
 package module.bussiness.admin;
 
+import common.annotation.Role;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,6 +15,7 @@ import module.bussiness.admin.dto.AdminProductVariantRequestDto;
 import module.bussiness.admin.dto.AdminUserRequestDto;
 import module.bussiness.admin.dto.AdminVoucherRequestDto;
 
+@Role("ADMIN")
 @WebServlet(name = "admin", urlPatterns = {"/admin"})
 public class AdminController extends HttpServlet {
     private static final String UTF_8 = "UTF-8";

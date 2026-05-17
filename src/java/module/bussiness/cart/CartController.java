@@ -1,5 +1,6 @@
 package module.bussiness.cart;
 
+import common.annotation.Role;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -28,6 +29,7 @@ import module.bussiness.cart.repository.impl.ItemCartRepository;
 import module.bussiness.product.repository.impl.ProductRepository;
 import module.bussiness.product.repository.impl.ProductVariantRepository;
 
+@Role({"USER", "ADMIN"})
 @WebServlet(name = "CartController", urlPatterns = {"/cart", "/CartController"})
 public class CartController extends HttpServlet {
 
