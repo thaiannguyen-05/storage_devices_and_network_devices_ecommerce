@@ -16,7 +16,7 @@ The script verifies:
 - `common.logger.audit.AuditSupportTest` passes.
 - `module.bussiness.admin.AdminServiceSupportTest` passes.
 - NetBeans Ant `clean dist` builds `dist/Ecommerce.war`.
-- JSP compilation runs with `javac.source=1.8` because the bundled NetBeans JSP compiler rejects `compilerSourceVM=17`.
+- JSP pages are compiled portably with the bundled Jasper `org.apache.jasper.JspC`, then the generated servlet sources are compiled with `javac`.
 
 ## GitHub Actions
 

@@ -47,13 +47,79 @@ resolve_glassfish_home() {
 classpath_from() {
   local root="$1"
   shift
+  if [[ ! -d "$root" ]]; then
+    return 0
+  fi
+
   find "$root" "$@" -type f -name '*.jar' ! -name '*-sources.jar' -print | sort | paste -sd ':' -
+}
+
+join_classpath() {
+  local joined=""
+  local part
+
+  for part in "$@"; do
+    [[ -n "$part" ]] || continue
+
+    if [[ -n "$joined" ]]; then
+      joined="$joined:$part"
+    else
+      joined="$part"
+    fi
+  done
+
+  printf '%s\n' "$joined"
 }
 
 run_main_test() {
   local class_name="$1"
   log "Run $class_name"
   "$JAVA_BIN" -cp "$TEST_CLASSES_DIR:$JAVAC_CLASSPATH" "$class_name"
+}
+
+compile_jsps() {
+  local web_dir="$ROOT_DIR/build/web"
+  local web_classes="$web_dir/WEB-INF/classes"
+  local jsp_src_dir="$ROOT_DIR/build/generated/jsp-src"
+  local jsp_classes_dir="$ROOT_DIR/build/generated/jsp-classes"
+  local web_lib_classpath
+  local jsp_compile_classpath
+
+  if [[ ! -d "$web_dir" ]]; then
+    printf 'Expected %s to exist after WAR build.\n' "$web_dir" >&2
+    exit 1
+  fi
+
+  web_lib_classpath="$(classpath_from "$web_dir/WEB-INF/lib")"
+  jsp_compile_classpath="$(join_classpath "$web_classes" "$web_lib_classpath" "$JAVAC_CLASSPATH")"
+
+  rm -rf "$jsp_src_dir" "$jsp_classes_dir"
+  mkdir -p "$jsp_src_dir" "$jsp_classes_dir"
+
+  "$JAVA_BIN" -cp "$JAVAC_CLASSPATH" org.apache.jasper.JspC \
+    -uriroot "$web_dir" \
+    -d "$jsp_src_dir" \
+    -die1 \
+    -compilerSourceVM 1.8 \
+    -compilerTargetVM 1.8 \
+    -classpath "$jsp_compile_classpath"
+
+  mapfile -t JSP_SOURCES < <(find "$jsp_src_dir" -type f -name '*.java' | sort)
+  if [[ ${#JSP_SOURCES[@]} -eq 0 ]]; then
+    printf 'JSP compiler did not generate any Java sources under %s.\n' "$jsp_src_dir" >&2
+    exit 1
+  fi
+
+  "$JAVAC_BIN" \
+    -encoding UTF-8 \
+    -source 1.8 \
+    -target 1.8 \
+    -proc:none \
+    -cp "$jsp_compile_classpath" \
+    -d "$jsp_classes_dir" \
+    "${JSP_SOURCES[@]}"
+
+  printf 'Compiled %d generated JSP servlet source files.\n' "${#JSP_SOURCES[@]}"
 }
 
 require_command find
@@ -102,14 +168,7 @@ log "Build WAR"
   clean dist
 
 log "Compile JSPs"
-"$JAVA_BIN" -cp "$ANT_CP" "$ANT_MAIN" \
-  -Dcompile.jsps=true \
-  -Djavac.source=1.8 \
-  -Djavac.target=1.8 \
-  -Dj2ee.server.home="$GLASSFISH_HOME" \
-  -Dplatforms.JDK_17.home="$JAVA_HOME" \
-  -f build.xml \
-  compile-jsps
+compile_jsps
 
 log "CI checks completed"
 ls -lh dist/*.war
