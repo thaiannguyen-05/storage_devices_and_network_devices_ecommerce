@@ -103,7 +103,7 @@ public class AdminService {
         int safePage = Math.max(page, 1);
         int total = count("SELECT COUNT(*) FROM User" + where, params);
         List<AdminUserResponseDto> users = new ArrayList<>();
-        String sql = "SELECT id, name, dateOfBirth, status, role, email, createdAt, updatedAt FROM User"
+        String sql = "SELECT id, name, \"dateOfBirth\", status, role, email, \"createdAt\", \"updatedAt\" FROM User"
                 + where + " ORDER BY createdAt DESC LIMIT ? OFFSET ?";
         List<Object> queryParams = new ArrayList<>(params);
         queryParams.add(DEFAULT_PAGE_SIZE);
@@ -153,7 +153,7 @@ public class AdminService {
             return AdminMutationResult.fail("User id is required.");
         }
         String allowed = allowedStatus(status, USER_STATUSES, "ACTIVE");
-        String sql = "UPDATE User SET status = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE User SET status = ?, \"updatedAt\" = NOW() WHERE id = ?";
         return executeUpdate(sql, List.of(allowed, id.trim()), "User status updated.", "User status was not updated.");
     }
 
@@ -191,12 +191,12 @@ public class AdminService {
         int safePage = Math.max(page, 1);
         int total = count("SELECT COUNT(*) FROM Product p" + where, params);
         List<AdminProductResponseDto> products = new ArrayList<>();
-        String sql = "SELECT p.id, p.name, p.description, p.brandId, b.name AS brandName, p.status, p.category, "
+        String sql = "SELECT p.id, p.name, p.description, p.\"brandId\", b.name AS brandName, p.status, p.category, "
                 + "COUNT(pv.id) AS variantCount, COALESCE(SUM(pv.quantity), 0) AS totalStock "
-                + "FROM Product p LEFT JOIN Brand b ON b.id = p.brandId "
-                + "LEFT JOIN ProductVariant pv ON pv.productId = p.id "
+                + "FROM Product p LEFT JOIN Brand b ON b.id = p.\"brandId\" "
+                + "LEFT JOIN ProductVariant pv ON pv.\"productId\" = p.id "
                 + where
-                + " GROUP BY p.id, p.name, p.description, p.brandId, b.name, p.status, p.category "
+                + " GROUP BY p.id, p.name, p.description, p.\"brandId\", b.name, p.status, p.category "
                 + "ORDER BY p.name ASC LIMIT ? OFFSET ?";
         List<Object> queryParams = new ArrayList<>(params);
         queryParams.add(DEFAULT_PAGE_SIZE);
@@ -239,7 +239,7 @@ public class AdminService {
             return AdminMutationResult.fail("Product name and brand are required.");
         }
         if (isBlank(dto.getId())) {
-            String sql = "INSERT INTO Product (id, name, description, brandId, status, userId, createdAt, updatedAt, category) "
+            String sql = "INSERT INTO Product (id, name, description, \"brandId\", status, \"userId\", \"createdAt\", \"updatedAt\", category) "
                     + "VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)";
             List<Object> params = List.of(
                     UUID.randomUUID().toString(),
@@ -253,7 +253,7 @@ public class AdminService {
             return executeUpdate(sql, params, "Product created.", "Product was not created.");
         }
 
-        String sql = "UPDATE Product SET name = ?, description = ?, brandId = ?, status = ?, category = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE Product SET name = ?, description = ?, \"brandId\" = ?, status = ?, category = ?, \"updatedAt\" = NOW() WHERE id = ?";
         List<Object> params = List.of(
                 dto.getName().trim(),
                 value(dto.getDescription()),
@@ -278,7 +278,7 @@ public class AdminService {
         if (isBlank(id)) {
             return AdminMutationResult.fail("Product id is required.");
         }
-        String sql = "UPDATE Product SET status = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE Product SET status = ?, \"updatedAt\" = NOW() WHERE id = ?";
         return executeUpdate(sql, List.of(allowedStatus(status, PRODUCT_STATUSES, "DRAFT"), id.trim()),
                 "Product status updated.", "Product status was not updated.");
     }
@@ -291,13 +291,13 @@ public class AdminService {
         int quantity = dto.getQuantity() == null ? 0 : Math.max(dto.getQuantity(), 0);
         String status = allowedStatus(dto.getStatus(), VARIANT_STATUSES, "ACTIVE");
         if (isBlank(dto.getId())) {
-            String sql = "INSERT INTO ProductVariant (id, productId, price, imageUrl, status, createdAt, updatedAt, sku, quantity) "
+            String sql = "INSERT INTO ProductVariant (id, \"productId\", price, imageUrl, status, \"createdAt\", \"updatedAt\", sku, quantity) "
                     + "VALUES (?, ?, ?, ?, ?, NOW(), NOW(), ?, ?)";
             return executeUpdate(sql, List.of(UUID.randomUUID().toString(), dto.getProductId().trim(), price,
                     value(dto.getImageUrl()), status, dto.getSku().trim(), quantity),
                     "Variant created.", "Variant was not created.");
         }
-        String sql = "UPDATE ProductVariant SET price = ?, imageUrl = ?, status = ?, sku = ?, quantity = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE ProductVariant SET price = ?, imageUrl = ?, status = ?, sku = ?, quantity = ?, \"updatedAt\" = NOW() WHERE id = ?";
         return executeUpdate(sql, List.of(price, value(dto.getImageUrl()), status, dto.getSku().trim(), quantity, dto.getId().trim()),
                 "Variant saved.", "Variant was not updated.");
     }
@@ -371,7 +371,7 @@ public class AdminService {
         int safePage = Math.max(page, 1);
         int total = count("SELECT COUNT(*) FROM Payment pay LEFT JOIN User u ON u.id = pay.userId " + where, params);
         List<AdminPaymentResponseDto> payments = new ArrayList<>();
-        String sql = "SELECT pay.*, u.name AS userName FROM Payment pay LEFT JOIN User u ON u.id = pay.userId "
+        String sql = "SELECT pay.*, u.name AS userName FROM Payment pay LEFT JOIN User u ON u.id = pay.\"userId\" "
                 + where + " ORDER BY pay.createdAt DESC LIMIT ? OFFSET ?";
         List<Object> queryParams = new ArrayList<>(params);
         queryParams.add(DEFAULT_PAGE_SIZE);
@@ -394,7 +394,7 @@ public class AdminService {
         if (isBlank(id)) {
             return AdminMutationResult.fail("Payment id is required.");
         }
-        String sql = "UPDATE Payment SET status = 'PENDING', updatedAt = NOW() WHERE id = ? AND status = 'FAILED'";
+        String sql = "UPDATE Payment SET status = 'PENDING', \"updatedAt\" = NOW() WHERE id = ? AND status = 'FAILED'";
         return executeUpdate(sql, List.of(id.trim()), "Payment marked pending for retry.", "Only failed payments can be retried.");
     }
 
@@ -403,7 +403,7 @@ public class AdminService {
         int total = count("SELECT COUNT(*) FROM Voucher", List.of());
         List<AdminVoucherResponseDto> vouchers = new ArrayList<>();
         String sql = "SELECT v.*, u.name AS userName, u.email AS userEmail FROM Voucher v "
-                + "LEFT JOIN User u ON u.id = v.userId ORDER BY v.createdAt DESC LIMIT ? OFFSET ?";
+                + "LEFT JOIN User u ON u.id = v.\"userId\" ORDER BY v.\"createdAt\" DESC LIMIT ? OFFSET ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, DEFAULT_PAGE_SIZE);
@@ -424,7 +424,7 @@ public class AdminService {
             return null;
         }
         String sql = "SELECT v.*, u.name AS userName, u.email AS userEmail FROM Voucher v "
-                + "LEFT JOIN User u ON u.id = v.userId WHERE v.id = ?";
+                + "LEFT JOIN User u ON u.id = v.\"userId\" WHERE v.id = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id.trim());
@@ -445,11 +445,11 @@ public class AdminService {
         }
         int quantity = dto.getQuantity() == null ? 0 : Math.max(dto.getQuantity(), 0);
         if (isBlank(dto.getId())) {
-            String sql = "INSERT INTO Voucher (id, percent, userId, expTime, createdAt, quantity) VALUES (?, ?, ?, ?, NOW(), ?)";
+            String sql = "INSERT INTO Voucher (id, percent, \"userId\", \"expTime\", \"createdAt\", quantity) VALUES (?, ?, ?, ?, NOW(), ?)";
             return executeUpdate(sql, List.of(UUID.randomUUID().toString(), dto.getPercent(), dto.getUserId().trim(),
                     Date.valueOf(dto.getExpTime()), quantity), "Voucher created.", "Voucher was not created.");
         }
-        String sql = "UPDATE Voucher SET percent = ?, userId = ?, expTime = ?, quantity = ? WHERE id = ?";
+        String sql = "UPDATE Voucher SET percent = ?, \"userId\" = ?, \"expTime\" = ?, quantity = ? WHERE id = ?";
         return executeUpdate(sql, List.of(dto.getPercent(), dto.getUserId().trim(), Date.valueOf(dto.getExpTime()), quantity, dto.getId().trim()),
                 "Voucher saved.", "Voucher was not updated.");
     }
@@ -562,7 +562,7 @@ public class AdminService {
     }
 
     private AdminMutationResult createUser(AdminUserRequestDto dto) {
-        String sql = "INSERT INTO User (id, name, dateOfBirth, hashPassword, status, role, email, createdAt, updatedAt) "
+        String sql = "INSERT INTO User (id, name, \"dateOfBirth\", \"hashPassword\", status, role, email, \"createdAt\", \"updatedAt\") "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         List<Object> params = List.of(
                 UUID.randomUUID().toString(),
@@ -586,12 +586,12 @@ public class AdminService {
     }
 
     private List<AdminOrderResponseDto> loadRichOrders(String where, List<Object> params, int page, int pageSize) {
-        String sql = "SELECT o.id, o.userId, u.name AS userName, u.email AS userEmail, o.productId, p.name AS productName, "
-                + "o.variantId, pv.sku, COALESCE(o.quantity, 1) AS quantity, COALESCE(pv.price * o.quantity, 0) AS total, "
-                + "o.status, o.phone, o.address, o.createdAt, o.updatedAt "
-                + "FROM Order o LEFT JOIN User u ON u.id = o.userId "
-                + "LEFT JOIN Product p ON p.id = o.productId "
-                + "LEFT JOIN ProductVariant pv ON pv.id = o.variantId "
+        String sql = "SELECT o.id, o.\"userId\", u.name AS userName, u.email AS userEmail, o.\"productId\", p.name AS productName, "
+                + "o.\"variantId\", pv.sku, COALESCE(o.quantity, 1) AS quantity, COALESCE(pv.price * o.quantity, 0) AS total, "
+                + "o.status, o.phone, o.address, o.\"createdAt\", o.\"updatedAt\" "
+                + "FROM Order o LEFT JOIN User u ON u.id = o.\"userId\" "
+                + "LEFT JOIN Product p ON p.id = o.\"productId\" "
+                + "LEFT JOIN ProductVariant pv ON pv.id = o.\"variantId\" "
                 + where + " ORDER BY o.createdAt DESC LIMIT ? OFFSET ?";
         return queryOrders(sql, params, page, pageSize, false);
     }
@@ -603,11 +603,11 @@ public class AdminService {
             effectiveWhere = " WHERE o.id = ? ";
             effectiveParams = List.of(targetId);
         }
-        String sql = "SELECT o.id, o.userId, u.name AS userName, u.email AS userEmail, o.productId, p.name AS productName, "
-                + "NULL AS variantId, NULL AS sku, 1 AS quantity, 0 AS total, o.status, NULL AS phone, NULL AS address, "
-                + "o.createdAt, NULL AS updatedAt "
-                + "FROM Order o LEFT JOIN User u ON u.id = o.userId "
-                + "LEFT JOIN Product p ON p.id = o.productId "
+        String sql = "SELECT o.id, o.\"userId\", u.name AS userName, u.email AS userEmail, o.\"productId\", p.name AS productName, "
+                + "NULL AS \"variantId\", NULL AS sku, 1 AS quantity, 0 AS total, o.status, NULL AS phone, NULL AS address, "
+                + "o.\"createdAt\", NULL AS \"updatedAt\" "
+                + "FROM Order o LEFT JOIN User u ON u.id = o.\"userId\" "
+                + "LEFT JOIN Product p ON p.id = o.\"productId\" "
                 + effectiveWhere + " ORDER BY o.createdAt DESC LIMIT ? OFFSET ?";
         return queryOrders(sql, effectiveParams, page, pageSize, true);
     }
@@ -661,7 +661,7 @@ public class AdminService {
 
     private List<AdminPaymentResponseDto> getPaymentsByOrderId(String orderId) {
         List<AdminPaymentResponseDto> payments = new ArrayList<>();
-        String sql = "SELECT pay.*, u.name AS userName FROM Payment pay LEFT JOIN User u ON u.id = pay.userId WHERE pay.orderId = ? ORDER BY pay.createdAt DESC";
+        String sql = "SELECT pay.*, u.name AS userName FROM Payment pay LEFT JOIN User u ON u.id = pay.\"userId\" WHERE pay.\"orderId\" = ? ORDER BY pay.\"createdAt\" DESC";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, orderId);
