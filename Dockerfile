@@ -50,7 +50,11 @@ RUN cat > /tmp/gf-jvm-options.xml <<'EOF'
         <jvm-options>-Djava.security.auth.login.config=${com.sun.aas.instanceRoot}/config/login.conf</jvm-options>
         <jvm-options>-Dfelix.fileinstall.disableConfigSave=false</jvm-options>
         <jvm-options>-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy</jvm-options>
-        <jvm-options>-DDATABASE_URL=postgresql://neondb_owner:npg_c0UrYT7QsLpI@ep-withered-meadow-apop5gmt-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require</jvm-options>
+        <jvm-options>-DDB_HOST=ep-withered-meadow-apop5gmt-pooler.c-7.us-east-1.aws.neon.tech</jvm-options>
+        <jvm-options>-DDB_PORT=5432</jvm-options>
+        <jvm-options>-DDB_NAME=neondb</jvm-options>
+        <jvm-options>-DDB_USER=neondb_owner</jvm-options>
+        <jvm-options>-DDB_PASSWORD=npg_c0UrYT7QsLpI</jvm-options>
         <jvm-options>-Djavax.xml.accessExternalSchema=all</jvm-options>
         <jvm-options>-Dfelix.fileinstall.log.level=2</jvm-options>
         <jvm-options>-DAUTH_RETRY_MAX_TIME_MS=1000</jvm-options>
