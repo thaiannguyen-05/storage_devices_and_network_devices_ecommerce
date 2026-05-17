@@ -14,7 +14,7 @@ import java.util.List;
 public class BrandRepository implements IBrandRepository {
     @Override
     public List<BrandEntity> findAll() {
-        String sql = "SELECT id, name, userId, description, status FROM `Brand` ORDER BY createdAt DESC";
+        String sql = "SELECT id, name, userId, description, status FROM Brand ORDER BY createdAt DESC";
         List<BrandEntity> brands = new ArrayList<>();
 
         try (Connection con = ConnecDb.getConnection();
@@ -31,7 +31,7 @@ public class BrandRepository implements IBrandRepository {
 
     @Override
     public BrandEntity findById(String id) {
-        String sql = "SELECT id, name, userId, description, status FROM `Brand` WHERE id = ?";
+        String sql = "SELECT id, name, userId, description, status FROM Brand WHERE id = ?";
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, id);

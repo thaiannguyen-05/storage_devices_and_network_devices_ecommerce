@@ -15,9 +15,9 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public void upsertCartOrder(String userId, String productId, String variantId, int quantity, String status) {
-        String findSql = "SELECT id, quantity FROM `Order` WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ? ORDER BY createdAt DESC LIMIT 1";
-        String updateSql = "UPDATE `Order` SET quantity = ?, updatedAt = NOW() WHERE id = ?";
-        String insertSql = "INSERT INTO `Order` (id, userId, productId, variantId, quantity, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        String findSql = "SELECT id, quantity FROM Order WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ? ORDER BY createdAt DESC LIMIT 1";
+        String updateSql = "UPDATE Order SET quantity = ?, updatedAt = NOW() WHERE id = ?";
+        String insertSql = "INSERT INTO Order (id, userId, productId, variantId, quantity, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
         try (Connection conn = ConnecDb.getConnection()) {
             String existingId = null;
@@ -61,7 +61,7 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public void updateStatusByUserAndItem(String userId, String productId, String variantId, String fromStatus, String toStatus) {
-        String sql = "UPDATE `Order` SET status = ?, updatedAt = NOW() WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
+        String sql = "UPDATE Order SET status = ?, updatedAt = NOW() WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, toStatus);
@@ -77,7 +77,7 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public void updateDeliveryInfo(String userId, String productId, String variantId, String status, String phone, String address) {
-        String sql = "UPDATE `Order` SET phone = ?, address = ?, updatedAt = NOW() WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
+        String sql = "UPDATE Order SET phone = ?, address = ?, updatedAt = NOW() WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, phone);
@@ -94,7 +94,7 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public void updateCartQuantity(String userId, String productId, String variantId, int quantity, String status) {
-        String sql = "UPDATE `Order` SET quantity = ?, updatedAt = NOW() WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
+        String sql = "UPDATE Order SET quantity = ?, updatedAt = NOW() WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, Math.max(1, quantity));
@@ -110,7 +110,7 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public void removeCartOrder(String userId, String productId, String variantId, String status) {
-        String sql = "DELETE FROM `Order` WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
+        String sql = "DELETE FROM Order WHERE userId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') AND status = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId);
@@ -125,7 +125,7 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public void clearCartOrders(String userId, String status) {
-        String sql = "DELETE FROM `Order` WHERE userId = ? AND status = ?";
+        String sql = "DELETE FROM Order WHERE userId = ? AND status = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId);
@@ -138,7 +138,7 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public List<OrderEntity> findByUserIdAndStatus(String userId, String status) {
-        String sql = "SELECT id, userId, productId, variantId, quantity, status, phone, address, createdAt, updatedAt FROM `Order` WHERE userId = ? AND status = ? ORDER BY createdAt ASC, updatedAt ASC";
+        String sql = "SELECT id, userId, productId, variantId, quantity, status, phone, address, createdAt, updatedAt FROM Order WHERE userId = ? AND status = ? ORDER BY createdAt ASC, updatedAt ASC";
         List<OrderEntity> result = new ArrayList<>();
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -173,7 +173,7 @@ public class OrderRepository implements IOrderRepository {
     }
 
     public void updateStatusByOrderId(String orderId, String status) {
-        String sql = "UPDATE `Order` SET status = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE Order SET status = ?, updatedAt = NOW() WHERE id = ?";
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);

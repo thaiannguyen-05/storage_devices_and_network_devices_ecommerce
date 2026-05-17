@@ -17,8 +17,8 @@ public class ItemCartRepository implements IItemCartRepository {
 
     @Override
     public List<ItemCartEntity> findByCartId(String cartId) {
-        String sql = "SELECT `id`, `cartId`, `productId`, `variantId`, `quantity`, `createdAt`, `updatedAt` "
-                + "FROM `ItemCart` WHERE `cartId` = ? ORDER BY `createdAt` ASC, `updatedAt` ASC";
+        String sql = "SELECT id, cartId, productId, variantId, quantity, createdAt, updatedAt "
+                + "FROM ItemCart WHERE cartId = ? ORDER BY createdAt ASC, updatedAt ASC";
         List<ItemCartEntity> items = new ArrayList<>();
 
         try (Connection conn = ConnecDb.getConnection();
@@ -37,8 +37,8 @@ public class ItemCartRepository implements IItemCartRepository {
 
     @Override
     public ItemCartEntity findByCartIdAndProductAndVariant(String cartId, String productId, String variantId) {
-        String sql = "SELECT `id`, `cartId`, `productId`, `variantId`, `quantity`, `createdAt`, `updatedAt` "
-                + "FROM `ItemCart` WHERE `cartId` = ? AND `productId` = ? AND COALESCE(`variantId`, '') = COALESCE(?, '') LIMIT 1";
+        String sql = "SELECT id, cartId, productId, variantId, quantity, createdAt, updatedAt "
+                + "FROM ItemCart WHERE cartId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '') LIMIT 1";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -58,7 +58,7 @@ public class ItemCartRepository implements IItemCartRepository {
 
     @Override
     public ItemCartEntity create(String cartId, String productId, String variantId, int quantity) {
-        String sql = "INSERT INTO `ItemCart` (`id`, `cartId`, `productId`, `variantId`, `quantity`, `createdAt`, `updatedAt`) "
+        String sql = "INSERT INTO ItemCart (id, cartId, productId, variantId, quantity, createdAt, updatedAt) "
                 + "VALUES (?, ?, ?, ?, ?, NOW(), NOW())";
 
         try (Connection conn = ConnecDb.getConnection();
@@ -79,7 +79,7 @@ public class ItemCartRepository implements IItemCartRepository {
 
     @Override
     public boolean updateQuantity(String id, int quantity) {
-        String sql = "UPDATE `ItemCart` SET `quantity` = ?, `updatedAt` = NOW() WHERE `id` = ?";
+        String sql = "UPDATE ItemCart SET quantity = ?, updatedAt = NOW() WHERE id = ?";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -93,7 +93,7 @@ public class ItemCartRepository implements IItemCartRepository {
 
     @Override
     public boolean deleteByCartIdAndProductAndVariant(String cartId, String productId, String variantId) {
-        String sql = "DELETE FROM `ItemCart` WHERE `cartId` = ? AND `productId` = ? AND COALESCE(`variantId`, '') = COALESCE(?, '')";
+        String sql = "DELETE FROM ItemCart WHERE cartId = ? AND productId = ? AND COALESCE(variantId, '') = COALESCE(?, '')";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -108,7 +108,7 @@ public class ItemCartRepository implements IItemCartRepository {
 
     @Override
     public boolean clearByCartId(String cartId) {
-        String sql = "DELETE FROM `ItemCart` WHERE `cartId` = ?";
+        String sql = "DELETE FROM ItemCart WHERE cartId = ?";
 
         try (Connection conn = ConnecDb.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

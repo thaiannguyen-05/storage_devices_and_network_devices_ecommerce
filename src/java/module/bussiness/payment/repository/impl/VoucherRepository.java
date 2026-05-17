@@ -17,7 +17,7 @@ import module.core.sql.ConnecDb;
 public class VoucherRepository implements IVoucherRepository {
 
     public VoucherEntity findById(String id) {
-        String sql = "SELECT * FROM `Voucher` WHERE id = ?";
+        String sql = "SELECT * FROM Voucher WHERE id = ?";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -30,7 +30,7 @@ public class VoucherRepository implements IVoucherRepository {
     }
 
     public List<VoucherEntity> findByUserId(String userId) {
-        String sql = "SELECT * FROM `Voucher` WHERE userId = ? AND expTime >= CURDATE() AND quantity > 0 ORDER BY percent DESC";
+        String sql = "SELECT * FROM Voucher WHERE userId = ? AND expTime >= CURRENT_DATE AND quantity > 0 ORDER BY percent DESC";
         List<VoucherEntity> result = new ArrayList<>();
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId);
@@ -44,7 +44,7 @@ public class VoucherRepository implements IVoucherRepository {
     }
 
     public boolean create(String userId, Double percent, LocalDate expTime, Integer quantity) {
-        String sql = "INSERT INTO `Voucher` (id, userId, `percent`, expTime, quantity, createdAt) VALUES (?, ?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO Voucher (id, userId, percent, expTime, quantity, createdAt) VALUES (?, ?, ?, ?, ?, NOW())";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, UUID.randomUUID().toString());
             ps.setString(2, userId);
@@ -58,7 +58,7 @@ public class VoucherRepository implements IVoucherRepository {
     }
 
     public boolean decreaseQuantity(String id) {
-        String sql = "UPDATE `Voucher` SET quantity = quantity - 1 WHERE id = ? AND quantity > 0";
+        String sql = "UPDATE Voucher SET quantity = quantity - 1 WHERE id = ? AND quantity > 0";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             return ps.executeUpdate() > 0;

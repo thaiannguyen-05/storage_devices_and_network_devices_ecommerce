@@ -21,7 +21,7 @@ public class PaymentRepository implements IPaymentRepository {
             return false;
         }
 
-        String sql = "INSERT INTO `Payment` (id, orderId, userId, amount, accessKey, partnerCode, redirectUrl, ipnUrl, extraData, requestType, signature, status, createdAt, updatedAt) "
+        String sql = "INSERT INTO Payment (id, orderId, userId, amount, accessKey, partnerCode, redirectUrl, ipnUrl, extraData, requestType, signature, status, createdAt, updatedAt) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -49,7 +49,7 @@ public class PaymentRepository implements IPaymentRepository {
             return false;
         }
 
-        String sql = "UPDATE `Payment` SET status = ?, updatedAt = NOW() WHERE orderId = ?";
+        String sql = "UPDATE Payment SET status = ?, updatedAt = NOW() WHERE orderId = ?";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setString(2, orderId);
@@ -60,7 +60,7 @@ public class PaymentRepository implements IPaymentRepository {
     }
 
     public PaymentEntity findById(String id) {
-        String sql = "SELECT * FROM `Payment` WHERE id = ?";
+        String sql = "SELECT * FROM Payment WHERE id = ?";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -73,7 +73,7 @@ public class PaymentRepository implements IPaymentRepository {
     }
 
     public List<PaymentEntity> findByUserId(String userId) {
-        String sql = "SELECT * FROM `Payment` WHERE userId = ? ORDER BY createdAt DESC";
+        String sql = "SELECT * FROM Payment WHERE userId = ? ORDER BY createdAt DESC";
         List<PaymentEntity> result = new ArrayList<>();
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, userId);
@@ -88,7 +88,7 @@ public class PaymentRepository implements IPaymentRepository {
 
     @Override
     public List<PaymentEntity> findByOrderId(String orderId) {
-        String sql = "SELECT * FROM `Payment` WHERE orderId = ? ORDER BY createdAt DESC";
+        String sql = "SELECT * FROM Payment WHERE orderId = ? ORDER BY createdAt DESC";
         List<PaymentEntity> result = new ArrayList<>();
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, orderId);
@@ -102,7 +102,7 @@ public class PaymentRepository implements IPaymentRepository {
     }
 
     public List<PaymentEntity> findAll() {
-        String sql = "SELECT * FROM `Payment` ORDER BY createdAt DESC";
+        String sql = "SELECT * FROM Payment ORDER BY createdAt DESC";
         List<PaymentEntity> result = new ArrayList<>();
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -114,7 +114,7 @@ public class PaymentRepository implements IPaymentRepository {
     }
 
     public boolean updatePayment(String id, String orderId, BigDecimal amount, String status, String redirectUrl, String signature) {
-        String sql = "UPDATE `Payment` SET orderId = ?, amount = ?, status = ?, redirectUrl = ?, signature = ?, updatedAt = NOW() WHERE id = ?";
+        String sql = "UPDATE Payment SET orderId = ?, amount = ?, status = ?, redirectUrl = ?, signature = ?, updatedAt = NOW() WHERE id = ?";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, orderId);
             ps.setBigDecimal(2, amount == null ? BigDecimal.ZERO : amount);
@@ -129,7 +129,7 @@ public class PaymentRepository implements IPaymentRepository {
     }
 
     public boolean deleteById(String id) {
-        String sql = "DELETE FROM `Payment` WHERE id = ?";
+        String sql = "DELETE FROM Payment WHERE id = ?";
         try (Connection conn = ConnecDb.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             return ps.executeUpdate() > 0;
