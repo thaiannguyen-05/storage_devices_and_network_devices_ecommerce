@@ -1,6 +1,40 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.Set"%>
 <aside class="left-menu">
+    <% if ("ADMIN".equalsIgnoreCase(String.valueOf(session.getAttribute("authUserRole")))) { %>
+    <div class="left-menu-section">
+        <h3 class="left-menu-title">Admin</h3>
+        <a href="${pageContext.request.contextPath}/admin" class="left-menu-item">
+            <span class="left-menu-dot"></span>
+            Dashboard
+        </a>
+        <a href="${pageContext.request.contextPath}/admin?action=users" class="left-menu-item">
+            <span class="left-menu-dot"></span>
+            Users
+        </a>
+        <a href="${pageContext.request.contextPath}/admin?action=products" class="left-menu-item">
+            <span class="left-menu-dot"></span>
+            Products
+        </a>
+        <a href="${pageContext.request.contextPath}/admin?action=orders" class="left-menu-item">
+            <span class="left-menu-dot"></span>
+            Orders
+        </a>
+        <a href="${pageContext.request.contextPath}/admin?action=payments" class="left-menu-item">
+            <span class="left-menu-dot"></span>
+            Payments
+        </a>
+        <a href="${pageContext.request.contextPath}/admin?action=vouchers" class="left-menu-item">
+            <span class="left-menu-dot"></span>
+            Vouchers
+        </a>
+        <a href="${pageContext.request.contextPath}/admin?action=reviews" class="left-menu-item">
+            <span class="left-menu-dot"></span>
+            Reviews
+        </a>
+    </div>
+    <% } %>
+
     <div class="left-menu-section">
         <h3 class="left-menu-title">Danh mục</h3>
         <%
