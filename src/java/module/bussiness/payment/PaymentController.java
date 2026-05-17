@@ -3,6 +3,7 @@ package module.bussiness.payment;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import common.annotation.Public;
+import common.annotation.Role;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -46,6 +47,7 @@ public class PaymentController extends HttpServlet {
     private final UserRepository userRepository = new UserRepository();
 
     @Override
+    @Role(value = {"USER", "ADMIN"}, paths = {"/payment", "/payment/checkout", "/payment/done"})
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding(UTF_8);
@@ -61,6 +63,10 @@ public class PaymentController extends HttpServlet {
     }
 
     @Override
+    @Role(value = "ADMIN", paths = "/payment", parameter = "actionType", actions = {
+        "createPayment", "updatePayment", "deletePayment", "queryPayment", "listPayments"
+    })
+    @Role(value = {"USER", "ADMIN"}, paths = "/payment")
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding(UTF_8);

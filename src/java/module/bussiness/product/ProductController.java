@@ -1,5 +1,6 @@
 package module.bussiness.product;
 
+import common.annotation.Role;
 import entity.ProductReviewEntity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -103,6 +104,8 @@ public class ProductController extends HttpServlet {
     }
 
     @Override
+    @Role(value = {"USER", "ADMIN"}, actions = "review")
+    @Role("ADMIN")
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
@@ -160,6 +163,7 @@ public class ProductController extends HttpServlet {
     }
 
     @Override
+    @Role("ADMIN")
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/plain;charset=UTF-8");
@@ -189,6 +193,7 @@ public class ProductController extends HttpServlet {
     }
 
     @Override
+    @Role("ADMIN")
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/plain;charset=UTF-8");

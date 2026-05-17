@@ -156,6 +156,7 @@ mapfile -t JAVA_SOURCES < <(find src/java test -type f -name '*.java' | sort)
 
 run_main_test "common.logger.audit.AuditSupportTest"
 run_main_test "module.bussiness.admin.AdminServiceSupportTest"
+run_main_test "common.guard.RoleGuardSupportTest"
 
 ANT_CP="$ROOT_DIR/lib/jsp-compilation/ant-launcher.jar:$ROOT_DIR/lib/jsp-compilation/ant.jar"
 ANT_MAIN="org.apache.tools.ant.Main"

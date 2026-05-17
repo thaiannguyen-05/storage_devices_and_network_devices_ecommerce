@@ -4,6 +4,7 @@
  */
 package module.bussiness.order;
 
+import common.annotation.Role;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author An
  */
+@Role({"USER", "ADMIN"})
 @WebServlet(name = "order", urlPatterns = {"/order"})
 public class OrderController extends HttpServlet {
 
