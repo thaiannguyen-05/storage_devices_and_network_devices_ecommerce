@@ -1,0 +1,60 @@
+name: Java Jakarta EE CI/CD Workflow
+
+on:
+  push:
+    branches: [ "main", "master", "dev" ]
+  pull_request:
+    branches: [ "main", "master", "dev" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & Package (JDK 11 + Apache Ant)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: 'maven' # fallback caching
+
+    - name: Setup GlassFish 6.2.5 (Compile Dependency Server)
+      run: |
+        echo "=== Downloading GlassFish 6.2.5 to satisfy NetBeans J2EE platform compilation ==="
+        wget https://download.eclipse.org/glassfish/6.2.5/release/glassfish-6.2.5.zip -q
+        unzip -q glassfish-6.2.5.zip
+        echo "=== GlassFish 6.2.5 downloaded and extracted successfully ==="
+
+    - name: Verify Apache Ant Installation
+      run: |
+        ant -version
+
+    - name: Build Web Application (Compile & Package WAR)
+      run: |
+        echo "=== Building application with Apache Ant ==="
+        ant -f build.xml -Dj2ee.server.home=$GITHUB_WORKSPACE/glassfish6/glassfish
+        echo "=== Build completed successfully ==="
+
+    - name: Verify Build Output
+      run: |
+        if [ -d "dist" ] && [ -f "dist/WebApplication3.war" ]; then
+          echo "=== Success: WebApplication3.war package built successfully! ==="
+          ls -lh dist/
+        else
+          echo "=== Error: Build succeeded but WebApplication3.war was not found in dist/ ==="
+          exit 1
+        fi
+
+    - name: Upload Build WAR Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: WebApplication3-build
+        path: dist/WebApplication3.war
+        retention-days: 7
