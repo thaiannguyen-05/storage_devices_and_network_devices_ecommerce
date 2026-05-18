@@ -58,11 +58,15 @@ jobs:
         script: |
           cd /home/app/sto-ecommerce
           
+          echo "=== Automatically generating .env file on VPS ==="
+          echo "DB_PASSWORD=${{ secrets.VPS_PASSWORD }}" > .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET || 'linhnamstore_super_secret_jwt_token_key' }}" >> .env
+          
           echo "=== Building Docker Image directly on VPS ==="
           docker build -t localhost:5000/sto-ecommerce:latest .
           
           echo "=== Starting Containers with Docker Compose ==="
-          # Khởi động dịch vụ (tự động đọc cấu hình file .env nằm tại /home/app/sto-ecommerce/.env trên VPS)
+          # Khởi động dịch vụ (tự động đọc cấu hình file .env vừa được sinh tự động)
           docker compose up -d --build
           
           echo "=== Cleaning up old Docker images to save space ==="
