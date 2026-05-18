@@ -25,6 +25,8 @@ public class ConnecDb {
             HikariConfig config = new HikariConfig();
             config.setDriverClassName(PG_DRIVER_CLASS);
             config.setJdbcUrl("jdbc:" + databaseUrl);
+            config.addDataSourceProperty("ssl", "true");
+            config.addDataSourceProperty("sslmode", "require");
             config.setMaximumPoolSize(10);
             config.setMinimumIdle(2);
             config.setConnectionTimeout(10000);
