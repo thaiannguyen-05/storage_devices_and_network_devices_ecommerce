@@ -22,20 +22,19 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Download GlassFish & NetBeans CopyLibs dependencies
+    # We download GlassFish only inside the temporary GitHub cloud runner so the compiler can use its Jakarta EE libraries (like Servlet API) to compile your Java code. This is NOT installing anything on your VPS.
+    - name: Download GlassFish for compilation dependencies (Cloud runner only)
       run: |
         echo "=== Downloading GlassFish for build dependencies ==="
         wget -q https://github.com/eclipse-ee4j/glassfish/releases/download/6.2.5/glassfish-6.2.5.zip
         unzip -q glassfish-6.2.5.zip
-        echo "=== Downloading NetBeans CopyLibs task jar ==="
-        wget -q -O copylibstask.jar https://github.com/dano7/T-5-B1/raw/master/lib/org-netbeans-modules-java-j2seproject-copylibstask.jar
         echo "=== Dependencies ready ==="
 
     - name: Build Web Application (WAR)
       run: |
         echo "=== Running Ant build ==="
-        # Pass both GlassFish server home and the downloaded CopyLibs task jar to Ant
-        ant -f . -Dj2ee.server.home=$GITHUB_WORKSPACE/glassfish6/glassfish -Dlibs.CopyLibs.classpath=$GITHUB_WORKSPACE/copylibstask.jar clean dist
+        # We pass j2ee.server.home for GlassFish libraries and libs.CopyLibs.classpath for NetBeans task jar
+        ant -f . -Dj2ee.server.home=$GITHUB_WORKSPACE/glassfish6/glassfish -Dlibs.CopyLibs.classpath=libs/org-netbeans-modules-java-j2seproject-copylibstask.jar clean dist
         echo "=== Build completed successfully. WAR file is ready ==="
 
     - name: Copy WAR file to VPS GlassFish autodeploy
