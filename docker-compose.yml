@@ -27,6 +27,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - APP_BASE_URL=https://ecommerce.anhemlinhnam.thaiandev.online
       - "DB_PARAMS=useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true"
     ports:
       - "8080:8080"
