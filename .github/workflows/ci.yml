@@ -11,17 +11,17 @@ permissions:
 
 jobs:
   build:
-    name: Build & Package (JDK 11 + Apache Ant)
+    name: Build & Package (JDK 17 + Apache Ant)
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK 11
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
         cache: 'maven' # fallback caching
 
