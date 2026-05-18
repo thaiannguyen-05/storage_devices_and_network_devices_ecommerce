@@ -23,7 +23,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: 'maven' # fallback caching
 
     - name: Setup GlassFish 6.2.5 (Compile Dependency Server)
       run: |
