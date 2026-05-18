@@ -1,4 +1,4 @@
-name: CD Pipeline - Deploy to VPS GlassFish
+name: CD Pipeline - Deploy to VPS GlassFish via Docker
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Build & Deploy to VPS GlassFish
+    name: Build & Deploy via Docker
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +22,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # We download GlassFish only inside the temporary GitHub cloud runner so the compiler can use its Jakarta EE libraries (like Servlet API) to compile your Java code. This is NOT installing anything on your VPS.
+    # Chúng ta chỉ tải GlassFish ảo ở máy chạy GitHub để phục vụ biên dịch code Java
     - name: Download GlassFish for compilation dependencies (Cloud runner only)
       run: |
         echo "=== Downloading GlassFish for build dependencies ==="
@@ -33,18 +33,37 @@ jobs:
     - name: Build Web Application (WAR)
       run: |
         echo "=== Running Ant build ==="
-        # We pass j2ee.server.home for GlassFish libraries and libs.CopyLibs.classpath for NetBeans task jar
         ant -f . -Dj2ee.server.home=$GITHUB_WORKSPACE/glassfish6/glassfish -Dlibs.CopyLibs.classpath=libs/org-netbeans-modules-java-j2seproject-copylibstask.jar clean dist
         echo "=== Build completed successfully. WAR file is ready ==="
 
-    - name: Copy WAR file to VPS GlassFish autodeploy
+    # Gửi các file cấu hình, file .war và database mẫu sang VPS (Cực kỳ nhẹ, chỉ mất vài giây)
+    - name: Copy Deployment Files to VPS
       uses: appleboy/scp-action@v0.1.4
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
-        source: "dist/WebApplication3.war"
-        # Adjust the target path if your GlassFish on the VPS has a different domain path
-        target: "/opt/glassfish6/glassfish/domains/domain1/autodeploy/"
-        strip_components: 1
+        source: "dist/WebApplication3.war,Dockerfile,docker-compose.yml,sto.sql"
+        target: "/home/app/sto-ecommerce/"
+        strip_components: 0
         overwrite: true
+
+    # SSH vào VPS và tự động kích hoạt Docker
+    - name: SSH and Run Docker Containers on VPS
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        script: |
+          cd /home/app/sto-ecommerce
+          
+          echo "=== Building Docker Image directly on VPS ==="
+          docker build -t localhost:5000/sto-ecommerce:latest .
+          
+          echo "=== Starting Containers with Docker Compose ==="
+          # Khởi động dịch vụ (tự động đọc cấu hình file .env nằm tại /home/app/sto-ecommerce/.env trên VPS)
+          docker compose up -d --build
+          
+          echo "=== Cleaning up old Docker images to save space ==="
+          docker image prune -f

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: sto-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: sto_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Tự động nạp dữ liệu mẫu từ sto.sql khi khởi động database lần đầu tiên
+      - ./sto.sql:/docker-entrypoint-initdb.d/sto.sql
+    # Chỉ mở cổng MySQL kết nối nội bộ hoặc từ local máy để bảo mật tuyệt đối
+    ports:
+      - "127.0.0.1:3306:3306"
+
+  app:
+    image: localhost:5000/sto-ecommerce:latest
+    container_name: sto-app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=sto_db
+      - DB_USER=root
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:
