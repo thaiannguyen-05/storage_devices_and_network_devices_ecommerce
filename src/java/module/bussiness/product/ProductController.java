@@ -64,22 +64,16 @@ public class ProductController extends HttpServlet {
         }
 
         Map<String, Integer> categoryCounts = new LinkedHashMap<>();
-        categoryCounts.put("HDD", 0);
-        categoryCounts.put("SSD", 0);
-        categoryCounts.put("NAS", 0);
-        categoryCounts.put("USB", 0);
-        categoryCounts.put("MEMORY_CARD", 0);
-        categoryCounts.put("TAPE", 0);
-        categoryCounts.put("ENCLOSURE", 0);
+        categoryCounts.put("STORAGE_DEVICE", 0);
+        categoryCounts.put("NETWORK_DEVICE", 0);
+        categoryCounts.put("ACCESSORY", 0);
 
         for (ProductCardView card : allCards) {
             if (card.getCategory() == null || card.getCategory().trim().isEmpty()) {
                 continue;
             }
             String key = card.getCategory().trim().toUpperCase();
-            if (!categoryCounts.containsKey(key)) {
-                categoryCounts.put(key, 0);
-            }
+            categoryCounts.putIfAbsent(key, 0);
             categoryCounts.put(key, categoryCounts.get(key) + 1);
         }
 
@@ -125,7 +119,11 @@ public class ProductController extends HttpServlet {
                     renderProductDetail(request, response, productId, "Vui lòng đăng nhập hoặc nhập tên người đánh giá.");
                     return;
                 }
-                productService.createReview(productId, finalReviewerName.trim(), rating, comment);
+                boolean created = productService.createReview(productId, finalReviewerName.trim(), rating, comment);
+                if (!created) {
+                    renderProductDetail(request, response, productId, "Gửi đánh giá thất bại. Vui lòng thử lại.");
+                    return;
+                }
                 response.sendRedirect("/product?id=" + productId);
             } catch (Exception e) {
                 try {
@@ -275,6 +273,9 @@ public class ProductController extends HttpServlet {
         }
         String normalizedCat = category == null ? "" : category.trim().toUpperCase();
         String normalizedSub = subcategory == null ? "" : subcategory.trim().toUpperCase();
+        if (normalizedCat.isEmpty()) {
+            normalizedCat = categoryForSubcategory(normalizedSub);
+        }
         if (normalizedCat.isEmpty() && normalizedSub.isEmpty()) {
             return source;
         }
@@ -283,11 +284,47 @@ public class ProductController extends HttpServlet {
         for (ProductCardView card : source) {
             String c = card.getCategory() == null ? "" : card.getCategory().trim().toUpperCase();
             boolean matchCat = normalizedCat.isEmpty() || normalizedCat.equals(c);
-            boolean matchSub = normalizedSub.isEmpty() || c.contains(normalizedSub);
+            boolean matchSub = normalizedSub.isEmpty() || matchesSubcategory(card, normalizedSub);
             if (matchCat && matchSub) {
                 filtered.add(card);
             }
         }
         return filtered;
+    }
+
+    private String categoryForSubcategory(String subcategory) {
+        switch (subcategory) {
+            case "HDD":
+            case "SSD":
+                return "STORAGE_DEVICE";
+            case "NAS":
+            case "ROUTER":
+            case "SWITCH":
+                return "NETWORK_DEVICE";
+            case "CABLE":
+            case "FLASH_DRIVE":
+            case "MEMORY_CARD":
+                return "ACCESSORY";
+            default:
+                return "";
+        }
+    }
+
+    private boolean matchesSubcategory(ProductCardView card, String subcategory) {
+        String haystack = ((card.getName() == null ? "" : card.getName()) + " "
+                + (card.getCategory() == null ? "" : card.getCategory()) + " "
+                + (card.getVariantsJson() == null ? "" : card.getVariantsJson()))
+                .toUpperCase()
+                .replace('-', '_');
+        switch (subcategory) {
+            case "FLASH_DRIVE":
+                return haystack.contains("FLASH") || haystack.contains("USB");
+            case "MEMORY_CARD":
+                return haystack.contains("MEMORY_CARD") || haystack.contains("MICROSD") || haystack.contains("SDXC");
+            case "NAS":
+                return haystack.contains("NAS") || haystack.contains("DISKSTATION") || haystack.contains("SYNOLOGY");
+            default:
+                return haystack.contains(subcategory);
+        }
     }
 }

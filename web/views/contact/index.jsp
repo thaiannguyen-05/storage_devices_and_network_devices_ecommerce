@@ -6,7 +6,7 @@
     <h2>Liên hệ với chúng tôi</h2>
     <p>Gửi ý kiến, thắc mắc hoặc yêu cầu hỗ trợ. Chúng tôi sẽ phản hồi sớm nhất.</p>
 
-    <form class="contact-form" id="contactForm" onsubmit="return validateContactForm()">
+    <form class="contact-form" id="contactForm" method="post" action="${pageContext.request.contextPath}/contact" onsubmit="return validateContactForm()">
         <div class="ch-form-field">
             <label for="contactFullName">Họ và tên</label>
             <input type="text" id="contactFullName" name="fullName" placeholder="Nguyễn Văn A">

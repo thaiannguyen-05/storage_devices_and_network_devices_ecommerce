@@ -1,127 +1,260 @@
--- Storefront seed data
--- Run this after tables are created from sto.sql
--- Admin account for foreign-key references:
---   email: admin@storeit.local
---   password: Admin@123!
+-- ============================================================
+-- 50 additional products + variants for StoreIT ecommerce
+-- Existing brands: Samsung(b1), WD(b2), Synology(b3), TP-Link(b4), SanDisk(b5)
+-- Existing products: p1-p10 (p111... through paaaa...)
+-- ============================================================
 
-START TRANSACTION;
+-- ---------- Product rows (50) ----------
+INSERT INTO "Product" ("id", "name", "description", "brandId", "status", "userId", "category") VALUES
+('p0000001-0001-0001-0001-000000000001', 'Samsung 990 EVO NVMe SSD', 'PCIe 5.0/4.0 hybrid NVMe SSD for everyday computing and light gaming.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000002', 'Samsung 870 QVO SATA SSD', 'High-capacity SATA SSD for budget desktop builds and mass storage.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000003', 'Samsung PM9A1 OEM SSD', 'Enterprise-grade OEM NVMe drive for server and data center workloads.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000004', 'Samsung T7 Shield Portable SSD', 'Rugged portable SSD with IP65 water and dust resistance.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000005', 'WD Black SN850X NVMe SSD', 'Top-tier PCIe Gen4 NVMe SSD tuned for gaming and content creation.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000006', 'WD Blue SN580 NVMe SSD', 'Affordable NVMe SSD for everyday productivity and office PCs.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000007', 'WD Purple 8TB Surveillance HDD', 'Surveillance-optimized hard drive for 24/7 NVR and DVR recording.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000008', 'WD Gold 14TB Enterprise HDD', 'Enterprise-class hard drive for rack servers and storage arrays.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000009', 'WD My Passport 5TB Portable HDD', 'Compact portable hard drive with password protection and cloud backup.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000010', 'Synology DiskStation DS224+', '2-bay NAS for home users and small offices with shared file access.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000011', 'Synology DiskStation DS1621+', '6-bay desktop NAS for power users needing scalable storage.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000012', 'Synology RackStation RS822+', '4-bay 1U rackmount NAS for SMBs and data center edge nodes.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000013', 'Synology RT6600ax Tri-Band Router', 'Tri-band Wi-Fi 6 router with SRM and built-in network protection.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000014', 'TP-Link Deco XE75 Wi-Fi 6E Mesh', 'Tri-band Wi-Fi 6E mesh system with whole-home coverage.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000015', 'TP-Link Omada EAP610 Access Point', 'Ceiling-mount Wi-Fi 6 access point for business and campus networks.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000016', 'TP-Link Archer BE800 Wi-Fi 7 Router', 'Flagship quad-band Wi-Fi 7 router for ultra-fast home networking.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000017', 'TP-Link TL-SG1016DE 16-Port Switch', '16-port gigabit smart switch with VLAN and QoS management.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000018', 'TP-Link ER605 VPN Router', 'Hardware VPN router with multi-WAN load balancing and firewall.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000019', 'SanDisk Ultra 3D 2TB SATA SSD', 'SATA SSD for system upgrades and mid-range gaming performance.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000020', 'SanDisk Extreme Pro USB 3.2 Flash Drive', 'High-performance USB flash drive with solid-state speed.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000021', 'SanDisk Professional G-Drive ArmorATD', 'Durable external HDD with shock and rain resistance for fieldwork.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000022', 'SanDisk Industrial microSD Card', 'Industrial-grade microSD for embedded systems and IoT devices.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000023', 'Crucial P3 Plus 1TB NVMe SSD', 'Budget PCIe Gen4 NVMe SSD for everyday consumers.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000024', 'Seagate IronWolf 12TB NAS HDD', 'NAS-optimized drive with AgileArray for multi-bay 24/7 uptime.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000025', 'Seagate One Touch 5TB Desktop HDD', 'Desktop external drive with USB-C hub and automatic backup software.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000026', 'Synology MR2200ac Mesh Router', 'Tri-band mesh Wi-Fi router with Synology SRM management.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000027', 'Synology DVA3221 NVR Appliance', 'AI-powered 8-bay NVR for surveillance and facial recognition.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000028', 'TP-Link Tapo C200 Pan/Tilt Camera', 'Indoor Wi-Fi security camera with night vision and two-way audio.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000029', 'TP-Link Powerline TL-PA7017P KIT', 'Gigabit Powerline adapter kit with passthrough outlet.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000030', 'Samsung Portable SSD T5 Shield 2TB', 'Shock-resistant portable SSD with USB 3.2 Gen 2 interface.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000031', 'Samsung 980 NVMe M.2 SSD', 'DRAM-less PCIe 3.0 NVMe SSD for budget builds and laptops.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000032', 'WD Red Pro 10TB NAS HDD', 'Enterprise NAS hard drive optimized for heavy RAID workloads.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000033', 'WD My Cloud EX2 Ultra 2-Bay NAS', 'Personal cloud NAS with remote access and automatic backups.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000034', 'Synology DX517 Expansion Unit', '5-bay expansion unit for DiskStation models to scale raw capacity.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000035', 'TP-Link TL-WN722N USB Wi-Fi Adapter', 'Compact USB 2.0 Wi-Fi adapter with external antenna for desktops.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000036', 'TP-Link TG-3468 PCIe Network Card', 'Gigabit PCI Express network adapter for desktop motherboards.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000037', 'SanDisk Extreme Pro microSDXC UHS-II', 'Professional-grade microSD for 4K/8K video and burst photography.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000038', 'SanDisk PRO-G40 SSD 4TB', 'NVMe-based portable SSD with Thunderbolt 3 for creative pros.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000039', 'Samsung EVO Select microSDXC 512GB', 'High-capacity microSD for Nintendo Switch, phones and tablets.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000040', 'Samsung FIT Plus USB 3.1 Flash Drive', 'Mini USB flash drive that stays flush with laptop USB ports.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000041', 'Seagate Barracuda 4TB Desktop HDD', 'Budget desktop hard drive for everyday computing and storage.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000042', 'Seagate FireCuda 530 2TB NVMe SSD', 'Gaming NVMe SSD with heatsink option for PS5 and PC builds.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000043', 'Synology SNV3500 M.2 NVMe SSD', 'Synology-branded NVMe SSD for SSD cache and all-flash volumes.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000044', 'TP-Link RE705X Range Extender', 'Wi-Fi 6 range extender with OneMesh for dead zone coverage.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE'),
+('p0000001-0001-0001-0001-000000000045', 'TP-Link MC220L SFP Module', 'Single-mode WDM SFP module for fiber optic uplinks.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000046', 'SanDisk Connect Wireless Stick', 'Wireless USB drive for streaming and file sharing on the go.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000047', 'SanDisk MobileMate USB 3.0 Card Reader', 'SD card reader for fast transfers from camera memory cards.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'ACCESSORY'),
+('p0000001-0001-0001-0001-000000000048', 'Samsung 870 EVO 4TB SATA SSD', 'High-capacity SATA SSD for mass storage and legacy upgrades.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000049', 'WD Black D10 Game Drive 12TB', 'External desktop drive optimized for Xbox and PC game libraries.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'STORAGE_DEVICE'),
+('p0000001-0001-0001-0001-000000000050', 'TP-Link Archer C80 AC1900 Router', 'Budget MU-MIMO Wi-Fi router for apartments and small homes.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', 'NETWORK_DEVICE');
 
-INSERT INTO `User` (`id`, `name`, `dateOfBirth`, `hashPassword`, `status`, `role`, `email`, `createdAt`, `updatedAt`)
-VALUES
-('11111111-1111-1111-1111-111111111111', 'StoreIT Admin', '1998-06-15', 'pbkdf2:120000:iM2RxQ8TJc0L0FI1xu3eyg==:ErcoDn/QVGXRqs/54LGi5b22XPrpI7zPGyx2q/3nVDU=', 'ACTIVE', 'ADMIN', 'admin@storeit.local', NOW(), NOW())
-ON DUPLICATE KEY UPDATE
-`name` = VALUES(`name`),
-`dateOfBirth` = VALUES(`dateOfBirth`),
-`status` = VALUES(`status`),
-`role` = VALUES(`role`),
-`updatedAt` = NOW();
+-- ---------- ProductVariant rows ----------
+INSERT INTO "ProductVariant" ("id", "productId", "price", "imageUrl", "status", "sku", "quantity") VALUES
+-- P1: Samsung 990 EVO NVMe SSD
+('v0001001-0001-0001-0001-000000000001', 'p0000001-0001-0001-0001-000000000001', 1890000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-990EVO-500GB', 30),
+('v0001001-0001-0001-0001-000000000002', 'p0000001-0001-0001-0001-000000000001', 2590000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-990EVO-1TB', 22),
+('v0001001-0001-0001-0001-000000000003', 'p0000001-0001-0001-0001-000000000001', 4290000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-990EVO-2TB', 15),
 
-INSERT INTO `OrderCart` (`id`, `userId`, `createdAt`, `updatedAt`)
-VALUES
-('c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', NOW(), NOW())
-ON DUPLICATE KEY UPDATE    
-`updatedAt` = NOW();
+-- P2: Samsung 870 QVO SATA SSD
+('v0001001-0001-0001-0001-000000000004', 'p0000001-0001-0001-0001-000000000002', 2490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-870QVO-1TB', 25),
+('v0001001-0001-0001-0001-000000000005', 'p0000001-0001-0001-0001-000000000002', 4190000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-870QVO-2TB', 18),
 
-INSERT INTO `Brand` (`id`, `name`, `userId`, `description`, `status`, `createdAt`, `updatedAt`)
-VALUES
-('b1111111-1111-1111-1111-111111111111', 'Samsung', '11111111-1111-1111-1111-111111111111', 'Consumer and professional SSD solutions.', 'ACTIVE', NOW(), NOW()),
-('b2222222-2222-2222-2222-222222222222', 'Western Digital', '11111111-1111-1111-1111-111111111111', 'HDD, NAS and enterprise storage devices.', 'ACTIVE', NOW(), NOW()),
-('b3333333-3333-3333-3333-333333333333', 'Synology', '11111111-1111-1111-1111-111111111111', 'NAS and data management platforms.', 'ACTIVE', NOW(), NOW()),
-('b4444444-4444-4444-4444-444444444444', 'TP-Link', '11111111-1111-1111-1111-111111111111', 'Networking equipment for home and office.', 'ACTIVE', NOW(), NOW()),
-('b5555555-5555-5555-5555-555555555555', 'SanDisk', '11111111-1111-1111-1111-111111111111', 'Flash storage and memory accessories.', 'ACTIVE', NOW(), NOW())
-ON DUPLICATE KEY UPDATE
-`name` = VALUES(`name`),
-`description` = VALUES(`description`),
-`status` = VALUES(`status`),
-`updatedAt` = NOW();
+-- P3: Samsung PM9A1 OEM SSD
+('v0001001-0001-0001-0001-000000000006', 'p0000001-0001-0001-0001-000000000003', 2190000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-PM9A1-512GB', 35),
+('v0001001-0001-0001-0001-000000000007', 'p0000001-0001-0001-0001-000000000003', 3690000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-PM9A1-1TB', 28),
+('v0001001-0001-0001-0001-000000000008', 'p0000001-0001-0001-0001-000000000003', 6990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'OUT_OF_STOCK', 'SAM-PM9A1-2TB', 0),
 
-INSERT INTO `Product` (`id`, `name`, `description`, `brandId`, `status`, `userId`, `createdAt`, `updatedAt`, `category`)
-VALUES
-('p1111111-1111-1111-1111-111111111111', 'Samsung 990 PRO NVMe SSD', 'PCIe 4.0 NVMe SSD for gaming, workstation and creator workloads.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'STORAGE_DEVICE'),
-('p2222222-2222-2222-2222-222222222222', 'WD Red Plus NAS HDD', 'Reliable NAS hard drive tuned for 24/7 multi-bay storage systems.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'STORAGE_DEVICE'),
-('p3333333-3333-3333-3333-333333333333', 'Synology DiskStation DS923+', '4-bay NAS for backup, collaboration and private cloud workloads.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'NETWORK_DEVICE'),
-('p4444444-4444-4444-4444-444444444444', 'TP-Link Archer AX73 Wi-Fi 6 Router', 'Dual-band Wi-Fi 6 router for apartments, homes and small offices.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'NETWORK_DEVICE'),
-('p5555555-5555-5555-5555-555555555555', 'SanDisk Extreme Portable SSD', 'Portable USB-C SSD with high speed backup for travel and field work.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'STORAGE_DEVICE'),
-('p6666666-6666-6666-6666-666666666666', 'TP-Link TL-SG108 Gigabit Switch', '8-port unmanaged switch for desktop networking and lab environments.', 'b4444444-4444-4444-4444-444444444444', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'NETWORK_DEVICE'),
-('p7777777-7777-7777-7777-777777777777', 'SanDisk Ultra microSDXC UHS-I', 'Memory card for cameras, phones, drones and mobile storage expansion.', 'b5555555-5555-5555-5555-555555555555', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'ACCESSORY'),
-('p8888888-8888-8888-8888-888888888888', 'WD Elements Desktop External HDD', 'Desktop external hard drive for large media libraries and backups.', 'b2222222-2222-2222-2222-222222222222', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'STORAGE_DEVICE'),
-('p9999999-9999-9999-9999-999999999999', 'Synology HAT3300 Plus NAS HDD', 'Synology validated hard drive line for dependable NAS deployments.', 'b3333333-3333-3333-3333-333333333333', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'STORAGE_DEVICE'),
-('paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Samsung BAR Plus USB 3.1 Flash Drive', 'Metal flash drive for quick document transfer and daily backup tasks.', 'b1111111-1111-1111-1111-111111111111', 'ACTIVE', '11111111-1111-1111-1111-111111111111', NOW(), NOW(), 'ACCESSORY')
-ON DUPLICATE KEY UPDATE
-`name` = VALUES(`name`),
-`description` = VALUES(`description`),
-`brandId` = VALUES(`brandId`),
-`status` = VALUES(`status`),
-`category` = VALUES(`category`),
-`updatedAt` = NOW();
+-- P4: Samsung T7 Shield Portable SSD
+('v0001001-0001-0001-0001-000000000009', 'p0000001-0001-0001-0001-000000000004', 2790000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-T7SHIELD-1TB', 20),
+('v0001001-0001-0001-0001-000000000010', 'p0000001-0001-0001-0001-000000000004', 4490000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-T7SHIELD-2TB', 14),
+('v0001001-0001-0001-0001-000000000011', 'p0000001-0001-0001-0001-000000000004', 8290000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-T7SHIELD-4TB', 6),
 
-INSERT INTO `ProductVariant` (`id`, `productId`, `price`, `imageUrl`, `status`, `createdAt`, `updatedAt`, `sku`, `quantity`)
-VALUES
-('v1111111-1111-1111-1111-111111111111', 'p1111111-1111-1111-1111-111111111111', 2490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-990PRO-500GB', 20),
-('v1111111-1111-1111-1111-111111111112', 'p1111111-1111-1111-1111-111111111111', 3490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-990PRO-1TB', 24),
-('v1111111-1111-1111-1111-111111111113', 'p1111111-1111-1111-1111-111111111111', 5990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-990PRO-2TB', 18),
-('v1111111-1111-1111-1111-111111111114', 'p1111111-1111-1111-1111-111111111111', 11290000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-990PRO-4TB', 9),
-('v1111111-1111-1111-1111-111111111115', 'p1111111-1111-1111-1111-111111111111', 12990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'OUT_OF_STOCK', NOW(), NOW(), 'SAM-990PRO-4TB-HS', 0),
+-- P5: WD Black SN850X NVMe SSD
+('v0001001-0001-0001-0001-000000000012', 'p0000001-0001-0001-0001-000000000005', 2290000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-SN850X-500GB', 32),
+('v0001001-0001-0001-0001-000000000013', 'p0000001-0001-0001-0001-000000000005', 3790000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-SN850X-1TB', 24),
+('v0001001-0001-0001-0001-000000000014', 'p0000001-0001-0001-0001-000000000005', 6990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-SN850X-2TB', 16),
 
-('v2222222-2222-2222-2222-222222222221', 'p2222222-2222-2222-2222-222222222222', 1990000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDR-REDPLUS-2TB', 26),
-('v2222222-2222-2222-2222-222222222222', 'p2222222-2222-2222-2222-222222222222', 2690000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDR-REDPLUS-4TB', 30),
-('v2222222-2222-2222-2222-222222222223', 'p2222222-2222-2222-2222-222222222222', 3990000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDR-REDPLUS-6TB', 21),
-('v2222222-2222-2222-2222-222222222224', 'p2222222-2222-2222-2222-222222222222', 4990000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDR-REDPLUS-8TB', 15),
-('v2222222-2222-2222-2222-222222222225', 'p2222222-2222-2222-2222-222222222222', 6290000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDR-REDPLUS-10TB', 12),
+-- P6: WD Blue SN580 NVMe SSD
+('v0001001-0001-0001-0001-000000000015', 'p0000001-0001-0001-0001-000000000006', 1490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-SN580-250GB', 45),
+('v0001001-0001-0001-0001-000000000016', 'p0000001-0001-0001-0001-000000000006', 1990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-SN580-500GB', 38),
+('v0001001-0001-0001-0001-000000000017', 'p0000001-0001-0001-0001-000000000006', 3190000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-SN580-1TB', 26),
 
-('v3333333-3333-3333-3333-333333333331', 'p3333333-3333-3333-3333-333333333333', 16890000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-DS923PLUS-4BAY', 7),
-('v3333333-3333-3333-3333-333333333332', 'p3333333-3333-3333-3333-333333333333', 17990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-DS923PLUS-4BAY-4GB', 6),
-('v3333333-3333-3333-3333-333333333333', 'p3333333-3333-3333-3333-333333333333', 18990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-DS923PLUS-8GB', 5),
-('v3333333-3333-3333-3333-333333333334', 'p3333333-3333-3333-3333-333333333333', 20990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-DS923PLUS-10GBE', 3),
-('v3333333-3333-3333-3333-333333333335', 'p3333333-3333-3333-3333-333333333333', 22490000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-DS923PLUS-BUNDLE', 2),
+-- P7: WD Purple 8TB Surveillance HDD
+('v0001001-0001-0001-0001-000000000018', 'p0000001-0001-0001-0001-000000000007', 4590000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDP-PURPLE-8TB', 15),
+('v0001001-0001-0001-0001-000000000019', 'p0000001-0001-0001-0001-000000000007', 7490000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDP-PURPLE-12TB', 8),
 
-('v4444444-4444-4444-4444-444444444441', 'p4444444-4444-4444-4444-444444444444', 2390000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-AX73-AX3000', 17),
-('v4444444-4444-4444-4444-444444444442', 'p4444444-4444-4444-4444-444444444444', 2890000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-AX73-AX5400', 16),
-('v4444444-4444-4444-4444-444444444443', 'p4444444-4444-4444-4444-444444444444', 3090000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-AX73-AX5400-MU', 13),
-('v4444444-4444-4444-4444-444444444444', 'p4444444-4444-4444-4444-444444444444', 3290000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-AX73-AX5400-MESH', 8),
-('v4444444-4444-4444-4444-444444444445', 'p4444444-4444-4444-4444-444444444444', 3590000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-AX73-AX5400-PRO', 5),
+-- P8: WD Gold 14TB Enterprise HDD
+('v0001001-0001-0001-0001-000000000020', 'p0000001-0001-0001-0001-000000000008', 9990000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDG-ENTERPRISE-14TB', 10),
+('v0001001-0001-0001-0001-000000000021', 'p0000001-0001-0001-0001-000000000008', 14990000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDG-ENTERPRISE-18TB', 5),
 
-('v5555555-5555-5555-5555-555555555551', 'p5555555-5555-5555-5555-555555555555', 1790000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-EXTPSSD-500GB', 25),
-('v5555555-5555-5555-5555-555555555552', 'p5555555-5555-5555-5555-555555555555', 2490000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-EXTPSSD-1TB', 27),
-('v5555555-5555-5555-5555-555555555553', 'p5555555-5555-5555-5555-555555555555', 3990000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-EXTPSSD-2TB', 14),
-('v5555555-5555-5555-5555-555555555554', 'p5555555-5555-5555-5555-555555555555', 5690000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-EXTPSSD-3TB', 6),
-('v5555555-5555-5555-5555-555555555555', 'p5555555-5555-5555-5555-555555555555', 7490000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'OUT_OF_STOCK', NOW(), NOW(), 'SDK-EXTPSSD-4TB', 0),
+-- P9: WD My Passport 5TB Portable HDD
+('v0001001-0001-0001-0001-000000000022', 'p0000001-0001-0001-0001-000000000009', 1790000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDE-PASSPORT-2TB', 40),
+('v0001001-0001-0001-0001-000000000023', 'p0000001-0001-0001-0001-000000000009', 2790000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDE-PASSPORT-5TB', 22),
 
-('v6666666-6666-6666-6666-666666666661', 'p6666666-6666-6666-6666-666666666666', 690000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-SG108-METAL', 34),
-('v6666666-6666-6666-6666-666666666662', 'p6666666-6666-6666-6666-666666666666', 790000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-SG108-DESK', 25),
-('v6666666-6666-6666-6666-666666666663', 'p6666666-6666-6666-6666-666666666666', 890000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-SG108-RACKKIT', 11),
-('v6666666-6666-6666-6666-666666666664', 'p6666666-6666-6666-6666-666666666666', 990000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-SG108-QOS', 9),
-('v6666666-6666-6666-6666-666666666665', 'p6666666-6666-6666-6666-666666666666', 1190000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'TPL-SG108-SMART', 7),
+-- P10: Synology DS224+
+('v0001001-0001-0001-0001-000000000024', 'p0000001-0001-0001-0001-000000000010', 11490000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-DS224PLUS-2BAY', 12),
 
-('v7777777-7777-7777-7777-777777777771', 'p7777777-7777-7777-7777-777777777777', 129000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-MICROSD-64GB', 55),
-('v7777777-7777-7777-7777-777777777772', 'p7777777-7777-7777-7777-777777777777', 229000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-MICROSD-128GB', 42),
-('v7777777-7777-7777-7777-777777777773', 'p7777777-7777-7777-7777-777777777777', 399000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-MICROSD-256GB', 28),
-('v7777777-7777-7777-7777-777777777774', 'p7777777-7777-7777-7777-777777777777', 579000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-MICROSD-400GB', 19),
-('v7777777-7777-7777-7777-777777777775', 'p7777777-7777-7777-7777-777777777777', 749000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SDK-MICROSD-512GB', 17),
+-- P11: Synology DS1621+
+('v0001001-0001-0001-0001-000000000025', 'p0000001-0001-0001-0001-000000000011', 28990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-DS1621PLUS-6BAY', 4),
 
-('v8888888-8888-8888-8888-888888888881', 'p8888888-8888-8888-8888-888888888888', 2290000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDE-ELEMENTS-4TB', 16),
-('v8888888-8888-8888-8888-888888888882', 'p8888888-8888-8888-8888-888888888888', 2790000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDE-ELEMENTS-6TB', 14),
-('v8888888-8888-8888-8888-888888888883', 'p8888888-8888-8888-8888-888888888888', 3190000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDE-ELEMENTS-8TB', 19),
-('v8888888-8888-8888-8888-888888888884', 'p8888888-8888-8888-8888-888888888888', 3790000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDE-ELEMENTS-10TB', 11),
-('v8888888-8888-8888-8888-888888888885', 'p8888888-8888-8888-8888-888888888888', 4390000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'WDE-ELEMENTS-12TB', 10),
+-- P12: Synology RS822+
+('v0001001-0001-0001-0001-000000000026', 'p0000001-0001-0001-0001-000000000012', 32990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-RS822PLUS-1U', 3),
 
-('v9999999-9999-9999-9999-999999999991', 'p9999999-9999-9999-9999-999999999999', 1790000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-HAT3300-2TB', 20),
-('v9999999-9999-9999-9999-999999999992', 'p9999999-9999-9999-9999-999999999999', 2490000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-HAT3300-4TB', 18),
-('v9999999-9999-9999-9999-999999999993', 'p9999999-9999-9999-9999-999999999999', 3590000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-HAT3300-6TB', 12),
-('v9999999-9999-9999-9999-999999999994', 'p9999999-9999-9999-9999-999999999999', 4690000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-HAT3300-8TB', 9),
-('v9999999-9999-9999-9999-999999999995', 'p9999999-9999-9999-9999-999999999999', 5890000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SYN-HAT3300-10TB', 6),
+-- P13: Synology RT6600ax
+('v0001001-0001-0001-0001-000000000027', 'p0000001-0001-0001-0001-000000000013', 6990000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-RT6600AX-TRIBAND', 11),
 
-('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 159000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-BARPLUS-32GB', 60),
-('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 259000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-BARPLUS-64GB', 48),
-('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 389000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-BARPLUS-128GB', 40),
-('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 529000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-BARPLUS-200GB', 18),
-('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa5', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 699000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', NOW(), NOW(), 'SAM-BARPLUS-256GB', 22)
-ON DUPLICATE KEY UPDATE
-`productId` = VALUES(`productId`),
-`price` = VALUES(`price`),
-`imageUrl` = VALUES(`imageUrl`),
-`status` = VALUES(`status`),
-`quantity` = VALUES(`quantity`),
-`updatedAt` = NOW();
+-- P14: TP-Link Deco XE75 Mesh
+('v0001001-0001-0001-0001-000000000028', 'p0000001-0001-0001-0001-000000000014', 5990000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-DECOXE75-2PK', 18),
+('v0001001-0001-0001-0001-000000000029', 'p0000001-0001-0001-0001-000000000014', 8490000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-DECOXE75-3PK', 10),
 
-COMMIT;
+-- P15: TP-Link Omada EAP610
+('v0001001-0001-0001-0001-000000000030', 'p0000001-0001-0001-0001-000000000015', 2490000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-EAP610-V3', 25),
+
+-- P16: TP-Link Archer BE800
+('v0001001-0001-0001-0001-000000000031', 'p0000001-0001-0001-0001-000000000016', 12990000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-BE800-WIFI7', 7),
+('v0001001-0001-0001-0001-000000000032', 'p0000001-0001-0001-0001-000000000016', 14990000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'OUT_OF_STOCK', 'TPL-BE800-WIFI7-PRO', 0),
+
+-- P17: TP-Link TL-SG1016DE
+('v0001001-0001-0001-0001-000000000033', 'p0000001-0001-0001-0001-000000000017', 1890000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-SG1016DE-MGMT', 20),
+
+-- P18: TP-Link ER605 VPN Router
+('v0001001-0001-0001-0001-000000000034', 'p0000001-0001-0001-0001-000000000018', 1690000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-ER605-VPN', 30),
+
+-- P19: SanDisk Ultra 3D 2TB SATA SSD
+('v0001001-0001-0001-0001-000000000035', 'p0000001-0001-0001-0001-000000000019', 3490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-ULTRA3D-1TB', 20),
+('v0001001-0001-0001-0001-000000000036', 'p0000001-0001-0001-0001-000000000019', 5790000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-ULTRA3D-2TB', 14),
+('v0001001-0001-0001-0001-000000000037', 'p0000001-0001-0001-0001-000000000019', 10990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'OUT_OF_STOCK', 'SDK-ULTRA3D-4TB', 0),
+
+-- P20: SanDisk Extreme Pro USB 3.2
+('v0001001-0001-0001-0001-000000000038', 'p0000001-0001-0001-0001-000000000020', 649000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-EXTREMEPRO-32GB', 55),
+('v0001001-0001-0001-0001-000000000039', 'p0000001-0001-0001-0001-000000000020', 1090000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-EXTREMEPRO-64GB', 40),
+('v0001001-0001-0001-0001-000000000040', 'p0000001-0001-0001-0001-000000000020', 1790000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-EXTREMEPRO-128GB', 30),
+
+-- P21: SanDisk G-Drive ArmorATD
+('v0001001-0001-0001-0001-000000000041', 'p0000001-0001-0001-0001-000000000021', 2190000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-ARMORATD-2TB', 18),
+('v0001001-0001-0001-0001-000000000042', 'p0000001-0001-0001-0001-000000000021', 3490000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-ARMORATD-5TB', 10),
+
+-- P22: SanDisk Industrial microSD
+('v0001001-0001-0001-0001-000000000043', 'p0000001-0001-0001-0001-000000000022', 349000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-IND-32GB', 50),
+('v0001001-0001-0001-0001-000000000044', 'p0000001-0001-0001-0001-000000000022', 590000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-IND-64GB', 35),
+
+-- P23: Crucial P3 Plus 1TB NVMe SSD
+('v0001001-0001-0001-0001-000000000045', 'p0000001-0001-0001-0001-000000000023', 1290000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'CRU-P3PLUS-500GB', 35),
+('v0001001-0001-0001-0001-000000000046', 'p0000001-0001-0001-0001-000000000023', 1990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'CRU-P3PLUS-1TB', 28),
+('v0001001-0001-0001-0001-000000000047', 'p0000001-0001-0001-0001-000000000023', 3690000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'CRU-P3PLUS-2TB', 16),
+
+-- P24: Seagate IronWolf 12TB NAS HDD
+('v0001001-0001-0001-0001-000000000048', 'p0000001-0001-0001-0001-000000000024', 6490000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-IW-12TB', 12),
+('v0001001-0001-0001-0001-000000000049', 'p0000001-0001-0001-0001-000000000024', 8990000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-IW-16TB', 6),
+
+-- P25: Seagate One Touch 5TB Desktop HDD
+('v0001001-0001-0001-0001-000000000050', 'p0000001-0001-0001-0001-000000000025', 2490000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-ONETOUCH-2TB', 25),
+('v0001001-0001-0001-0001-000000000051', 'p0000001-0001-0001-0001-000000000025', 3990000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-ONETOUCH-5TB', 14),
+
+-- P26: Synology MR2200ac Mesh Router
+('v0001001-0001-0001-0001-000000000052', 'p0000001-0001-0001-0001-000000000026', 3990000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-MR2200AC-1PK', 15),
+('v0001001-0001-0001-0001-000000000053', 'p0000001-0001-0001-0001-000000000026', 6990000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-MR2200AC-2PK', 8),
+
+-- P27: Synology DVA3221 NVR
+('v0001001-0001-0001-0001-000000000054', 'p0000001-0001-0001-0001-000000000027', 45990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-DVA3221-8BAY', 2),
+
+-- P28: TP-Link Tapo C200 Camera
+('v0001001-0001-0001-0001-000000000055', 'p0000001-0001-0001-0001-000000000028', 790000.00, 'https://images.unsplash.com/photo-1558618666-fcd25c87cd70?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-CAPOC200-1PK', 50),
+('v0001001-0001-0001-0001-000000000056', 'p0000001-0001-0001-0001-000000000028', 1890000.00, 'https://images.unsplash.com/photo-1558618666-fcd25c87cd70?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-TAPOC200-3PK', 20),
+
+-- P29: TP-Link Powerline TL-PA7017P
+('v0001001-0001-0001-0001-000000000057', 'p0000001-0001-0001-0001-000000000029', 1190000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-PA7017P-KIT', 28),
+
+-- P30: Samsung T5 Shield 2TB
+('v0001001-0001-0001-0001-000000000058', 'p0000001-0001-0001-0001-000000000030', 4290000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-T5SHIELD-2TB', 16),
+('v0001001-0001-0001-0001-000000000059', 'p0000001-0001-0001-0001-000000000030', 7490000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-T5SHIELD-4TB', 8),
+
+-- P31: Samsung 980 NVMe M.2 SSD
+('v0001001-0001-0001-0001-000000000060', 'p0000001-0001-0001-0001-000000000031', 1090000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-980-250GB', 40),
+('v0001001-0001-0001-0001-000000000061', 'p0000001-0001-0001-0001-000000000031', 1690000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-980-500GB', 32),
+('v0001001-0001-0001-0001-000000000062', 'p0000001-0001-0001-0001-000000000031', 2990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-980-1TB', 22),
+
+-- P32: WD Red Pro 10TB NAS HDD
+('v0001001-0001-0001-0001-000000000063', 'p0000001-0001-0001-0001-000000000032', 7490000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDR-REDPRO-10TB', 10),
+('v0001001-0001-0001-0001-000000000064', 'p0000001-0001-0001-0001-000000000032', 11990000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDR-REDPRO-16TB', 5),
+
+-- P33: WD My Cloud EX2 Ultra
+('v0001001-0001-0001-0001-000000000065', 'p0000001-0001-0001-0001-000000000033', 8990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDE-EX2ULTRA-NAS', 8),
+
+-- P34: Synology DX517 Expansion Unit
+('v0001001-0001-0001-0001-000000000066', 'p0000001-0001-0001-0001-000000000034', 17990000.00, 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-DX517-5BAY', 4),
+
+-- P35: TP-Link TL-WN722N USB Wi-Fi
+('v0001001-0001-0001-0001-000000000067', 'p0000001-0001-0001-0001-000000000035', 190000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-WN722N-V3', 60),
+
+-- P36: TP-Link TG-3468 PCIe
+('v0001001-0001-0001-0001-000000000068', 'p0000001-0001-0001-0001-000000000036', 290000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-TG3468-V3', 45),
+
+-- P37: SanDisk Extreme Pro microSDXC
+('v0001001-0001-0001-0001-000000000069', 'p0000001-0001-0001-0001-000000000037', 599000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-EXTPRO-64GB', 38),
+('v0001001-0001-0001-0001-000000000070', 'p0000001-0001-0001-0001-000000000037', 990000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-EXTPRO-128GB', 28),
+('v0001001-0001-0001-0001-000000000071', 'p0000001-0001-0001-0001-000000000037', 1790000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-EXTPRO-256GB', 16),
+
+-- P38: SanDisk PRO-G40 SSD 4TB
+('v0001001-0001-0001-0001-000000000072', 'p0000001-0001-0001-0001-000000000038', 12990000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-PROG40-1TB', 10),
+('v0001001-0001-0001-0001-000000000073', 'p0000001-0001-0001-0001-000000000038', 22990000.00, 'https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-PROG40-4TB', 4),
+
+-- P39: Samsung EVO Select microSDXC 512GB
+('v0001001-0001-0001-0001-000000000074', 'p0000001-0001-0001-0001-000000000039', 449000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-EVOSEL-256GB', 50),
+('v0001001-0001-0001-0001-000000000075', 'p0000001-0001-0001-0001-000000000039', 790000.00, 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-EVOSEL-512GB', 36),
+
+-- P40: Samsung FIT Plus USB 3.1
+('v0001001-0001-0001-0001-000000000076', 'p0000001-0001-0001-0001-000000000040', 189000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-FITPLUS-32GB', 65),
+('v0001001-0001-0001-0001-000000000077', 'p0000001-0001-0001-0001-000000000040', 290000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-FITPLUS-64GB', 50),
+('v0001001-0001-0001-0001-000000000078', 'p0000001-0001-0001-0001-000000000040', 490000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-FITPLUS-128GB', 38),
+
+-- P41: Seagate Barracuda 4TB Desktop HDD
+('v0001001-0001-0001-0001-000000000079', 'p0000001-0001-0001-0001-000000000041', 1790000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-BARRACUDA-2TB', 30),
+('v0001001-0001-0001-0001-000000000080', 'p0000001-0001-0001-0001-000000000041', 2590000.00, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-BARRACUDA-4TB', 22),
+
+-- P42: Seagate FireCuda 530 2TB NVMe SSD
+('v0001001-0001-0001-0001-000000000081', 'p0000001-0001-0001-0001-000000000042', 3990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-FIRECUDA-500GB', 18),
+('v0001001-0001-0001-0001-000000000082', 'p0000001-0001-0001-0001-000000000042', 6490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SEA-FIRECUDA-1TB', 12),
+('v0001001-0001-0001-0001-000000000083', 'p0000001-0001-0001-0001-000000000042', 11990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'OUT_OF_STOCK', 'SEA-FIRECUDA-2TB', 0),
+
+-- P43: Synology SNV3500 M.2 NVMe SSD
+('v0001001-0001-0001-0001-000000000084', 'p0000001-0001-0001-0001-000000000043', 2790000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-SNV3500-400GB', 15),
+('v0001001-0001-0001-0001-000000000085', 'p0000001-0001-0001-0001-000000000043', 4590000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-SNV3500-800GB', 10),
+('v0001001-0001-0001-0001-000000000086', 'p0000001-0001-0001-0001-000000000043', 7990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SYN-SNV3500-1.6TB', 6),
+
+-- P44: TP-Link RE705X Range Extender
+('v0001001-0001-0001-0001-000000000087', 'p0000001-0001-0001-0001-000000000044', 1890000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-RE705X-V2', 22),
+
+-- P45: TP-Link MC220L SFP Module
+('v0001001-0001-0001-0001-000000000088', 'p0000001-0001-0001-0001-000000000045', 490000.00, 'https://images.unsplash.com/photo-1617777938240-9a1d8e51a47d?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-MC220L-SFP', 35),
+
+-- P46: SanDisk Connect Wireless Stick
+('v0001001-0001-0001-0001-000000000089', 'p0000001-0001-0001-0001-000000000046', 890000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-CONNECT-64GB', 25),
+('v0001001-0001-0001-0001-000000000090', 'p0000001-0001-0001-0001-000000000046', 1390000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-CONNECT-128GB', 18),
+('v0001001-0001-0001-0001-000000000091', 'p0000001-0001-0001-0001-000000000046', 2190000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'OUT_OF_STOCK', 'SDK-CONNECT-256GB', 0),
+
+-- P47: SanDisk MobileMate USB 3.0 Card Reader
+('v0001001-0001-0001-0001-000000000092', 'p0000001-0001-0001-0001-000000000047', 190000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SDK-MOBILEMATE-SDDR', 55),
+
+-- P48: Samsung 870 EVO 4TB SATA SSD
+('v0001001-0001-0001-0001-000000000093', 'p0000001-0001-0001-0001-000000000048', 2490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-870EVO-500GB', 28),
+('v0001001-0001-0001-0001-000000000094', 'p0000001-0001-0001-0001-000000000048', 3990000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-870EVO-1TB', 20),
+('v0001001-0001-0001-0001-000000000095', 'p0000001-0001-0001-0001-000000000048', 7490000.00, 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-870EVO-4TB', 8),
+
+-- P49: WD Black D10 Game Drive 12TB
+('v0001001-0001-0001-0001-000000000096', 'p0000001-0001-0001-0001-000000000049', 4990000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-D10-8TB', 14),
+('v0001001-0001-0001-0001-000000000097', 'p0000001-0001-0001-0001-000000000049', 6990000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-D10-12TB', 8),
+('v0001001-0001-0001-0001-000000000098', 'p0000001-0001-0001-0001-000000000049', 8990000.00, 'https://images.unsplash.com/photo-1619451681329-8f9f0b5f7329?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'WDB-D10-14TB', 5),
+
+-- P50: TP-Link Archer C80 AC1900
+('v0001001-0001-0001-0001-000000000099', 'p0000001-0001-0001-0001-000000000050', 1290000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-C80-AC1900', 30),
+('v0001001-0001-0001-0001-000000000100', 'p0000001-0001-0001-0001-000000000050', 1590000.00, 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'TPL-C80-AC1900-MESH', 15);

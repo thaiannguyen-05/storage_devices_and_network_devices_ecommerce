@@ -72,7 +72,7 @@ public class CartController extends HttpServlet {
         boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
         String traceId = UUID.randomUUID().toString().substring(0, 8);
 
-        if ("add".equals(action) && authUserId.isBlank()) {
+        if (("add".equals(action) || "buyNow".equals(action)) && authUserId.isBlank()) {
             LOGGER.info("[CART_ADD_AUTH_REQUIRED] traceId=" + traceId + " action=" + action + " productId=" + safe(request.getParameter("productId")) + " variantId=" + safe(request.getParameter("variantId")) + " quantity=" + safe(request.getParameter("quantity")));
             String next = encodeUrl(resolveCurrentUrl(request));
             String loginUrl = "/auth?action=signin&next=" + next;
@@ -96,6 +96,11 @@ public class CartController extends HttpServlet {
                     addItem(request, session, cart);
                     LOGGER.info("[CART_ADD_DONE] traceId=" + traceId + " cartCount=" + count(cart));
                     break;
+                case "buyNow":
+                    LOGGER.info("[CART_BUY_NOW_START] traceId=" + traceId + " userId=" + authUserId + " productId=" + safe(request.getParameter("productId")) + " variantId=" + safe(request.getParameter("variantId")) + " quantity=" + safe(request.getParameter("quantity")) + " ajax=" + isAjax);
+                    addItem(request, session, cart);
+                    LOGGER.info("[CART_BUY_NOW_DONE] traceId=" + traceId + " cartCount=" + count(cart));
+                    break;
                 case "update":
                     updateItem(request, session, cart);
                     break;
@@ -111,7 +116,7 @@ public class CartController extends HttpServlet {
             session.setAttribute("cartItems", cart);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "[CART_ACTION_ERROR] traceId=" + traceId + " action=" + action + " userId=" + authUserId + " productId=" + safe(request.getParameter("productId")) + " variantId=" + safe(request.getParameter("variantId")) + " quantity=" + safe(request.getParameter("quantity")), e);
-            if ("add".equals(action) && isAjax) {
+            if (("add".equals(action) || "buyNow".equals(action)) && isAjax) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 response.setContentType("application/json;charset=UTF-8");
                 response.setCharacterEncoding("UTF-8");
@@ -121,6 +126,21 @@ public class CartController extends HttpServlet {
                 return;
             }
             throw e;
+        }
+
+        if ("buyNow".equals(action) && isAjax) {
+            String redirectUrl = buyNowRedirectUrl(request);
+            response.setContentType("application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            try (PrintWriter out = response.getWriter()) {
+                out.write("{\"success\":true,\"cartCount\":" + count(cart) + ",\"redirectUrl\":\"" + redirectUrl + "\",\"message\":\"Đang chuyển đến thanh toán\"}");
+            }
+            return;
+        }
+
+        if ("buyNow".equals(action)) {
+            response.sendRedirect(buyNowRedirectUrl(request));
+            return;
         }
 
         if ("add".equals(action) && isAjax) {
@@ -181,7 +201,9 @@ public class CartController extends HttpServlet {
             throw new IllegalArgumentException("Thiếu productId hoặc variantId không hợp lệ");
         }
 
+        int requestedQuantity = Math.max(1, (int) parseLong(request.getParameter("quantity"), 1));
         CartItemView item = cart.get(itemKey);
+        int previousQuantity = item == null ? 0 : item.getQuantity();
         if (item == null) {
             item = new CartItemView();
             item.setProductId(productId);
@@ -193,7 +215,7 @@ public class CartController extends HttpServlet {
             item.setImageUrl(safe(request.getParameter("imageUrl")));
             item.setUnitPrice(parseLong(request.getParameter("priceValue"), 0));
             item.setStock((int) parseLong(request.getParameter("stock"), 0));
-            item.setQuantity(Math.max(1, (int) parseLong(request.getParameter("quantity"), 1)));
+            item.setQuantity(requestedQuantity);
 
             if (item.getName().isBlank() || item.getImageUrl().isBlank() || item.getUnitPrice() <= 0 || item.getStock() <= 0 || item.getSku().isBlank()) {
                 ProductEntity product = productRepository.findById(productId);
@@ -212,7 +234,7 @@ public class CartController extends HttpServlet {
             }
             cart.put(itemKey, item);
         } else {
-            int next = item.getQuantity() + Math.max(1, (int) parseLong(request.getParameter("quantity"), 1));
+            int next = item.getQuantity() + requestedQuantity;
             if (item.getStock() > 0) {
                 next = Math.min(next, item.getStock());
             }
@@ -222,11 +244,9 @@ public class CartController extends HttpServlet {
         String authUserId = resolveAuthUserId(session);
         if (!authUserId.isBlank()) {
             OrderCartEntity userCart = requireUserCart(authUserId);
-            ItemCartEntity savedItem = itemCartRepository.findByCartIdAndProductAndVariant(userCart.getId(), item.getProductId(), item.getVariantId());
-            if (savedItem == null) {
-                itemCartRepository.create(userCart.getId(), item.getProductId(), item.getVariantId(), item.getQuantity());
-            } else {
-                itemCartRepository.updateQuantity(savedItem.getId(), item.getQuantity());
+            int persistedQuantity = item.getQuantity() - previousQuantity;
+            if (persistedQuantity > 0) {
+                itemCartRepository.upsert(userCart.getId(), item.getProductId(), item.getVariantId(), persistedQuantity);
             }
         }
     }
@@ -330,6 +350,22 @@ public class CartController extends HttpServlet {
             OrderCartEntity userCart = requireUserCart(authUserId);
             itemCartRepository.clearByCartId(userCart.getId());
         }
+    }
+
+    private String buyNowRedirectUrl(HttpServletRequest request) {
+        StringBuilder url = new StringBuilder(request.getContextPath()).append("/payment?source=buyNow");
+        appendBuyNowParam(url, "productId", request.getParameter("productId"));
+        appendBuyNowParam(url, "variantId", request.getParameter("variantId"));
+        appendBuyNowParam(url, "quantity", request.getParameter("quantity"));
+        return url.toString();
+    }
+
+    private void appendBuyNowParam(StringBuilder url, String name, String value) {
+        String safeValue = safe(value);
+        if (safeValue.isBlank()) {
+            return;
+        }
+        url.append('&').append(name).append('=').append(encodeUrl(safeValue));
     }
 
     private String resolveCurrentUrl(HttpServletRequest request) {

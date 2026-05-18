@@ -1,16 +1,19 @@
 package module.bussiness.contact;
 
 import common.annotation.Public;
+import entity.ContactEntity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import module.bussiness.contact.repository.impl.ContactRepository;
 
 @Public
 @WebServlet(name = "contact", urlPatterns = {"/contact"})
 public class ContactController extends HttpServlet {
+    private final ContactRepository contactRepository = new ContactRepository();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -48,8 +51,23 @@ public class ContactController extends HttpServlet {
             return;
         }
 
-        // TODO: Save to database when repository is ready
-        // For now, just show success message
+        ContactEntity contact = new ContactEntity();
+        contact.setFullName(fullName);
+        contact.setEmail(email);
+        contact.setSubject(subject);
+        contact.setMessage(message);
+        contact.setStatus("NEW");
+
+        if (!contactRepository.save(contact)) {
+            request.setAttribute("error", "Không thể gửi liên hệ lúc này. Vui lòng thử lại sau.");
+            request.setAttribute("fullName", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("subject", subject);
+            request.setAttribute("message", message);
+            request.getRequestDispatcher("/views/contact/index.jsp").forward(request, response);
+            return;
+        }
+
         request.setAttribute("success", "Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi sớm nhất.");
         request.getRequestDispatcher("/views/contact/index.jsp").forward(request, response);
     }

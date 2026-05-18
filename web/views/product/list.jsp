@@ -369,6 +369,21 @@
         setTimeout(dismiss, 1000);
     };
 
+    const showCartErrorToast = function (message) {
+        const oldToast = document.getElementById('cartAddedToast');
+        if (oldToast && oldToast.parentNode) oldToast.parentNode.removeChild(oldToast);
+        const toast = document.createElement('div');
+        toast.id = 'cartAddedToast';
+        toast.style.cssText = 'position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:4000;background:rgba(220,38,38,.96);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:opacity .35s ease,transform .35s ease;';
+        toast.textContent = message || 'Không thể thêm vào giỏ hàng';
+        document.body.appendChild(toast);
+        let dismissed = false;
+        const dismiss = function () { if (dismissed || !toast.parentNode) return; dismissed = true; toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(-8px)'; window.removeEventListener('pointerdown', onPointerDown, true); setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 360); };
+        const onPointerDown = function () { dismiss(); };
+        window.addEventListener('pointerdown', onPointerDown, true);
+        setTimeout(dismiss, 1600);
+    };
+
     form.addEventListener('submit', async (e) => {
         if (!activeProduct || !activeVariant) { e.preventDefault(); return; }
         const stock = Number(activeVariant.stock || 0);
@@ -398,18 +413,30 @@
                 params.set('stock', stock);
                 params.set('quantity', qty);
                 params.set('sku', activeVariant.sku || '');
-                const resp = await fetch('${pageContext.request.contextPath}/cart?action=buyNow', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params.toString() });
-                if (resp.redirected) { window.location.href = resp.url; } else { showCartToast(); }
-            } catch (err) { showCartToast(); }
+                const resp = await fetch('${pageContext.request.contextPath}/cart?action=buyNow', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }, body: params.toString() });
+                const data = resp.headers.get('content-type') && resp.headers.get('content-type').includes('application/json') ? await resp.json() : {};
+                if (resp.redirected) {
+                    window.location.href = resp.url;
+                } else if (resp.ok && data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                } else if (data.loginUrl) {
+                    window.location.href = data.loginUrl;
+                } else {
+                    showCartErrorToast(data.message || 'Không thể chuyển đến thanh toán');
+                }
+            } catch (err) { showCartErrorToast('Không thể chuyển đến thanh toán'); }
         } else {
             try {
-                const resp = await fetch('${pageContext.request.contextPath}/cart?action=add', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(form)) });
+                const resp = await fetch('${pageContext.request.contextPath}/cart?action=add', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }, body: new URLSearchParams(new FormData(form)) });
+                const data = resp.headers.get('content-type') && resp.headers.get('content-type').includes('application/json') ? await resp.json() : {};
                 if (resp.ok) {
                     modal.style.display = 'none';
                     showCartToast();
-                    if (headerCartCount) { const c = Number(headerCartCount.textContent || 0); headerCartCount.textContent = c + qty; }
-                } else { showCartToast(); }
-            } catch (err) { showCartToast(); }
+                    if (headerCartCount) { headerCartCount.textContent = data.cartCount || (Number(headerCartCount.textContent || 0) + qty); }
+                } else if (data.loginUrl) {
+                    window.location.href = data.loginUrl;
+                } else { showCartErrorToast(data.message || 'Không thể thêm vào giỏ hàng'); }
+            } catch (err) { showCartErrorToast('Không thể thêm vào giỏ hàng'); }
             e.preventDefault();
         }
     });

@@ -183,6 +183,17 @@ CREATE TABLE "Session" (
 CREATE INDEX "session_userid_index" ON "Session" ("userId");
 CREATE INDEX "session_userid_ip_createdat_index" ON "Session" ("userId", "ip", "createdAt");
 
+CREATE TABLE "Contact" (
+    "id" CHAR(36) PRIMARY KEY,
+    "fullName" VARCHAR(255) NOT NULL,
+    "email" VARCHAR(255) NOT NULL,
+    "subject" VARCHAR(255) NOT NULL,
+    "message" TEXT NOT NULL,
+    "status" VARCHAR(20) NOT NULL DEFAULT 'NEW' CHECK ("status" IN ('NEW', 'READ', 'RESPONDED', 'ARCHIVED')),
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX "contact_email_index" ON "Contact" ("email");
+
 CREATE TABLE "ProductReview" (
     "id" BIGSERIAL PRIMARY KEY,
     "productId" CHAR(36) NOT NULL REFERENCES "Product" ("id") ON DELETE CASCADE,
@@ -245,4 +256,3 @@ INSERT INTO "ProductVariant" ("id", "productId", "price", "imageUrl", "status", 
 ('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 259000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-BARPLUS-64GB', 48),
 ('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 389000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-BARPLUS-128GB', 40),
 ('vaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3', 'paaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 699000.00, 'https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80', 'ACTIVE', 'SAM-BARPLUS-256GB', 22);
-

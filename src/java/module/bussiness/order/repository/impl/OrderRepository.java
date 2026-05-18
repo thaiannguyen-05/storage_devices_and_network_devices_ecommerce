@@ -4,14 +4,18 @@ import entity.OrderEntity;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import module.bussiness.order.repository.interfaces.IOrderRepository;
 import module.core.sql.ConnecDb;
 
 public class OrderRepository implements IOrderRepository {
+    private static final Logger LOGGER = Logger.getLogger(OrderRepository.class.getName());
 
     @Override
     public void upsertCartOrder(String userId, String productId, String variantId, int quantity, String status) {
@@ -86,9 +90,19 @@ public class OrderRepository implements IOrderRepository {
             ps.setString(4, productId);
             ps.setString(5, emptyToNull(variantId));
             ps.setString(6, status);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update delivery info", e);
+            int updated = ps.executeUpdate();
+            if (updated == 0) {
+                LOGGER.warning("No order row found while updating delivery info for userId=" + userId
+                        + ", productId=" + productId + ", variantId=" + emptyToNull(variantId)
+                        + ", status=" + status);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Failed to update delivery info for userId=" + userId
+                    + ", productId=" + productId + ", variantId=" + emptyToNull(variantId)
+                    + ", status=" + status, e);
+            throw new RuntimeException("Failed to update delivery info for userId=" + userId
+                    + ", productId=" + productId + ", variantId=" + emptyToNull(variantId)
+                    + ", status=" + status, e);
         }
     }
 

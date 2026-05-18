@@ -6,6 +6,7 @@ import entity.ProductVariantEntity;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
@@ -354,16 +355,25 @@ public class ProductService {
     }
 
     public boolean createReview(String productId, String reviewerName, int rating, String comment) {
+        if (productId == null || productId.trim().isEmpty()) {
+            LOGGER.warning("Cannot create product review without productId");
+            return false;
+        }
+        String safeReviewerName = reviewerName == null || reviewerName.trim().isEmpty()
+                ? "Khách hàng"
+                : reviewerName.trim();
+        String safeComment = comment == null ? "" : comment.trim();
         String sql = "INSERT INTO \"ProductReview\" (\"productId\", \"reviewerName\", rating, comment, \"reviewedAt\") VALUES (?, ?, ?, ?, NOW())";
         try (Connection con = ConnecDb.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, productId);
-            ps.setString(2, reviewerName);
+            ps.setString(1, productId.trim());
+            ps.setString(2, safeReviewerName);
             ps.setInt(3, Math.max(1, Math.min(5, rating)));
-            ps.setString(4, comment);
+            ps.setString(4, safeComment);
             return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create product review", e);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Failed to create product review for productId=" + productId, e);
+            return false;
         }
     }
 

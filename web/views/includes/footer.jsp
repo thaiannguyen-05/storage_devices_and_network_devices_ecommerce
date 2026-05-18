@@ -11,7 +11,6 @@
             <ul>
                 <li><a href="${pageContext.request.contextPath}/product?action=list">Sản phẩm</a></li>
                 <li><a href="${pageContext.request.contextPath}/contact">Liên hệ</a></li>
-                <li><a href="${pageContext.request.contextPath}/auth?action=login">Đăng nhập</a></li>
             </ul>
         </div>
 

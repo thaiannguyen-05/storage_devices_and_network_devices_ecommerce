@@ -78,6 +78,32 @@ public class ItemCartRepository implements IItemCartRepository {
     }
 
     @Override
+    public ItemCartEntity upsert(String cartId, String productId, String variantId, int quantity) {
+        String sql = "INSERT INTO \"ItemCart\" (id, \"cartId\", \"productId\", \"variantId\", quantity, \"createdAt\", \"updatedAt\") "
+                + "VALUES (?, ?, ?, ?, ?, NOW(), NOW()) "
+                + "ON CONFLICT (\"cartId\", \"productId\", (COALESCE(\"variantId\", ''))) "
+                + "DO UPDATE SET quantity = \"ItemCart\".quantity + EXCLUDED.quantity, \"updatedAt\" = NOW() "
+                + "RETURNING id, \"cartId\", \"productId\", \"variantId\", quantity, \"createdAt\", \"updatedAt\"";
+
+        try (Connection conn = ConnecDb.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, UUID.randomUUID().toString());
+            ps.setString(2, cartId);
+            ps.setString(3, productId);
+            ps.setString(4, emptyToNull(variantId));
+            ps.setInt(5, Math.max(1, quantity));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToItemCart(rs);
+                }
+            }
+            throw new SQLException("ItemCart upsert returned no row");
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to upsert cart item", e);
+        }
+    }
+
+    @Override
     public boolean updateQuantity(String id, int quantity) {
         String sql = "UPDATE \"ItemCart\" SET quantity = ?, \"updatedAt\" = NOW() WHERE id = ?";
 

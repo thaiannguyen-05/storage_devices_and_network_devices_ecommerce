@@ -224,7 +224,7 @@ public class AuthController extends HttpServlet {
         }
 
         request.setAttribute("success", result.getSuccessMessage());
-        request.getRequestDispatcher("/views/auth/forgot-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/reset-password.jsp").forward(request, response);
     }
 
     private void handleResetPassword(HttpServletRequest request, HttpServletResponse response)

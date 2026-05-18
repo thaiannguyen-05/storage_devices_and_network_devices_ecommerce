@@ -191,17 +191,10 @@ public class PaymentController extends HttpServlet {
                     return;
                 }
 
-                if ("buyNow".equalsIgnoreCase(currentSource)) {
-                    for (CartItemView item : checkoutItems) {
-                        orderService.saveCartOrder(authUserId, item.getProductId(), item.getVariantId(), item.getQuantity());
-                        orderService.saveDeliveryInfoForCartOrder(authUserId, item.getProductId(), item.getVariantId(), phone, mergedAddress);
-                        orderService.markPlaced(authUserId, item.getProductId(), item.getVariantId());
-                    }
-                } else {
-                    for (CartItemView item : checkoutItems) {
-                        orderService.saveDeliveryInfoForCartOrder(authUserId, item.getProductId(), item.getVariantId(), phone, mergedAddress);
-                        orderService.markPlaced(authUserId, item.getProductId(), item.getVariantId());
-                    }
+                for (CartItemView item : checkoutItems) {
+                    orderService.saveCartOrder(authUserId, item.getProductId(), item.getVariantId(), item.getQuantity());
+                    orderService.saveDeliveryInfoForCartOrder(authUserId, item.getProductId(), item.getVariantId(), phone, mergedAddress);
+                    orderService.markPlaced(authUserId, item.getProductId(), item.getVariantId());
                 }
 
                 if (!"COD".equalsIgnoreCase(paymentMethod)) {
@@ -233,9 +226,7 @@ public class PaymentController extends HttpServlet {
 
             // Save order first
             for (CartItemView item : checkoutItems) {
-                if ("buyNow".equalsIgnoreCase(source(request))) {
-                    orderService.saveCartOrder(authUserId, item.getProductId(), item.getVariantId(), item.getQuantity());
-                }
+                orderService.saveCartOrder(authUserId, item.getProductId(), item.getVariantId(), item.getQuantity());
                 orderService.saveDeliveryInfoForCartOrder(authUserId, item.getProductId(), item.getVariantId(), phone, address);
                 orderService.markPlaced(authUserId, item.getProductId(), item.getVariantId());
             }
