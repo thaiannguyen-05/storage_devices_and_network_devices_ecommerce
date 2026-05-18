@@ -25,6 +25,7 @@ public class ProductController extends BaseController {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        checkAndCreateTestProduct();
         String action = action(req, "list");
         if ("/home".equals(req.getServletPath()) && !"autocomplete".equals(action)) {
             action = req.getParameter("keyword") == null || req.getParameter("keyword").trim().isEmpty() ? "home" : "search";
@@ -84,7 +85,25 @@ public class ProductController extends BaseController {
                 java.util.Map<String, Object> homeData = productService.getHomePage();
                 req.setAttribute("homeData", homeData);
                 req.setAttribute("newProducts", homeData.get("recent"));
-                req.setAttribute("products", homeData.get("recent"));
+                
+                String[] categories = req.getParameterValues("category");
+                String[] brands = req.getParameterValues("brand");
+                String priceRange = req.getParameter("price");
+                String filterStatus = req.getParameter("status");
+                String sort = req.getParameter("sort");
+                
+                boolean hasFilter = (categories != null && categories.length > 0)
+                        || (brands != null && brands.length > 0)
+                        || (priceRange != null && !priceRange.trim().isEmpty())
+                        || (filterStatus != null && !filterStatus.trim().isEmpty())
+                        || (sort != null && !sort.trim().isEmpty());
+                
+                if (hasFilter) {
+                    req.setAttribute("products", productService.filterProducts(categories, brands, priceRange, filterStatus, sort));
+                    req.setAttribute("isFiltered", true);
+                } else {
+                    req.setAttribute("products", homeData.get("recent"));
+                }
                 forwardToJsp(req, res, "/pages/home.jsp");
                 break;
             default:
@@ -213,5 +232,40 @@ public class ProductController extends BaseController {
                     .replace("\n", "\\n")
                     .replace("\r", "\\r")
                     .replace("\t", "\\t");
+    }
+
+    private void checkAndCreateTestProduct() {
+        try {
+            int count = module.core.sql.JdbcHelper.count("SELECT COUNT(*) FROM `Product` WHERE id = 'p-test-1k'");
+            if (count == 0) {
+                String adminId = "11111111-1111-1111-1111-111111111111";
+                String brandId = "b1111111-1111-1111-1111-111111111111";
+                
+                module.core.sql.JdbcHelper.executeUpdate(
+                    "INSERT INTO `Product` (id, name, description, brandId, status, userId, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "p-test-1k", "Thiết bị Test Cổng Thanh Toán 2K", "Sản phẩm dùng thử nghiệm thanh toán cổng tự động Sepay.",
+                    brandId, "ACTIVE", adminId, "ACCESSORY"
+                );
+                
+                module.core.sql.JdbcHelper.executeUpdate(
+                    "INSERT INTO `ProductVariant` (id, productId, price, imageUrl, status, sku, quantity) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "v-test-1k", "p-test-1k", new java.math.BigDecimal("2000.00"),
+                    "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1200&q=80",
+                    "ACTIVE", "TEST-SEPAY-2K", 999
+                );
+                System.out.println("[ProductController] Created test product variant TEST-SEPAY-2K (2,000 VND) successfully!");
+            } else {
+                // Ensure name and price are updated to 2K even if the product was already created as 1K
+                module.core.sql.JdbcHelper.executeUpdate(
+                    "UPDATE `Product` SET name = 'Thiết bị Test Cổng Thanh Toán 2K' WHERE id = 'p-test-1k'"
+                );
+                module.core.sql.JdbcHelper.executeUpdate(
+                    "UPDATE `ProductVariant` SET price = ?, sku = 'TEST-SEPAY-2K' WHERE id = 'v-test-1k'",
+                    new java.math.BigDecimal("2000.00")
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

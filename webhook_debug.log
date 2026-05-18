@@ -1,0 +1,55 @@
+
+=======================================================
+[SepayWebhook] Request received at 2026-05-19T02:18:31.672944800
+Header [host]: 9b32-14-162-180-201.ngrok-free.app
+Header [content-length]: 303
+Header [accept]: */*
+Header [authorization]: Apikey 02122005
+Header [content-type]: application/json;charset=UTF-8
+Header [x-forwarded-for]: 171.244.35.2
+Header [x-forwarded-host]: 9b32-14-162-180-201.ngrok-free.app
+Header [x-forwarded-proto]: https
+Header [accept-encoding]: gzip
+[SepayWebhook] Authorization header: Apikey 02122005 (Expected Token: 02122005)
+[SepayWebhook] Authorization SUCCESS!
+[SepayWebhook] Raw body: {"id":0,"gateway":"SePay","transactionDate":"2026-05-19 09:18:31","accountNumber":"0000000000","subAccount":null,"transferType":"in","transferAmount":10000,"accumulated":10000,"code":"SEPAYTEST","content":"SEPAY TEST WEBHOOK","referenceCode":"TEST1779157111","description":"SePay test webhook delivery"}
+[SepayWebhook] Parsed payload - id: 0, transferType: null, content: "SEPAY TEST WEBHOOK", transferAmount: null
+[SepayWebhook] Skipped: Transfer type is not 'in' or content is null.
+[SepayWebhook] Response sent: {"success": true}
+
+=======================================================
+[SepayWebhook] Request received at 2026-05-19T02:20:25.157441900
+Header [host]: 9b32-14-162-180-201.ngrok-free.app
+Header [content-length]: 303
+Header [accept]: */*
+Header [authorization]: Apikey 02122005
+Header [content-type]: application/json;charset=UTF-8
+Header [x-forwarded-for]: 2600:3c15::2000:8aff:fedd:874b
+Header [x-forwarded-host]: 9b32-14-162-180-201.ngrok-free.app
+Header [x-forwarded-proto]: https
+Header [accept-encoding]: gzip
+[SepayWebhook] Authorization header: Apikey 02122005 (Expected Token: 02122005)
+[SepayWebhook] Authorization SUCCESS!
+[SepayWebhook] Raw body: {"id":0,"gateway":"SePay","transactionDate":"2026-05-19 09:20:24","accountNumber":"0000000000","subAccount":null,"transferType":"in","transferAmount":10000,"accumulated":10000,"code":"SEPAYTEST","content":"SEPAY TEST WEBHOOK","referenceCode":"TEST1779157224","description":"SePay test webhook delivery"}
+[SepayWebhook] Parsed payload - id: 0, transferType: null, content: "SEPAY TEST WEBHOOK", transferAmount: null
+[SepayWebhook] Skipped: Transfer type is not 'in' or content is null.
+[SepayWebhook] Response sent: {"success": true}
+
+=======================================================
+[SepayWebhook] Request received at 2026-05-19T02:23:43.850492300
+Header [host]: 9b32-14-162-180-201.ngrok-free.app
+Header [content-length]: 303
+Header [accept]: */*
+Header [authorization]: Apikey 02122005
+Header [content-type]: application/json;charset=UTF-8
+Header [x-forwarded-for]: 2600:3c15::2000:8aff:fedd:874b
+Header [x-forwarded-host]: 9b32-14-162-180-201.ngrok-free.app
+Header [x-forwarded-proto]: https
+Header [accept-encoding]: gzip
+[SepayWebhook] Authorization header: Apikey 02122005 (Expected Token: 02122005)
+[SepayWebhook] Authorization SUCCESS!
+[SepayWebhook] Raw body: {"id":0,"gateway":"SePay","transactionDate":"2026-05-19 09:23:43","accountNumber":"0000000000","subAccount":null,"transferType":"in","transferAmount":10000,"accumulated":10000,"code":"SEPAYTEST","content":"SEPAY TEST WEBHOOK","referenceCode":"TEST1779157423","description":"SePay test webhook delivery"}
+[SepayWebhook] Parsed payload - id: 0, transferType: in, content: "SEPAY TEST WEBHOOK", transferAmount: 10000.0
+[SepayWebhook] Transaction matches 'in'. Content: "SEPAY TEST WEBHOOK"
+[SepayWebhook] Transfer content does not match regex pattern 'DHxxxxxxxx': "SEPAY TEST WEBHOOK"
+[SepayWebhook] Response sent: {"success": true}

@@ -52,13 +52,14 @@
                     </span>
                 </label>
                 <label class="payment-option">
-                    <input type="radio" name="paymentMethod" value="MOMO" ${submittedPaymentMethod == 'MOMO' ? 'checked' : ''}>
+                    <input type="radio" name="paymentMethod" value="SEPAY" ${submittedPaymentMethod == 'SEPAY' ? 'checked' : ''}>
                     <span class="payment-option-card">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="payment-icon-svg" aria-hidden="true">
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M12 2v9"></path>
+                            <path d="M8 5l4-3 4 3"></path>
                         </svg>
-                        <span class="payment-title">Ví điện tử MoMo</span>
+                        <span class="payment-title">Chuyển khoản QR (Sepay)</span>
                     </span>
                 </label>
             </div>

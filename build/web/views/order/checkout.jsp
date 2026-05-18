@@ -18,7 +18,7 @@
         <div class="field full"><label>Ghi chú</label><textarea name="note"></textarea></div>
         <div class="field full">
             <label><input type="radio" name="paymentMethod" value="COD" checked> COD</label>
-            <label><input type="radio" name="paymentMethod" value="MOMO"> MoMo</label>
+            <label><input type="radio" name="paymentMethod" value="SEPAY"> Chuyển khoản QR (Sepay)</label>
         </div>
         <button class="button" type="submit">Đặt hàng</button>
     </form>

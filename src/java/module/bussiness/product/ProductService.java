@@ -139,6 +139,78 @@ public class ProductService {
         return isBlank(value) ? fallback : value;
     }
 
+    public List<ProductCardView> filterProducts(String[] categories, String[] brands, String priceRange, String status, String sort) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT p.id, p.name, b.name AS brandName, p.category, p.status, p.createdAt " +
+            "FROM Product p " +
+            "LEFT JOIN Brand b ON p.brandId = b.id " +
+            "WHERE 1=1 "
+        );
+        java.util.List<Object> params = new java.util.ArrayList<>();
+        
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append("AND p.status = ? ");
+            params.add(status);
+        } else {
+            sql.append("AND p.status = 'ACTIVE' ");
+        }
+
+        if (categories != null && categories.length > 0) {
+            sql.append("AND p.category IN (");
+            for (int i = 0; i < categories.length; i++) {
+                sql.append("?");
+                params.add(categories[i]);
+                if (i < categories.length - 1) sql.append(",");
+            }
+            sql.append(") ");
+        }
+
+        if (brands != null && brands.length > 0) {
+            sql.append("AND b.name IN (");
+            for (int i = 0; i < brands.length; i++) {
+                sql.append("?");
+                params.add(brands[i]);
+                if (i < brands.length - 1) sql.append(",");
+            }
+            sql.append(") ");
+        }
+
+        if (priceRange != null && !priceRange.trim().isEmpty()) {
+            String[] range = priceRange.split("-");
+            if (range.length > 0 && !range[0].trim().isEmpty()) {
+                sql.append("AND EXISTS (SELECT 1 FROM ProductVariant pv WHERE pv.productId = p.id AND pv.price >= ?) ");
+                params.add(new java.math.BigDecimal(range[0]));
+            }
+            if (range.length > 1 && !range[1].trim().isEmpty()) {
+                sql.append("AND EXISTS (SELECT 1 FROM ProductVariant pv WHERE pv.productId = p.id AND pv.price <= ?) ");
+                params.add(new java.math.BigDecimal(range[1]));
+            }
+        }
+
+        if ("priceAsc".equals(sort)) {
+            sql.append("ORDER BY (SELECT MIN(pv.price) FROM ProductVariant pv WHERE pv.productId = p.id) ASC ");
+        } else if ("priceDesc".equals(sort)) {
+            sql.append("ORDER BY (SELECT MAX(pv.price) FROM ProductVariant pv WHERE pv.productId = p.id) DESC ");
+        } else if ("bestSeller".equals(sort)) {
+            sql.append("ORDER BY (SELECT COUNT(*) FROM `Order` o WHERE o.productId = p.id) DESC ");
+        } else {
+            sql.append("ORDER BY p.createdAt DESC ");
+        }
+
+        try {
+            List<ProductEntity> products = module.core.sql.JdbcHelper.executeQuery(sql.toString(), rs -> {
+                return new ProductEntity(rs.getString("id"), rs.getString("name"), "",
+                        "", rs.getString("status"), "",
+                        rs.getTimestamp("createdAt").toLocalDateTime(), rs.getTimestamp("createdAt").toLocalDateTime(),
+                        rs.getString("category"));
+            }, params.toArray());
+            return toCards(products);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return java.util.Collections.emptyList();
+        }
+    }
+
     private void fail(BaseResponse response, String message) {
         response.setSuccess(false);
         response.setErrorMessage(message);

@@ -19,6 +19,15 @@ public class OrderEntity {
     private String paymentMethod;
     private String voucherId;
     private java.math.BigDecimal totalAmount;
+    private String productName;
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
 
     public OrderEntity() {
     }

@@ -186,7 +186,22 @@ button, input, select, textarea { font: inherit; }
 .shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; max-width: var(--max-width); margin: 0 auto; padding: 24px 20px var(--section-padding); }
 .shell-auth { grid-template-columns: minmax(0, 1fr); }
 
-.left-menu { align-self: start; position: sticky; top: 90px; background: transparent; border: none; box-shadow: none; padding: 0; }
+.left-menu {
+    align-self: start;
+    position: sticky;
+    top: 90px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.left-menu::-webkit-scrollbar {
+    display: none;
+}
 .filter-section + .filter-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-border); }
 .filter-section h3 { margin: 0 0 12px; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
 .filter-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -357,59 +372,69 @@ th { color: var(--color-text); background: var(--color-surface-soft); font-size:
 
 /* Premium Quantity Control Styles */
 .quantity-control {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-pill);
-    background: var(--color-surface);
-    padding: 2px;
-    width: fit-content;
-    box-shadow: var(--shadow-sm);
+    display: inline-flex !important;
+    align-items: center !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-pill) !important;
+    background: var(--color-surface) !important;
+    padding: 2px 8px !important;
+    width: fit-content !important;
+    height: 44px !important;
+    box-shadow: none !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
 }
 
 .qty-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    color: var(--color-text-secondary);
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: var(--transition);
-    user-select: none;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--color-text-secondary) !important;
+    font-size: 1.25rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    border-radius: 50% !important;
+    transition: var(--transition) !important;
+    user-select: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
 }
 
 .qty-btn:hover {
-    background: var(--color-gray-100);
-    color: var(--color-text);
+    background: var(--color-gray-100) !important;
+    color: var(--color-text) !important;
 }
 
 .qty-btn:active {
-    transform: scale(0.9);
+    transform: scale(0.9) !important;
 }
 
-.quantity-control input[data-cart-quantity] {
-    width: 40px;
-    border: none;
-    text-align: center;
-    background: transparent;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--color-text);
-    padding: 0;
-    outline: none;
-    -moz-appearance: textfield;
+.quantity-control input {
+    width: 44px !important;
+    height: 34px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    text-align: center !important;
+    background: transparent !important;
+    font-weight: 700 !important;
+    font-size: 1.15rem !important;
+    color: var(--color-text) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -moz-appearance: textfield !important;
 }
 
-.quantity-control input[data-cart-quantity]::-webkit-outer-spin-button,
-.quantity-control input[data-cart-quantity]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+.quantity-control input::-webkit-outer-spin-button,
+.quantity-control input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
 }
 
 /* Premium Payment Methods Selector */

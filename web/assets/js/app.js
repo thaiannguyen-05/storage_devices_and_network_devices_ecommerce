@@ -200,6 +200,8 @@
                     qty.value = Math.min(Number(qty.value || 1), Number(qty.max || 1));
                 }
             });
+            // Trigger change on initial load to sync price/quantity
+            variantSelect.dispatchEvent(new Event("change"));
         }
 
         document.querySelectorAll("[data-thumb]").forEach((button) => {
@@ -298,11 +300,34 @@
         });
     }
 
+    function initQuantityControls() {
+        document.addEventListener("click", (event) => {
+            const btn = event.target.closest("[data-qty-change]");
+            if (!btn) return;
+            if (btn.closest("[data-cart]")) return;
+
+            const change = Number(btn.dataset.qtyChange || 0);
+            const container = btn.closest(".quantity-control");
+            const input = container ? container.querySelector("input") : null;
+            if (input) {
+                const min = Number(input.min || 1);
+                const max = Number(input.max || 9999);
+                let val = Number(input.value || 1) + change;
+                if (val >= min && val <= max) {
+                    input.value = val;
+                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+                }
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         initHeader();
         initForms();
         initProductDetail();
         initCart();
+        initQuantityControls();
     });
 
     window.StoreIT = StoreIT;

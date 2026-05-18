@@ -18,19 +18,27 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public OrderEntity findById(String id) {
-        List<OrderEntity> rows = JdbcHelper.executeQuery("SELECT * FROM `Order` WHERE id = ?", rs -> map(rs), id);
+        List<OrderEntity> rows = JdbcHelper.executeQuery(
+            "SELECT o.*, p.name AS productName FROM `Order` o LEFT JOIN `Product` p ON o.productId = p.id WHERE o.id = ?",
+            rs -> map(rs), id
+        );
         return rows.isEmpty() ? null : rows.get(0);
     }
 
     @Override
     public List<OrderEntity> findByUserId(String userId, int offset, int limit) {
-        return JdbcHelper.executeQuery("SELECT * FROM `Order` WHERE userId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?",
-                rs -> map(rs), userId, limit, offset);
+        return JdbcHelper.executeQuery(
+            "SELECT o.*, p.name AS productName FROM `Order` o LEFT JOIN `Product` p ON o.productId = p.id WHERE o.userId = ? ORDER BY o.createdAt DESC LIMIT ? OFFSET ?",
+            rs -> map(rs), userId, limit, offset
+        );
     }
 
     @Override
     public List<OrderEntity> findAll(int offset, int limit) {
-        return JdbcHelper.executeQuery("SELECT * FROM `Order` ORDER BY createdAt DESC LIMIT ? OFFSET ?", rs -> map(rs), limit, offset);
+        return JdbcHelper.executeQuery(
+            "SELECT o.*, p.name AS productName FROM `Order` o LEFT JOIN `Product` p ON o.productId = p.id ORDER BY o.createdAt DESC LIMIT ? OFFSET ?",
+            rs -> map(rs), limit, offset
+        );
     }
 
     @Override
@@ -57,6 +65,11 @@ public class OrderRepository implements IOrderRepository {
         order.setVoucherId(rs.getString("voucherId"));
         java.math.BigDecimal total = rs.getBigDecimal("totalAmount");
         order.setTotalAmount(total);
+        try {
+            order.setProductName(rs.getString("productName"));
+        } catch (java.sql.SQLException e) {
+            // ignore if not joined in some simple select queries
+        }
         return order;
     }
 }

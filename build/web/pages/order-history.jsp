@@ -13,8 +13,41 @@
     <table>
         <thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Sản phẩm</th><th>Tổng tiền</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
         <tbody>
-            <tr><td data-label="Mã đơn">ORD-0001</td><td data-label="Ngày đặt">18/05/2026</td><td data-label="Sản phẩm">Samsung 990 PRO</td><td data-label="Tổng tiền">3.490.000 VND</td><td data-label="Trạng thái"><span class="badge warning">PENDING</span></td><td data-label="Hành động"><a class="button secondary" href="${pageContext.request.contextPath}/order/detail?id=ORD-0001">Xem chi tiết</a></td></tr>
-            <tr><td data-label="Mã đơn">ORD-0002</td><td data-label="Ngày đặt">17/05/2026</td><td data-label="Sản phẩm">TP-Link AX73</td><td data-label="Tổng tiền">2.890.000 VND</td><td data-label="Trạng thái"><span class="badge success">COMPLETED</span></td><td data-label="Hành động"><a class="button secondary" href="${pageContext.request.contextPath}/order/detail?id=ORD-0002">Xem chi tiết</a></td></tr>
+            <c:forEach var="order" items="${ordersResult.orders}">
+                <tr>
+                    <td data-label="Mã đơn">${order.id.substring(0, 8)}</td>
+                    <td data-label="Ngày đặt">${order.createdAt}</td>
+                    <td data-label="Sản phẩm"><c:out value="${order.productName}" /> x${order.quantity}</td>
+                    <td data-label="Tổng tiền"><c:out value="${order.totalAmount}" /> đ</td>
+                    <td data-label="Trạng thái">
+                        <c:choose>
+                            <c:when test="${order.status == 'PENDING'}">
+                                <span class="badge warning">PENDING</span>
+                            </c:when>
+                            <c:when test="${order.status == 'PAID'}">
+                                <span class="badge success" style="background: #10b981; color: #fff;">PAID</span>
+                            </c:when>
+                            <c:when test="${order.status == 'COMPLETED'}">
+                                <span class="badge success">COMPLETED</span>
+                            </c:when>
+                            <c:when test="${order.status == 'CANCELLED'}">
+                                <span class="badge danger">CANCELLED</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="badge secondary">${order.status}</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td data-label="Hành động">
+                        <a class="button secondary" href="${pageContext.request.contextPath}/order/detail?id=${order.id}">Xem chi tiết</a>
+                    </td>
+                </tr>
+            </c:forEach>
+            <c:if test="${empty ordersResult.orders}">
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 24px; color: var(--color-text-secondary);">Bạn chưa có đơn hàng nào.</td>
+                </tr>
+            </c:if>
         </tbody>
     </table>
 </section>

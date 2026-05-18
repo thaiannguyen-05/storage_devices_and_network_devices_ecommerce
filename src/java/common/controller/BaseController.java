@@ -66,7 +66,8 @@ public abstract class BaseController extends HttpServlet {
             }
         }
 
-        if (isUnsafeMethod(request) && !isValidCsrfToken(request)) {
+        boolean isApiPath = request.getServletPath() != null && request.getServletPath().startsWith("/api");
+        if (isUnsafeMethod(request) && !isApiPath && !isValidCsrfToken(request)) {
             sendError(response, HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token");
             return;
         }

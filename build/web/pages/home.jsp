@@ -90,24 +90,42 @@
 <section id="products">
     <div class="section-title">
         <div>
-            <h2>Tất cả sản phẩm</h2>
-            <p>Controller có thể truyền `products` để render dữ liệu thật từ database.</p>
+            <h2><c:out value="${isFiltered ? 'Kết quả bộ lọc' : 'Tất cả sản phẩm'}" /></h2>
+            <c:choose>
+                <c:when test="${isFiltered}">
+                    <p>Tìm thấy <c:out value="${not empty products ? products.size() : 0}" /> sản phẩm phù hợp.</p>
+                </c:when>
+                <c:otherwise>
+                    <p>Khám phá bộ sưu tập đầy đủ các thiết bị lưu trữ và thiết bị mạng chất lượng cao.</p>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
     <div class="grid product-grid">
-        <c:forEach begin="1" end="8" var="i">
-            <article class="card product-card">
-                <a href="${pageContext.request.contextPath}/product?id=sample-${i}">
-                    <div class="product-media"><img src="https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=900&q=80" alt="Storage device"></div>
-                    <div class="product-body">
-                        <span class="badge">Storage</span>
-                        <h3 class="product-name">LinhNamStore Storage Device ${i}</h3>
-                        <span class="product-code">Mã: SAMPLE-${i}</span>
-                        <strong class="price">${i}.990.000 VND</strong>
-                    </div>
-                </a>
-            </article>
-        </c:forEach>
+        <c:choose>
+            <c:when test="${not empty products}">
+                <c:forEach var="item" items="${products}">
+                    <article class="card product-card">
+                        <a href="${pageContext.request.contextPath}/product?id=${item.id}">
+                            <div class="product-media">
+                                <img src="${empty item.imageUrl ? 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=600&q=80' : item.imageUrl}" alt="${item.name}">
+                            </div>
+                            <div class="product-body">
+                                <span class="badge success">Sản phẩm</span>
+                                <h3 class="product-name"><c:out value="${item.name}" /></h3>
+                                <span class="product-code">Mã: <c:out value="${item.id}" /></span>
+                                <strong class="price"><c:out value="${item.price}" /> VND</strong>
+                            </div>
+                        </a>
+                    </article>
+                </c:forEach>
+            </c:when>
+            <c:otherwise>
+                <div class="field full empty-state">
+                    <p class="muted">Không có sản phẩm nào phù hợp với bộ lọc của bạn.</p>
+                </div>
+            </c:otherwise>
+        </c:choose>
     </div>
 </section>
 

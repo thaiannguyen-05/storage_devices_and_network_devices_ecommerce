@@ -7,10 +7,10 @@
 <section class="product-detail">
     <div>
         <div class="gallery-main">
-            <img data-main-image src="${empty productImage ? 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80' : productImage}" alt="Anh sản phẩm">
+            <img data-main-image src="${not empty variants ? variants[0].imageUrl : (empty productImage ? 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80' : productImage)}" alt="Anh sản phẩm">
         </div>
         <div class="thumbs">
-            <button type="button" data-thumb="https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=900&q=80"><img src="https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=200&q=80" alt="Thumb 1"></button>
+            <button type="button" data-thumb="${not empty variants ? variants[0].imageUrl : 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=900&q=80'}"><img src="${not empty variants ? variants[0].imageUrl : 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=200&q=80'}" alt="Thumb 1"></button>
             <button type="button" data-thumb="https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=900&q=80"><img src="https://images.unsplash.com/photo-1531492746076-161ca9bcad58?auto=format&fit=crop&w=200&q=80" alt="Thumb 2"></button>
         </div>
     </div>
@@ -22,24 +22,54 @@
         <div class="field">
             <label for="variantId">Chọn variant</label>
             <select id="variantId" name="variantId" data-variant-select>
-                <option value="v1" data-price="3490000" data-quantity="24" data-image="https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80">SAM-990PRO-1TB - 24 sản phẩm</option>
-                <option value="v2" data-price="5990000" data-quantity="18" data-image="https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80">SAM-990PRO-2TB - 18 sản phẩm</option>
+                <c:choose>
+                    <c:when test="${not empty variants}">
+                        <c:forEach var="variant" items="${variants}">
+                            <option value="${variant.id}" data-price="${variant.price}" data-quantity="${variant.quantity}" data-image="${variant.imageUrl}"><c:out value="${variant.sku}" /> - <c:out value="${variant.quantity}" /> sản phẩm</option>
+                        </c:forEach>
+                    </c:when>
+                    <c:otherwise>
+                        <option value="v1" data-price="3490000" data-quantity="24" data-image="https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80">SAM-990PRO-1TB - 24 sản phẩm</option>
+                        <option value="v2" data-price="5990000" data-quantity="18" data-image="https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=1200&q=80">SAM-990PRO-2TB - 18 sản phẩm</option>
+                    </c:otherwise>
+                </c:choose>
             </select>
         </div>
-        <p class="price" data-variant-price>3.490.000 VND</p>
-        <p class="muted" data-variant-stock>Còn 24 sản phẩm</p>
+        <p class="price" data-variant-price>
+            <c:choose>
+                <c:when test="${not empty variants}">
+                    <c:out value="${variants[0].price}" /> VND
+                </c:when>
+                <c:otherwise>
+                    3.490.000 VND
+                </c:otherwise>
+            </c:choose>
+        </p>
+        <p class="muted" data-variant-stock>
+            <c:choose>
+                <c:when test="${not empty variants}">
+                    Còn <c:out value="${variants[0].quantity}" /> sản phẩm
+                </c:when>
+                <c:otherwise>
+                    Còn 24 sản phẩm
+                </c:otherwise>
+            </c:choose>
+        </p>
         <form action="${pageContext.request.contextPath}/cart" method="post" class="form-grid">
             <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
             <input type="hidden" name="action" value="add">
             <input type="hidden" name="productId" value="${param.id}">
             <div class="field">
                 <label for="quantity">Số lượng</label>
-                <input id="quantity" data-quantity type="number" name="quantity" min="1" max="24" value="1">
+                <div class="quantity-control">
+                    <button type="button" class="qty-btn" data-qty-change="-1" aria-label="Giảm số lượng">−</button>
+                    <input id="quantity" data-quantity type="number" name="quantity" min="1" max="24" value="1" readonly>
+                    <button type="button" class="qty-btn" data-qty-change="1" aria-label="Tăng số lượng">+</button>
+                </div>
             </div>
             <div class="field full">
                 <button class="button" type="submit">Thêm vào giỏ</button>
                 <a class="button secondary" href="${pageContext.request.contextPath}/checkout">Mua ngay</a>
-                <button class="button secondary" type="button">Lưu sản phẩm</button>
             </div>
         </form>
     </div>
