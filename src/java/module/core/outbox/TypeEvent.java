@@ -1,0 +1,11 @@
+package module.core.outbox;
+
+public enum TypeEvent {
+    USER_REGISTERED,
+    USER_CREATED,
+    PASSWORD_RESET_REQUESTED,
+    ORDER_CREATED,
+    PAYMENT_COMPLETED,
+    USER_BANNED,
+    ORDER_STATUS_UPDATED
+}
