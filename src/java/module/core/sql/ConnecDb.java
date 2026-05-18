@@ -41,7 +41,7 @@ public class ConnecDb {
             String password = ConfigService.get("DB_PASSWORD");
 
             String url = "jdbc:postgresql://" + host + ":" + port + "/" + dbName
-                    + "?sslmode=disable&stringtype=unspecified";
+                    + "?sslmode=require&channel_binding=require&stringtype=unspecified";
 
             try {
                 Class.forName(PG_DRIVER_CLASS);
@@ -64,5 +64,9 @@ public class ConnecDb {
 
     public static Connection getConnection() throws SQLException {
         return dataSource.getConnection();
+    }
+    
+    public static void main(String[] args) throws SQLException {
+        System.out.println(getConnection());
     }
 }
