@@ -61,6 +61,9 @@ jobs:
           echo "=== Automatically generating .env file on VPS ==="
           echo "DB_PASSWORD=${{ secrets.VPS_PASSWORD }}" > .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET || 'linhnamstore_super_secret_jwt_token_key' }}" >> .env
+          echo "SMTP_USER=${{ secrets.SMTP_USER || 'thaiandev05@gmail.com' }}" >> .env
+          echo "SMTP_PASS=${{ secrets.SMTP_PASS || 'gbpf hjou vvor djgf' }}" >> .env
+          echo "SMTP_FROM=${{ secrets.SMTP_FROM || 'thaiandev05@gmail.com' }}" >> .env
           
           echo "=== Building Docker Image directly on VPS ==="
           docker build -t localhost:5000/sto-ecommerce:latest .
