@@ -86,6 +86,11 @@ public class ProductController extends BaseController {
                 req.setAttribute("homeData", homeData);
                 req.setAttribute("newProducts", homeData.get("recent"));
                 
+                String homeKeyword = req.getParameter("q");
+                if (homeKeyword == null || homeKeyword.trim().isEmpty()) {
+                    homeKeyword = req.getParameter("keyword");
+                }
+                
                 String[] categories = req.getParameterValues("category");
                 String[] brands = req.getParameterValues("brand");
                 String priceRange = req.getParameter("price");
@@ -96,10 +101,11 @@ public class ProductController extends BaseController {
                         || (brands != null && brands.length > 0)
                         || (priceRange != null && !priceRange.trim().isEmpty())
                         || (filterStatus != null && !filterStatus.trim().isEmpty())
-                        || (sort != null && !sort.trim().isEmpty());
+                        || (sort != null && !sort.trim().isEmpty())
+                        || (homeKeyword != null && !homeKeyword.trim().isEmpty());
                 
                 if (hasFilter) {
-                    req.setAttribute("products", productService.filterProducts(categories, brands, priceRange, filterStatus, sort));
+                    req.setAttribute("products", productService.filterProducts(homeKeyword, categories, brands, priceRange, filterStatus, sort));
                     req.setAttribute("isFiltered", true);
                 } else {
                     req.setAttribute("products", homeData.get("recent"));

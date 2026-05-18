@@ -139,7 +139,7 @@ public class ProductService {
         return isBlank(value) ? fallback : value;
     }
 
-    public List<ProductCardView> filterProducts(String[] categories, String[] brands, String priceRange, String status, String sort) {
+    public List<ProductCardView> filterProducts(String keyword, String[] categories, String[] brands, String priceRange, String status, String sort) {
         StringBuilder sql = new StringBuilder(
             "SELECT p.id, p.name, b.name AS brandName, p.category, p.status, p.createdAt " +
             "FROM Product p " +
@@ -147,6 +147,13 @@ public class ProductService {
             "WHERE 1=1 "
         );
         java.util.List<Object> params = new java.util.ArrayList<>();
+        
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (p.name LIKE ? OR p.description LIKE ?) ");
+            String like = "%" + keyword.trim() + "%";
+            params.add(like);
+            params.add(like);
+        }
         
         if (status != null && !status.trim().isEmpty()) {
             sql.append("AND p.status = ? ");

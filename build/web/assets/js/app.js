@@ -121,6 +121,77 @@
         }
     }
 
+    function initFilters() {
+        const filterForm = document.querySelector(".left-menu form");
+        if (!filterForm) return;
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Restore checkboxes
+        filterForm.querySelectorAll("input[type='checkbox']").forEach(cb => {
+            const name = cb.name;
+            const value = cb.value;
+            const values = urlParams.getAll(name);
+            if (values.includes(value)) {
+                cb.checked = true;
+            }
+        });
+
+        // Restore radios
+        filterForm.querySelectorAll("input[type='radio']").forEach(radio => {
+            const name = radio.name;
+            const value = radio.value;
+            const val = urlParams.get(name);
+            if (val === value) {
+                radio.checked = true;
+            }
+        });
+
+        // Restore selects
+        filterForm.querySelectorAll("select").forEach(select => {
+            const name = select.name;
+            const val = urlParams.get(name);
+            if (val) {
+                select.value = val;
+            }
+        });
+
+        // Preserve active search parameters (q, keyword) in the filter form so they aren't lost on filter submission
+        ["q", "keyword"].forEach(paramName => {
+            const val = urlParams.get(paramName);
+            if (val) {
+                let hiddenInput = filterForm.querySelector(`input[type='hidden'][name='${paramName}']`);
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement("input");
+                    hiddenInput.type = "hidden";
+                    hiddenInput.name = paramName;
+                    filterForm.appendChild(hiddenInput);
+                }
+                hiddenInput.value = val;
+            }
+        });
+
+        // Auto-submit on change for desktop, and sort select on all devices
+        filterForm.addEventListener("change", (event) => {
+            const isDesktop = window.innerWidth > 1024;
+            const isSelect = event.target.tagName === "SELECT";
+            if (isDesktop || isSelect) {
+                filterForm.submit();
+            }
+        });
+
+        // Scroll to products if any filter/search is active
+        const hasFilters = urlParams.has("category") || urlParams.has("brand") || urlParams.has("price") || urlParams.has("status") || urlParams.has("sort") || urlParams.has("q") || urlParams.has("keyword");
+        if (hasFilters) {
+            const productsSection = document.getElementById("products");
+            if (productsSection) {
+                setTimeout(() => {
+                    productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 150);
+            }
+        }
+    }
+
     function initForms() {
         document.querySelectorAll("[data-validate]").forEach((form) => {
             form.addEventListener("submit", (event) => {
@@ -324,6 +395,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         initHeader();
+        initFilters();
         initForms();
         initProductDetail();
         initCart();
