@@ -1,0 +1,49 @@
+name: CD Pipeline - Deploy to VPS GlassFish
+
+on:
+  push:
+    branches: [ "main", "master", "dev" ]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build & Deploy to VPS GlassFish
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Download GlassFish dependencies for compilation
+      run: |
+        echo "=== Downloading GlassFish for build dependencies ==="
+        wget -q https://github.com/eclipse-ee4j/glassfish/releases/download/6.2.5/glassfish-6.2.5.zip
+        unzip -q glassfish-6.2.5.zip
+        echo "=== GlassFish unpacked successfully ==="
+
+    - name: Build Web Application (WAR)
+      run: |
+        echo "=== Running Ant build ==="
+        # We pass j2ee.server.home to Ant so it can resolve Jakarta EE libraries correctly
+        ant -f . -Dj2ee.server.home=$GITHUB_WORKSPACE/glassfish6/glassfish clean dist
+        echo "=== Build completed successfully. WAR file is ready ==="
+
+    - name: Copy WAR file to VPS GlassFish autodeploy
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        source: "dist/WebApplication3.war"
+        # Adjust the target path if your GlassFish on the VPS has a different domain path
+        target: "/opt/glassfish6/glassfish/domains/domain1/autodeploy/"
+        strip_components: 1
+        overwrite: true
