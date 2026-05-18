@@ -249,11 +249,15 @@
             const stock = document.querySelector("[data-variant-stock]");
             const image = document.querySelector("[data-main-image]");
             const qty = document.querySelector("[data-quantity]");
+            const variantInput = document.querySelector("[data-variant-input]");
 
             variantSelect.addEventListener("change", () => {
                 const option = variantSelect.selectedOptions[0];
                 if (!option) {
                     return;
+                }
+                if (variantInput) {
+                    variantInput.value = option.value;
                 }
                 if (price) {
                     price.textContent = StoreIT.formatCurrency(option.dataset.price);

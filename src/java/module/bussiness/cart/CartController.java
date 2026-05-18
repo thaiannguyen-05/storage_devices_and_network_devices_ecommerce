@@ -6,8 +6,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import module.bussiness.cart.response_dto.AddToCartResponseDto;
 import module.bussiness.cart.response_dto.GetCartResponseDto;
+import module.bussiness.cart.response_dto.RemoveFromCartResponseDto;
+import module.bussiness.cart.response_dto.UpdateCartItemResponseDto;
+import module.core.common.BaseResponse;
 import module.core.config.AppConfig;
 
 @WebServlet(name = "Cart", urlPatterns = {"/cart"})
@@ -29,15 +34,33 @@ public class CartController extends BaseController {
         UserPayload user = getUserFromSession(req);
         String action = req.getParameter("action");
         if ("add".equals(action)) {
-            cartService.addToCart(user.getUserId(), req.getParameter("productId"), req.getParameter("variantId"), parseInt(req.getParameter("quantity"), 1));
+            AddToCartResponseDto result = cartService.addToCart(user.getUserId(), req.getParameter("productId"), req.getParameter("variantId"), parseInt(req.getParameter("quantity"), 1));
+            flash(req, result);
+            redirect(req, res, result.isSuccess() ? "/cart" : "/product?id=" + safe(req.getParameter("productId")));
+            return;
         } else if ("update".equals(action)) {
-            cartService.updateQuantity(user.getUserId(), req.getParameter("itemId"), parseInt(req.getParameter("quantity"), 1));
+            UpdateCartItemResponseDto result = cartService.updateQuantity(user.getUserId(), req.getParameter("itemId"), parseInt(req.getParameter("quantity"), 1));
+            flash(req, result);
         } else if ("remove".equals(action)) {
-            cartService.removeItem(user.getUserId(), req.getParameter("itemId"));
+            RemoveFromCartResponseDto result = cartService.removeItem(user.getUserId(), req.getParameter("itemId"));
+            flash(req, result);
         } else if ("clear".equals(action)) {
-            cartService.clearCart(user.getUserId());
+            RemoveFromCartResponseDto result = cartService.clearCart(user.getUserId());
+            flash(req, result);
         }
         redirect(req, res, "/cart");
+    }
+
+    private void flash(HttpServletRequest req, BaseResponse result) {
+        if (result == null) {
+            return;
+        }
+        HttpSession session = req.getSession();
+        if (result.isSuccess() && result.getSuccessMessage() != null) {
+            session.setAttribute("flashSuccess", result.getSuccessMessage());
+        } else if (!result.isSuccess() && result.getErrorMessage() != null) {
+            session.setAttribute("flashError", result.getErrorMessage());
+        }
     }
 
     private int parseInt(String value, int fallback) {
@@ -46,5 +69,9 @@ public class CartController extends BaseController {
         } catch (NumberFormatException ex) {
             return fallback;
         }
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }

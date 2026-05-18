@@ -45,6 +45,17 @@ public class CartRepository implements ICartRepository {
     }
 
     @Override
+    public CartItemView findItem(String cartId, String productId, String variantId) {
+        List<CartItemView> rows = JdbcHelper.executeQuery(
+                "SELECT i.*, p.name productName, v.sku, v.price, v.quantity stockQuantity FROM ItemCart i " +
+                "JOIN Product p ON i.productId = p.id " +
+                "LEFT JOIN ProductVariant v ON i.variantId = v.id " +
+                "WHERE i.cartId = ? AND i.productId = ? AND i.variantId = ?",
+                rs -> mapItem(rs), cartId, productId, variantId);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    @Override
     public void addItem(String cartId, String productId, String variantId, int quantity) {
         JdbcHelper.executeUpdate("INSERT INTO ItemCart (id, cartId, productId, variantId, quantity) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)",
                 UUID.randomUUID().toString(), cartId, productId, variantId, quantity);

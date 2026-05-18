@@ -2,6 +2,18 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <c:set var="pageTitle" value="Giỏ hàng" scope="request" />
 <jsp:include page="../layouts/header.jsp" />
+<c:if test="${not empty sessionScope.flashError}">
+    <div class="panel" style="margin-bottom:16px; border-color:#dc2626; color:#991b1b;">
+        <c:out value="${sessionScope.flashError}" />
+    </div>
+    <c:remove var="flashError" scope="session" />
+</c:if>
+<c:if test="${not empty sessionScope.flashSuccess}">
+    <div class="panel" style="margin-bottom:16px; border-color:#16a34a; color:#166534;">
+        <c:out value="${sessionScope.flashSuccess}" />
+    </div>
+    <c:remove var="flashSuccess" scope="session" />
+</c:if>
 
 <h1 class="page-title">Giỏ hàng</h1>
 
