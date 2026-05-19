@@ -13,4 +13,37 @@ public class BrandRepository implements IBrandRepository {
                         rs.getString("description"), rs.getString("status"), rs.getTimestamp("createdAt").toLocalDateTime(),
                         rs.getTimestamp("updatedAt").toLocalDateTime()));
     }
+
+    @Override
+    public BrandEntity findById(String id) {
+        List<BrandEntity> rows = JdbcHelper.executeQuery("SELECT * FROM Brand WHERE id = ?",
+                rs -> new BrandEntity(rs.getString("id"), rs.getString("name"), rs.getString("userId"),
+                        rs.getString("description"), rs.getString("status"), rs.getTimestamp("createdAt").toLocalDateTime(),
+                        rs.getTimestamp("updatedAt").toLocalDateTime()), id);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    @Override
+    public void insert(BrandEntity brand) {
+        JdbcHelper.executeUpdate(
+                "INSERT INTO Brand (id, name, userId, description, status) VALUES (?, ?, ?, ?, ?)",
+                brand.getId(), brand.getName(), brand.getUserId(), brand.getDescription(), brand.getStatus());
+    }
+
+    @Override
+    public void update(BrandEntity brand) {
+        JdbcHelper.executeUpdate(
+                "UPDATE Brand SET name = ?, description = ?, status = ? WHERE id = ?",
+                brand.getName(), brand.getDescription(), brand.getStatus(), brand.getId());
+    }
+
+    @Override
+    public void delete(String id) {
+        JdbcHelper.executeUpdate("DELETE FROM Brand WHERE id = ?", id);
+    }
+
+    @Override
+    public void updateStatus(String id, String status) {
+        JdbcHelper.executeUpdate("UPDATE Brand SET status = ? WHERE id = ?", status, id);
+    }
 }

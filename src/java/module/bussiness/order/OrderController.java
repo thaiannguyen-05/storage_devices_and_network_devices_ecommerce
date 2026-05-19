@@ -1,8 +1,6 @@
 package module.bussiness.order;
 
 import common.controller.BaseController;
-import common.guard.AuthGuard;
-import common.type.UserPayload;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,11 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import module.bussiness.order.dto.CheckoutDto;
 import module.bussiness.order.dto.CheckoutItemDto;
+import module.bussiness.voucher.VoucherService;
 
-@WebServlet(name = "Order", urlPatterns = {"/checkout", "/order/detail", "/orders", "/admin/orders"})
+@WebServlet(name = "Order", urlPatterns = {"/checkout", "/order/detail", "/orders"})
 public class OrderController extends BaseController {
     private final OrderService orderService = new OrderService();
-    private final AuthGuard authGuard = new AuthGuard();
+    private final VoucherService voucherService = new VoucherService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -23,7 +22,7 @@ public class OrderController extends BaseController {
             redirect(req, res, "/auth?action=login");
             return;
         }
-        String action = action(req, isAdminPath(req) ? "list" : "history");
+        String action = action(req, "history");
         if ("/checkout".equals(req.getServletPath())) {
             String payAction = req.getParameter("action");
             if ("check".equals(payAction)) {
@@ -99,65 +98,16 @@ public class OrderController extends BaseController {
                 totalCheckoutPrice = cartResult.getTotal();
             }
 
-            // Seed some vouchers for the current user if they don't have any, for seamless demonstration
-            java.util.List<entity.VoucherEntity> vouchers = new java.util.ArrayList<>();
-            try {
-                int voucherCount = module.core.sql.JdbcHelper.count("SELECT COUNT(*) FROM `Voucher` WHERE userId = ?", userId);
-                if (voucherCount == 0) {
-                    module.core.sql.JdbcHelper.executeUpdate(
-                        "INSERT INTO `Voucher` (id, percent, userId, expTime, quantity) VALUES (?, ?, ?, ?, ?)",
-                        "VOUCHER10", 10.0, userId, java.time.LocalDate.now().plusDays(30), 5
-                    );
-                    module.core.sql.JdbcHelper.executeUpdate(
-                        "INSERT INTO `Voucher` (id, percent, userId, expTime, quantity) VALUES (?, ?, ?, ?, ?)",
-                        "VOUCHER20", 20.0, userId, java.time.LocalDate.now().plusDays(30), 2
-                    );
-                    module.core.sql.JdbcHelper.executeUpdate(
-                        "INSERT INTO `Voucher` (id, percent, userId, expTime, quantity) VALUES (?, ?, ?, ?, ?)",
-                        "VOUCHER50", 50.0, userId, java.time.LocalDate.now().plusDays(30), 1
-                    );
-                }
-
-                vouchers = module.core.sql.JdbcHelper.executeQuery(
-                    "SELECT * FROM `Voucher` WHERE userId = ? AND expTime >= CURRENT_DATE AND quantity > 0",
-                    rs -> {
-                        entity.VoucherEntity v = new entity.VoucherEntity();
-                        v.setId(rs.getString("id"));
-                        v.setPercent(rs.getDouble("percent"));
-                        v.setUserId(rs.getString("userId"));
-                        java.sql.Date expDate = rs.getDate("expTime");
-                        v.setExpTime(expDate == null ? null : expDate.toLocalDate());
-                        java.sql.Timestamp cAt = rs.getTimestamp("createdAt");
-                        v.setCreatedAt(cAt == null ? null : cAt.toLocalDateTime());
-                        v.setQuantity(rs.getInt("quantity"));
-                        return v;
-                    }, userId
-                );
-            } catch (Exception ex) {
-                System.err.println("[OrderController] Failed to query/seed Vouchers, skipping. Error: " + ex.getMessage());
-            }
-
             req.setAttribute("checkoutItems", checkoutItems);
             req.setAttribute("totalCheckoutPrice", totalCheckoutPrice);
-            req.setAttribute("vouchers", vouchers);
+            req.setAttribute("vouchers", voucherService.getActiveVouchersForUser(userId));
             forwardToJsp(req, res, "/pages/checkout.jsp");
             return;
         }
         if ("/order/detail".equals(req.getServletPath())) {
             action = "detail";
         }
-        if (isAdminPath(req)) {
-            if (!authGuard.checkRole(req, res, "ADMIN")) {
-                return;
-            }
-            if ("detail".equals(action)) {
-                req.setAttribute("orderResult", orderService.getOrderDetail(req.getParameter("id"), null));
-                forwardToJsp(req, res, "/admin/order-detail.jsp");
-                return;
-            }
-            req.setAttribute("ordersResult", orderService.listAllOrders(parseInt(req.getParameter("page"), 1)));
-            forwardToJsp(req, res, "/admin/order-list.jsp");
-        } else if ("detail".equals(action)) {
+        if ("detail".equals(action)) {
             req.setAttribute("orderResult", orderService.getOrderDetail(req.getParameter("id"), userId));
             forwardToJsp(req, res, "/pages/order-detail.jsp");
         } else {
@@ -178,13 +128,7 @@ public class OrderController extends BaseController {
         if ("/checkout".equals(req.getServletPath())) {
             action = "checkout";
         }
-        if ("update-status".equals(action)) {
-            if (!authGuard.checkRole(req, res, "ADMIN")) {
-                return;
-            }
-            orderService.updateStatus(req.getParameter("id"), req.getParameter("status"));
-            redirect(req, res, "/admin/orders?action=list");
-        } else if ("cancel".equals(action)) {
+        if ("cancel".equals(action)) {
             orderService.cancelOrder(req.getParameter("id"), userId);
             redirect(req, res, "/orders?action=history");
         } else {
@@ -202,29 +146,9 @@ public class OrderController extends BaseController {
                 module.bussiness.cart.response_dto.GetCartResponseDto cartResult = new module.bussiness.cart.CartService().getCart(userId);
                 java.util.List<module.bussiness.cart.CartItemView> checkoutItems = cartResult.getItems();
                 java.math.BigDecimal totalCheckoutPrice = cartResult.getTotal();
-                java.util.List<entity.VoucherEntity> vouchers = new java.util.ArrayList<>();
-                try {
-                    vouchers = module.core.sql.JdbcHelper.executeQuery(
-                        "SELECT * FROM `Voucher` WHERE userId = ? AND expTime >= CURRENT_DATE AND quantity > 0",
-                        rs -> {
-                            entity.VoucherEntity v = new entity.VoucherEntity();
-                            v.setId(rs.getString("id"));
-                            v.setPercent(rs.getDouble("percent"));
-                            v.setUserId(rs.getString("userId"));
-                            java.sql.Date expDate = rs.getDate("expTime");
-                            v.setExpTime(expDate == null ? null : expDate.toLocalDate());
-                            java.sql.Timestamp cAt = rs.getTimestamp("createdAt");
-                            v.setCreatedAt(cAt == null ? null : cAt.toLocalDateTime());
-                            v.setQuantity(rs.getInt("quantity"));
-                            return v;
-                        }, userId
-                    );
-                } catch (Exception ex) {
-                    System.err.println("[OrderController] Failed to query Vouchers in doPost, skipping. Error: " + ex.getMessage());
-                }
                 req.setAttribute("checkoutItems", checkoutItems);
                 req.setAttribute("totalCheckoutPrice", totalCheckoutPrice);
-                req.setAttribute("vouchers", vouchers);
+                req.setAttribute("vouchers", voucherService.getActiveVouchersForUser(userId));
                 req.setAttribute("error", result.getErrorMessage());
                 // Preserve form values
                 req.setAttribute("submittedName", req.getParameter("name"));
@@ -262,11 +186,6 @@ public class OrderController extends BaseController {
         }
         return dto;
     }
-
-    private boolean isAdminPath(HttpServletRequest req) {
-        return req.getServletPath().startsWith("/admin");
-    }
-
     private String action(HttpServletRequest req, String fallback) {
         String action = req.getParameter("action");
         return action == null || action.trim().isEmpty() ? fallback : action;

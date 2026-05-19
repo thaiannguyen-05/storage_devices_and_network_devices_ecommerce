@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import module.core.config.AppConfig;
 import module.core.user.dto.CreateUserDto;
 import module.core.user.dto.UpdateUserDto;
 
@@ -19,17 +20,29 @@ public class UserController extends BaseController {
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String action = action(req, "list");
         if ("create".equals(action)) {
-            forwardToJsp(req, res, "/admin/user-form.jsp");
+            forwardToJsp(req, res, "/views/admin/users/create.jsp");
             return;
         }
         if ("edit".equals(action)) {
             req.setAttribute("userResult", userService.getUserById(req.getParameter("id")));
-            forwardToJsp(req, res, "/admin/user-form.jsp");
+            req.setAttribute("userOrders", userService.getRecentOrdersForUser(req.getParameter("id"), 8));
+            forwardToJsp(req, res, "/views/admin/users/edit.jsp");
             return;
-        } else {
-            req.setAttribute("usersResult", userService.listUsers(parseInt(req.getParameter("page"), 1), 12));
         }
-        forwardToJsp(req, res, "/admin/user-list.jsp");
+        int page = parseInt(req.getParameter("page"), 1);
+        String role = trimToNull(req.getParameter("role"));
+        String status = trimToNull(req.getParameter("status"));
+        String keyword = trimToNull(req.getParameter("keyword"));
+        module.core.user.response_dto.ListUserResponseDto usersResult =
+                userService.listUsers(page, AppConfig.PAGE_SIZE, role, status, keyword);
+        req.setAttribute("usersResult", usersResult);
+        req.setAttribute("currentPage", page);
+        req.setAttribute("totalPages", Math.max(1, (int) Math.ceil(usersResult.getTotal() / (double) AppConfig.PAGE_SIZE)));
+        req.setAttribute("selectedRole", role);
+        req.setAttribute("selectedStatus", status);
+        req.setAttribute("keyword", keyword == null ? "" : keyword);
+        req.setAttribute("userStats", userService.getStats());
+        forwardToJsp(req, res, "/views/admin/users/list.jsp");
     }
 
     @Override
@@ -41,6 +54,21 @@ public class UserController extends BaseController {
         } else if ("edit".equals(action)) {
             UpdateUserDto dto = updateDto(req);
             userService.updateUser(dto);
+        } else if ("update-role".equals(action)) {
+            if ("ADMIN".equalsIgnoreCase(req.getParameter("role"))) {
+                userService.promoteToAdmin(req.getParameter("id"));
+            } else {
+                userService.demoteToUser(req.getParameter("id"));
+            }
+        } else if ("update-status".equals(action)) {
+            String status = req.getParameter("status");
+            if ("BANNED".equalsIgnoreCase(status)) {
+                userService.banUser(req.getParameter("id"));
+            } else if ("ACTIVE".equalsIgnoreCase(status)) {
+                userService.activateUser(req.getParameter("id"));
+            } else {
+                userService.changeStatus(req.getParameter("id"), status);
+            }
         } else if ("change-status".equals(action)) {
             userService.changeStatus(req.getParameter("id"), req.getParameter("status"));
         } else if ("delete".equals(action)) {
@@ -82,5 +110,13 @@ public class UserController extends BaseController {
         } catch (NumberFormatException ex) {
             return fallback;
         }
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

@@ -156,6 +156,27 @@ public class OrderService {
         return response;
     }
 
+    public CancelOrderResponseDto cancelOrderByAdmin(String orderId) {
+        CancelOrderResponseDto response = new CancelOrderResponseDto();
+        OrderEntity order = orderRepository.findById(orderId);
+        if (order == null) {
+            fail(response, "Order not found");
+            return response;
+        }
+        if ("CANCELLED".equalsIgnoreCase(order.getStatus())) {
+            response.setSuccess(true);
+            response.setSuccessMessage("Order already cancelled");
+            return response;
+        }
+        if (!"COMPLETED".equalsIgnoreCase(order.getStatus())) {
+            JdbcHelper.executeUpdate("UPDATE ProductVariant SET quantity = quantity + ? WHERE id = ?", order.getQuantity(), order.getVariantId());
+        }
+        orderRepository.updateStatus(orderId, "CANCELLED");
+        response.setSuccess(true);
+        response.setSuccessMessage("Order cancelled");
+        return response;
+    }
+
     public CancelOrderResponseDto cancelOrder(String orderId, String userId) {
         CancelOrderResponseDto response = new CancelOrderResponseDto();
         OrderEntity order = orderRepository.findById(orderId);

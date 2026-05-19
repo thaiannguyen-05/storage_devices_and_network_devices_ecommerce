@@ -1,18 +1,65 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<c:set var="pageTitle" value="Form user" scope="request" />
-<c:set var="activePage" value="admin" scope="request" />
-<jsp:include page="../../../layouts/header.jsp" />
-<h1 class="page-title">Thêm / sửa user</h1>
-<form class="panel form-grid" action="${pageContext.request.contextPath}/admin/users" method="post" data-validate>
-    <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
-    <input type="hidden" name="action" value="${empty param.id ? 'create' : 'edit'}">
-    <input type="hidden" name="id" value="${param.id}">
-    <div class="field"><label>Name</label><input name="name" required><span class="error"></span></div>
-    <div class="field"><label>Email</label><input type="email" name="email" required><span class="error"></span></div>
-    <div class="field"><label>Role</label><select name="role"><option>USER</option><option>ADMIN</option></select></div>
-    <div class="field"><label>Status</label><select name="status"><option>ACTIVE</option><option>INACTIVE</option><option>BANNED</option><option>PENDING</option></select></div>
-    <button class="button" type="submit">Lưu</button>
-</form>
-<jsp:include page="../../../layouts/footer.jsp" />
-
+<c:set var="pageTitle" value="Edit User" scope="request" />
+<c:set var="activePage" value="admin-users" scope="request" />
+<jsp:include page="/layouts/admin-layout.jsp">
+    <jsp:param name="part" value="start" />
+</jsp:include>
+<section class="admin-grid-2">
+    <section class="admin-panel">
+        <h2>User profile</h2>
+        <form class="admin-form" action="${pageContext.request.contextPath}/admin/users" method="post">
+            <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="id" value="${userResult.user.id}">
+            <label for="name">Name</label>
+            <input id="name" name="name" value="${userResult.user.name}" required>
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" value="${userResult.user.email}" required>
+            <label for="dateOfBirth">Date of birth</label>
+            <input id="dateOfBirth" type="date" name="dateOfBirth" value="${userResult.user.dateOfBirth}">
+            <label for="role">Role</label>
+            <select id="role" name="role">
+                <option value="USER" ${userResult.user.role == 'USER' ? 'selected' : ''}>USER</option>
+                <option value="ADMIN" ${userResult.user.role == 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+            </select>
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="ACTIVE" ${userResult.user.status == 'ACTIVE' ? 'selected' : ''}>ACTIVE</option>
+                <option value="INACTIVE" ${userResult.user.status == 'INACTIVE' ? 'selected' : ''}>INACTIVE</option>
+                <option value="BANNED" ${userResult.user.status == 'BANNED' ? 'selected' : ''}>BANNED</option>
+                <option value="PENDING" ${userResult.user.status == 'PENDING' ? 'selected' : ''}>PENDING</option>
+            </select>
+            <button class="button" type="submit">Save</button>
+        </form>
+    </section>
+    <section class="admin-panel">
+        <h2>Recent orders</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>Product</th><th>Total</th><th>Status</th></tr></thead>
+                <tbody>
+                    <c:forEach var="order" items="${userOrders}">
+                        <tr>
+                            <td><c:out value="${order.id}" /></td>
+                            <td><c:out value="${order.productName}" /></td>
+                            <td><c:out value="${order.totalAmount}" /> VND</td>
+                            <td><c:out value="${order.status}" /></td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </div>
+        <div class="admin-actions mt-4">
+            <form action="${pageContext.request.contextPath}/admin/users" method="post">
+                <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="id" value="${userResult.user.id}">
+                <button class="button danger" type="submit">Delete user</button>
+            </form>
+        </div>
+    </section>
+</section>
+<jsp:include page="/layouts/admin-layout.jsp">
+    <jsp:param name="part" value="end" />
+</jsp:include>

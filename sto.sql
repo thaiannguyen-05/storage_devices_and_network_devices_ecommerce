@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS `PasswordResetToken`;
 DROP TABLE IF EXISTS `EmailVerificationCode`;
 DROP TABLE IF EXISTS `Session`;
 DROP TABLE IF EXISTS `SavedProduct`;
+DROP TABLE IF EXISTS `Contact`;
 DROP TABLE IF EXISTS `ItemCart`;
 DROP TABLE IF EXISTS `OrderCart`;
 DROP TABLE IF EXISTS `Voucher`;
@@ -102,6 +103,12 @@ CREATE TABLE `Order` (
     `quantity` INT NOT NULL DEFAULT 1,
     `phone` VARCHAR(20) NULL,
     `address` VARCHAR(500) NULL,
+    `customerName` VARCHAR(255) NULL,
+    `email` VARCHAR(255) NULL,
+    `note` VARCHAR(1000) NULL,
+    `paymentMethod` VARCHAR(50) NULL,
+    `voucherId` CHAR(36) NULL,
+    `totalAmount` DECIMAL(12,2) NULL,
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `status` ENUM('PENDING', 'CONFIRMED', 'SHIPPING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
@@ -179,12 +186,24 @@ CREATE TABLE `ItemCart` (
 
 CREATE TABLE `SavedProduct` (
     `id` CHAR(36) NOT NULL,
+    `userId` CHAR(36) NOT NULL,
     `productId` CHAR(36) NOT NULL,
     `quantity` INT NOT NULL,
     `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    KEY `savedproduct_userid_index` (`userId`),
     KEY `savedproduct_productid_index` (`productId`),
+    CONSTRAINT `savedproduct_userid_foreign` FOREIGN KEY (`userId`) REFERENCES `User` (`id`),
     CONSTRAINT `savedproduct_productid_foreign` FOREIGN KEY (`productId`) REFERENCES `Product` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `Contact` (
+    `id` CHAR(36) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(255) NOT NULL,
+    `content` TEXT NOT NULL,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Session` (

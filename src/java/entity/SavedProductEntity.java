@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public class SavedProductEntity {
     private String id;
+    private String userId;
     private String productId;
     private Integer quantity;
     private LocalDateTime createdAt;
@@ -18,12 +19,28 @@ public class SavedProductEntity {
         this.createdAt = createdAt;
     }
 
+    public SavedProductEntity(String id, String userId, String productId, Integer quantity, LocalDateTime createdAt) {
+        this.id = id;
+        this.userId = userId;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.createdAt = createdAt;
+    }
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getProductId() {

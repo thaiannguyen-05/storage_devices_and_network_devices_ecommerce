@@ -25,7 +25,6 @@ public class ProductController extends BaseController {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        checkAndCreateTestProduct();
         String action = action(req, "list");
         if ("/home".equals(req.getServletPath()) && !"autocomplete".equals(action)) {
             action = req.getParameter("keyword") == null || req.getParameter("keyword").trim().isEmpty() ? "home" : "search";
@@ -40,7 +39,7 @@ public class ProductController extends BaseController {
                 req.setAttribute("productResult", productService.getProductDetail(req.getParameter("id")));
             }
             req.setAttribute("brandsResult", productService.getAllBrands());
-            forwardToJsp(req, res, "/admin/product-form.jsp");
+            forwardToJsp(req, res, "/views/admin/products/" + ("edit".equals(action) ? "edit" : "create") + ".jsp");
             return;
         }
         switch (action) {
@@ -115,7 +114,7 @@ public class ProductController extends BaseController {
             default:
                 req.setAttribute("productsResult", productService.listProducts(parseInt(req.getParameter("page"), 1)));
                 req.setAttribute("brandsResult", productService.getAllBrands());
-                forwardToJsp(req, res, isAdminPath(req) ? "/admin/product-list.jsp" : "/pages/home.jsp");
+                forwardToJsp(req, res, isAdminPath(req) ? "/views/admin/products/list.jsp" : "/pages/home.jsp");
                 break;
         }
     }

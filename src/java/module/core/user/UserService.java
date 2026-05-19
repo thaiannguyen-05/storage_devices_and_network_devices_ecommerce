@@ -3,7 +3,11 @@ package module.core.user;
 import entity.UserEntity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import module.bussiness.order.repository.impl.OrderRepository;
 import module.core.auth.PasswordService;
 import module.core.common.BaseResponse;
 import module.core.config.AppConfig;
@@ -20,6 +24,7 @@ import module.core.user.response_dto.UpdateUserResponseDto;
 
 public class UserService {
     private final UserRepository userRepository = new UserRepository();
+    private final OrderRepository orderRepository = new OrderRepository();
     private final PasswordService passwordService = new PasswordService();
     private final OutBoxService outBoxService = new OutBoxService();
 
@@ -77,11 +82,15 @@ public class UserService {
     }
 
     public ListUserResponseDto listUsers(int page, int size) {
+        return listUsers(page, size, null, null, null);
+    }
+
+    public ListUserResponseDto listUsers(int page, int size, String role, String status, String keyword) {
         int safeSize = size <= 0 ? AppConfig.PAGE_SIZE : size;
         int offset = Math.max(0, page - 1) * safeSize;
         ListUserResponseDto response = new ListUserResponseDto();
-        response.setUsers(userRepository.findAll(offset, safeSize));
-        response.setTotal(userRepository.countAll());
+        response.setUsers(userRepository.findFiltered(role, status, keyword, offset, safeSize));
+        response.setTotal(userRepository.countFiltered(role, status, keyword));
         response.setSuccess(true);
         return response;
     }
@@ -99,6 +108,74 @@ public class UserService {
         userRepository.updateStatus(id, status);
         response.setSuccess(true);
         response.setSuccessMessage("Status updated");
+        return response;
+    }
+
+    public UpdateUserResponseDto banUser(String id) {
+        return changeStatus(id, "BANNED");
+    }
+
+    public UpdateUserResponseDto activateUser(String id) {
+        return changeStatus(id, "ACTIVE");
+    }
+
+    public UpdateUserResponseDto promoteToAdmin(String id) {
+        UpdateUserResponseDto response = new UpdateUserResponseDto();
+        userRepository.updateRole(id, "ADMIN");
+        response.setSuccess(true);
+        response.setSuccessMessage("Role updated");
+        return response;
+    }
+
+    public UpdateUserResponseDto demoteToUser(String id) {
+        UpdateUserResponseDto response = new UpdateUserResponseDto();
+        userRepository.updateRole(id, "USER");
+        response.setSuccess(true);
+        response.setSuccessMessage("Role updated");
+        return response;
+    }
+
+    public List<UserEntity> listUsersByRole(String role) {
+        return userRepository.findFiltered(role, null, null, 0, 200);
+    }
+
+    public Map<String, Map<String, Integer>> getStats() {
+        Map<String, Map<String, Integer>> stats = new LinkedHashMap<String, Map<String, Integer>>();
+        stats.put("roles", userRepository.countByRole());
+        stats.put("statuses", userRepository.countByStatus());
+        return stats;
+    }
+
+    public List<entity.OrderEntity> getRecentOrdersForUser(String userId, int limit) {
+        return orderRepository.findByUserId(userId, 0, limit);
+    }
+
+    public module.core.common.BaseResponse changePassword(String userId, String currentPassword, String newPassword, String confirmPassword) {
+        module.core.common.BaseResponse response = new module.core.common.BaseResponse();
+        UserEntity user = userRepository.findById(userId);
+        if (user == null) {
+            fail(response, "User not found");
+            return response;
+        }
+        if (isBlank(currentPassword) || isBlank(newPassword) || isBlank(confirmPassword)) {
+            fail(response, "Current password, new password and confirmation are required");
+            return response;
+        }
+        if (!passwordService.matches(currentPassword, user.getHashPassword())) {
+            fail(response, "Current password is invalid");
+            return response;
+        }
+        if (newPassword.length() < 8) {
+            fail(response, "Password must be at least 8 characters");
+            return response;
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            fail(response, "Password confirmation does not match");
+            return response;
+        }
+        userRepository.updatePassword(userId, passwordService.hash(newPassword));
+        response.setSuccess(true);
+        response.setSuccessMessage("Password updated");
         return response;
     }
 
