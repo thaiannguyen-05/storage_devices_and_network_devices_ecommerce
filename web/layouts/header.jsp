@@ -75,6 +75,7 @@
             <a class="${activePage == 'contact' ? 'active' : ''}" href="${ctx}/contact">Liên hệ</a>
             <a class="${activePage == 'about' ? 'active' : ''}" href="${ctx}/about">Giới thiệu</a>
             <a class="${activePage == 'orders' ? 'active' : ''}" href="${ctx}/orders">Đơn hàng</a>
+            <a class="${activePage == 'ai-chat' ? 'active' : ''}" href="${ctx}/ai-chat">Tro ly AI</a>
             <c:if test="${sessionScope.currentUser.role == 'ADMIN' || sessionScope.role == 'ADMIN'}">
                 <a class="${activePage == 'admin' ? 'active' : ''}" href="${ctx}/admin/dashboard">Quản trị</a>
             </c:if>
@@ -137,4 +138,3 @@
         </aside>
     </c:if>
     <main class="content">
-

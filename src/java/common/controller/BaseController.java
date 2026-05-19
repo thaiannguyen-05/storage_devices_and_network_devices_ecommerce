@@ -211,6 +211,9 @@ public abstract class BaseController extends HttpServlet {
         HttpSession session = request.getSession(false);
         Object expected = session == null ? null : session.getAttribute(CSRF_TOKEN_KEY);
         String actual = request.getParameter(CSRF_TOKEN_KEY);
+        if (actual == null || actual.trim().isEmpty()) {
+            actual = request.getHeader("X-CSRF-Token");
+        }
         return expected != null && actual != null && expected.equals(actual);
     }
 
