@@ -304,6 +304,73 @@ th { color: var(--color-text); background: var(--color-surface-soft); font-size:
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
+.review-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+.review-summary h2 {
+    margin: 0 0 4px;
+    font-size: 1.25rem;
+}
+.review-score {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+    min-width: 130px;
+}
+.rating-stars {
+    display: inline-flex;
+    gap: 2px;
+    color: var(--color-gray-300);
+    line-height: 1;
+}
+.rating-stars .filled {
+    color: var(--color-warning);
+}
+.review-notice {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-soft);
+    color: var(--color-text-secondary);
+}
+.review-notice a {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+.review-form {
+    margin-bottom: 22px;
+}
+.review-list {
+    display: grid;
+    gap: 14px;
+}
+.review-item {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+.review-item-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: start;
+}
+.review-item-head strong,
+.review-item-head span {
+    display: block;
+}
+.review-item p {
+    margin: 0;
+}
+
 .summary-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .summary-list li { display: flex; justify-content: space-between; gap: 12px; }
 .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -352,6 +419,8 @@ th { color: var(--color-text); background: var(--color-surface-soft); font-size:
     .table-wrap td::before { position: absolute; top: 6px; left: 0; width: 36%; color: var(--color-text-muted); font-size: 0.85rem; font-weight: 700; content: attr(data-label); }
     .toolbar { flex-direction: column; align-items: stretch; }
     .toolbar .button { width: 100%; justify-content: center; }
+    .review-summary, .review-item-head { flex-direction: column; align-items: stretch; }
+    .review-score { justify-items: start; }
 }
 
 @media (max-width: 480px) {

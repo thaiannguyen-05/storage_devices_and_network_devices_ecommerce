@@ -8,19 +8,28 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import module.bussiness.product.dto.CreateProductDto;
+import module.bussiness.product.dto.CreateReviewDto;
 import module.bussiness.product.dto.CreateVariantDto;
 import module.bussiness.product.dto.UpdateProductDto;
 import module.bussiness.product.dto.UpdateVariantDto;
 import module.bussiness.product.response_dto.CreateProductResponseDto;
+import module.bussiness.product.response_dto.CreateReviewResponseDto;
+import module.bussiness.product.response_dto.GetProductResponseDto;
+import module.bussiness.product.response_dto.GetReviewsResponseDto;
+import module.core.common.BaseResponse;
 
 @Public
 @WebServlet(name = "Product", urlPatterns = {"/home", "/product", "/products", "/admin/products"})
 public class ProductController extends BaseController {
     private final ProductService productService = new ProductService();
     private final VariantService variantService = new VariantService();
+    private final ReviewService reviewService = new ReviewService();
     private final AuthGuard authGuard = new AuthGuard();
 
     @Override
@@ -28,7 +37,7 @@ public class ProductController extends BaseController {
         String action = action(req, "list");
         if ("/home".equals(req.getServletPath()) && !"autocomplete".equals(action)) {
             action = req.getParameter("keyword") == null || req.getParameter("keyword").trim().isEmpty() ? "home" : "search";
-        } else if ("/product".equals(req.getServletPath())) {
+        } else if ("/product".equals(req.getServletPath()) && !"reviews".equals(action)) {
             action = "detail";
         }
         if (isAdminPath(req) && !authGuard.checkRole(req, res, "ADMIN")) {
@@ -66,10 +75,13 @@ public class ProductController extends BaseController {
                 res.getWriter().write(sb.toString());
                 break;
             case "detail":
-                module.bussiness.product.response_dto.GetProductResponseDto detail = productService.getProductDetail(req.getParameter("id"));
+            case "reviews":
+                GetProductResponseDto detail = productService.getProductDetail(req.getParameter("id"));
                 req.setAttribute("productResult", detail);
                 req.setAttribute("product", detail.getProduct());
                 req.setAttribute("variants", detail.getVariants());
+                req.setAttribute("activeProductTab", "reviews".equals(action) ? "reviews" : "desc");
+                loadReviewAttributes(req, req.getParameter("id"));
                 forwardToJsp(req, res, "/pages/product-detail.jsp");
                 break;
             case "search":
@@ -122,14 +134,18 @@ public class ProductController extends BaseController {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
+        String action = action(req, "list");
         if (!isAdminPath(req)) {
+            if ("review".equals(action)) {
+                handleReviewPost(req, res);
+                return;
+            }
             redirect(req, res, "/product?id=" + safe(req.getParameter("productId")));
             return;
         }
         if (isAdminPath(req) && !authGuard.checkRole(req, res, "ADMIN")) {
             return;
         }
-        String action = action(req, "list");
         if ("create".equals(action)) {
             CreateProductResponseDto product = productService.createProduct(createProductDto(req));
             if (product.isSuccess() && req.getParameter("sku") != null && !req.getParameter("sku").trim().isEmpty()) {
@@ -160,6 +176,15 @@ public class ProductController extends BaseController {
         dto.setStatus(req.getParameter("status"));
         dto.setCategory(req.getParameter("category"));
         dto.setUserId(user == null ? req.getParameter("userId") : user.getUserId());
+        return dto;
+    }
+
+    private CreateReviewDto createReviewDto(HttpServletRequest req, String userId) {
+        CreateReviewDto dto = new CreateReviewDto();
+        dto.setProductId(req.getParameter("productId"));
+        dto.setUserId(userId);
+        dto.setRating(parseInt(req.getParameter("rating"), 0));
+        dto.setComment(req.getParameter("comment"));
         return dto;
     }
 
@@ -199,6 +224,58 @@ public class ProductController extends BaseController {
 
     private boolean isAdminPath(HttpServletRequest req) {
         return req.getServletPath().startsWith("/admin");
+    }
+
+    private void handleReviewPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String productId = req.getParameter("productId");
+        String userId = getCurrentUserId(req);
+        if (userId == null) {
+            req.getSession().setAttribute("flashError", "Please log in to review this product");
+            redirectToLogin(req, res, productId);
+            return;
+        }
+
+        CreateReviewResponseDto result = reviewService.createReview(createReviewDto(req, userId));
+        flash(req, result);
+        redirect(req, res, "/product?action=reviews&id=" + safe(productId));
+    }
+
+    private void loadReviewAttributes(HttpServletRequest req, String productId) {
+        try {
+            GetReviewsResponseDto response = reviewService.getReviewsByProductId(productId);
+            req.setAttribute("reviewsResult", response);
+            req.setAttribute("reviews", response.getReviews());
+            req.setAttribute("averageRating", response.getAverageRating());
+            req.setAttribute("averageRatingText", String.format(java.util.Locale.US, "%.1f", response.getAverageRating()));
+            req.setAttribute("averageRatingRounded", (int) Math.round(response.getAverageRating()));
+            req.setAttribute("totalReviews", response.getTotalReviews());
+            req.setAttribute("hasReviewed", reviewService.hasReviewed(getCurrentUserId(req), productId));
+        } catch (RuntimeException ex) {
+            req.setAttribute("reviews", java.util.Collections.emptyList());
+            req.setAttribute("averageRating", 0);
+            req.setAttribute("averageRatingText", "0.0");
+            req.setAttribute("averageRatingRounded", 0);
+            req.setAttribute("totalReviews", 0);
+            req.setAttribute("hasReviewed", false);
+        }
+    }
+
+    private void flash(HttpServletRequest req, BaseResponse result) {
+        if (result == null) {
+            return;
+        }
+        HttpSession session = req.getSession();
+        if (result.isSuccess() && result.getSuccessMessage() != null) {
+            session.setAttribute("flashSuccess", result.getSuccessMessage());
+        } else if (!result.isSuccess() && result.getErrorMessage() != null) {
+            session.setAttribute("flashError", result.getErrorMessage());
+        }
+    }
+
+    private void redirectToLogin(HttpServletRequest req, HttpServletResponse res, String productId) throws IOException {
+        String target = req.getContextPath() + "/product?action=reviews&id=" + safe(productId);
+        String encodedRedirect = URLEncoder.encode(target, StandardCharsets.UTF_8.name());
+        res.sendRedirect(req.getContextPath() + "/auth?action=login&redirect=" + encodedRedirect);
     }
 
     private String action(HttpServletRequest req, String fallback) {

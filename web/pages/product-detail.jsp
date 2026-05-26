@@ -87,27 +87,93 @@
     </div>
 </section>
 
+<c:set var="selectedTab" value="${empty activeProductTab ? 'desc' : activeProductTab}" />
 <div class="tabs" role="tablist">
-    <button class="tab-button active" type="button" data-tab="desc">Mô tả chi tiết</button>
-    <button class="tab-button" type="button" data-tab="spec">Thông số kỹ thuật</button>
-    <button class="tab-button" type="button" data-tab="reviews">Đánh giá</button>
+    <button class="tab-button ${selectedTab eq 'desc' ? 'active' : ''}" type="button" data-tab="desc">Mô tả chi tiết</button>
+    <button class="tab-button ${selectedTab eq 'spec' ? 'active' : ''}" type="button" data-tab="spec">Thông số kỹ thuật</button>
+    <button class="tab-button ${selectedTab eq 'reviews' ? 'active' : ''}" type="button" data-tab="reviews">Đánh giá</button>
 </div>
-<section class="panel tab-panel active" data-tab-panel="desc">
+<section class="panel tab-panel ${selectedTab eq 'desc' ? 'active' : ''}" data-tab-panel="desc">
     <p>Sản phẩm được tối ưu cho tốc độ đọc ghi cao, độ bền tốt và bảo hành chính hãng.</p>
 </section>
-<section class="panel tab-panel" data-tab-panel="spec">
+<section class="panel tab-panel ${selectedTab eq 'spec' ? 'active' : ''}" data-tab-panel="spec">
     <table><tbody><tr><th>Giáo tiếp</th><td data-label="Giáo tiếp">PCIe 4.0 NVMe</td></tr><tr><th>Dung lượng</th><td data-label="Dung lượng">1TB / 2TB / 4TB</td></tr><tr><th>Bảo hành</th><td data-label="Bảo hành">60 thang</td></tr></tbody></table>
 </section>
-<section class="panel tab-panel" data-tab-panel="reviews">
-    <form action="${pageContext.request.contextPath}/product" method="post" data-validate class="form-grid">
-        <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
-        <input type="hidden" name="action" value="review">
-        <input type="hidden" name="productId" value="${param.id}">
-        <div class="field"><label>Tên</label><input name="reviewerName" required><span class="error"></span></div>
-        <div class="field"><label>Rating</label><select name="rating"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>
-        <div class="field full"><label>Nhận xét</label><textarea name="comment" required></textarea><span class="error"></span></div>
-        <button class="button" type="submit">Gửi đánh giá</button>
-    </form>
+<section class="panel tab-panel ${selectedTab eq 'reviews' ? 'active' : ''}" data-tab-panel="reviews">
+    <div class="review-summary">
+        <div>
+            <h2>Đánh giá sản phẩm</h2>
+            <p class="muted"><c:out value="${totalReviews}" /> lượt đánh giá đã được duyệt</p>
+        </div>
+        <div class="review-score">
+            <div class="rating-stars" aria-label="Điểm trung bình">
+                <c:forEach var="star" begin="1" end="5">
+                    <span class="${star le averageRatingRounded ? 'filled' : ''}">★</span>
+                </c:forEach>
+            </div>
+            <strong><c:out value="${averageRatingText}" />/5</strong>
+        </div>
+    </div>
+
+    <c:choose>
+        <c:when test="${empty sessionScope.currentUser}">
+            <div class="review-notice">
+                Vui lòng <a href="${pageContext.request.contextPath}/auth?action=login">đăng nhập</a> để đánh giá sản phẩm.
+            </div>
+        </c:when>
+        <c:when test="${hasReviewed}">
+            <div class="review-notice">Bạn đã đánh giá sản phẩm này.</div>
+        </c:when>
+        <c:otherwise>
+            <form action="${pageContext.request.contextPath}/product" method="post" data-validate class="form-grid review-form">
+                <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
+                <input type="hidden" name="action" value="review">
+                <input type="hidden" name="productId" value="${empty product.id ? param.id : product.id}">
+                <div class="field">
+                    <label>Rating</label>
+                    <select name="rating" required>
+                        <option value="5">5 sao</option>
+                        <option value="4">4 sao</option>
+                        <option value="3">3 sao</option>
+                        <option value="2">2 sao</option>
+                        <option value="1">1 sao</option>
+                    </select>
+                </div>
+                <div class="field full">
+                    <label>Nhận xét</label>
+                    <textarea name="comment" maxlength="1000" required></textarea>
+                    <span class="error"></span>
+                </div>
+                <button class="button" type="submit">Gửi đánh giá</button>
+            </form>
+        </c:otherwise>
+    </c:choose>
+
+    <div class="review-list">
+        <c:choose>
+            <c:when test="${not empty reviews}">
+                <c:forEach var="review" items="${reviews}">
+                    <article class="review-item">
+                        <div class="review-item-head">
+                            <div>
+                                <strong><c:out value="${review.reviewerName}" /></strong>
+                                <span class="muted"><c:out value="${review.formattedCreatedAt}" /></span>
+                            </div>
+                            <div class="rating-stars" aria-label="Rating">
+                                <c:forEach var="star" begin="1" end="5">
+                                    <span class="${star le review.rating ? 'filled' : ''}">★</span>
+                                </c:forEach>
+                            </div>
+                        </div>
+                        <p><c:out value="${review.comment}" /></p>
+                    </article>
+                </c:forEach>
+            </c:when>
+            <c:otherwise>
+                <div class="empty-state">Chưa có đánh giá nào cho sản phẩm này.</div>
+            </c:otherwise>
+        </c:choose>
+    </div>
 </section>
 
 <jsp:include page="../layouts/footer.jsp" />
