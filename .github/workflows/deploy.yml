@@ -57,19 +57,36 @@ jobs:
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
           cd /home/app/sto-ecommerce
-          
+
           echo "=== Automatically generating .env file on VPS ==="
           echo "DB_PASSWORD=${{ secrets.VPS_PASSWORD }}" > .env
           echo "SMTP_USER=${{ secrets.SMTP_USER || 'thaiandev05@gmail.com' }}" >> .env
           echo "SMTP_PASS=${{ secrets.SMTP_PASS || 'gbpf hjou vvor djgf' }}" >> .env
           echo "SMTP_FROM=${{ secrets.SMTP_FROM || 'thaiandev05@gmail.com' }}" >> .env
-          
-          echo "=== Building Docker Image directly on VPS ==="
-          docker build -t localhost:5000/sto-ecommerce:latest .
-          
-          echo "=== Starting Containers with Docker Compose ==="
-          # Khởi động dịch vụ (tự động đọc cấu hình file .env vừa được sinh tự động)
-          docker compose up -d --build
-          
-          echo "=== Cleaning up old Docker images to save space ==="
+
+          echo "=== Verify WAR file exists in build context ==="
+          ls -la dist/WebApplication3.war
+
+          echo "=== Stopping existing containers ==="
+          docker compose down || true
+
+          echo "=== Building Docker Image ==="
+          docker build -t localhost:5000/sto-ecommerce:latest -f Dockerfile .
+
+          echo "=== Starting Containers ==="
+          docker compose up -d
+
+          echo "=== Waiting for Payara to start ==="
+          sleep 30
+
+          echo "=== Checking container logs ==="
+          docker logs sto-app --tail 100 || true
+
+          echo "=== Verifying WAR in image ==="
+          docker exec sto-app ls -la /opt/payara/deployments/ROOT.war || true
+
+          echo "=== Testing HTTP response ==="
+          docker exec sto-app curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ || true
+
+          echo "=== Cleaning up old Docker images ==="
           docker image prune -f
