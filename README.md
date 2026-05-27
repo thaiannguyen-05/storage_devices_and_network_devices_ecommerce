@@ -64,7 +64,7 @@ Dự án tuân thủ yêu cầu môn học: Jakarta EE Servlet thuần, không D
 
 ```
 WebApplication3/
-├── .env                          ← Biến môi trường (DB, SMTP, JWT)
+├── .env                          ← Biến môi trường (DB, SMTP)
 ├── .gitignore
 ├── build.xml                     ← Ant build script
 ├── sto.sql                       ← Database schema + seed data (30+ sản phẩm)
@@ -381,7 +381,7 @@ Mỗi bảng có composite index cho query thường dùng:
 |---|---|
 | `ConfigService` | Singleton đọc `.env` file, cache key-value. `get()`, `getInt()`, `require()` |
 | `DbConfig` | Tạo JDBC Connection từ `.env`. Auto-repair schema cho Order table |
-| `AppConfig` | Constants: JWT secret, expiry, PBKDF2 iterations, page size, Sepay gateway URLs |
+| `AppConfig` | Constants: PBKDF2 iterations, page size, Sepay gateway URLs |
 
 ### 2. Core — SQL (`module.core.sql`)
 

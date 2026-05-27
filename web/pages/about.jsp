@@ -9,11 +9,11 @@
         <h2>Dự án e-commerce thiết bị lưu trữ và network</h2>
         <p>LinhNamStore là ứng dụng Jakarta EE JSP/Servlet dùng MySQL, tập trung vào catalog sản phẩm, giỏ hàng, thanh toán và quản trị.</p>
         <table>
-            <thead><tr><th>Họ tên</th><th>MSSV</th><th>Ngày sinh</th><th>Vai trò</th></tr></thead>
+            <thead><tr><th>Họ tên</th><th>MSSV</th><th>Vai trò</th></tr></thead>
             <tbody>
-                <tr><td data-label="Họ tên">Thành viên 1</td><td data-label="MSSV">SV001</td><td data-label="Ngày sinh">01/01/2004</td><td data-label="Vai trò">Frontend</td></tr>
-                <tr><td data-label="Họ tên">Thành viên 2</td><td data-label="MSSV">SV002</td><td data-label="Ngày sinh">02/02/2004</td><td data-label="Vai trò">Backend</td></tr>
-                <tr><td data-label="Họ tên">Thành viên 3</td><td data-label="MSSV">SV003</td><td data-label="Ngày sinh">03/03/2004</td><td data-label="Vai trò">Database</td></tr>
+                <tr><td data-label="Họ tên">Nguyễn Thái An</td><td data-label="MSSV">23103100059</td><td data-label="Vai trò">Frontend</td></tr>
+                <tr><td data-label="Họ tên">Lê Hữu Hoàng</td><td data-label="MSSV">23103100027</td><td data-label="Vai trò">Backend</td></tr>
+                <tr><td data-label="Họ tên">Nguyễn Phúc Hưng</td><td data-label="MSSV">23103100049</td><td data-label="Vai trò">Database</td></tr>
             </tbody>
         </table>
     </div>

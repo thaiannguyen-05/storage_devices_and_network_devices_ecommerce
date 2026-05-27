@@ -7,7 +7,7 @@
 <section class="hero">
     <div class="hero-copy">
         <h1>LinhNamStore</h1>
-        <p>SSD, HDD, NAS, router và phụ kiện mạng được sắp xếp rõ ràng để dễ tìm, dễ so sánh và dễ mua.</p>
+        <p>Chuỗi hệ thống bán chẵn thiết bị mạng và lưu trữ hàng đầu Việt Lam.</p>
         <div>
             <a class="button" href="#products">Xem sản phẩm</a>
             <a class="button secondary" href="${pageContext.request.contextPath}/contact">Cần tư vấn</a>

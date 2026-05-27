@@ -1,5 +1,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%!
+    private String formatPrice(java.math.BigDecimal price) {
+        if (price == null) return "0 ₫";
+        return java.text.NumberFormat.getNumberInstance(java.util.Locale.forLanguageTag("vi-VN")).format(price) + " ₫";
+    }
+%>
 <c:set var="pageTitle" value="Giỏ hàng" scope="request" />
 <jsp:include page="../layouts/header.jsp" />
 <c:if test="${not empty sessionScope.flashError}">
@@ -36,12 +42,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <c:forEach var="item" items="${cartResult.items}">
+                    <c:forEach var="item" items="${cartResult.items}" varStatus="status">
+                        <c:set var="price_raw" value="${item.price != null ? item.price : 0}" scope="request" />
                         <tr data-cart-row data-price="${item.price != null ? item.price : 0}">
                             <td data-label="Chọn" style="text-align: center;"><input type="checkbox" name="selectedItems" value="${item.id}" form="checkoutForm" data-item-select checked></td>
                             <td data-label="Sản phẩm"><c:out value="${item.productName}" /></td>
                             <td data-label="Variant"><c:out value="${item.sku}" /></td>
-                            <td data-label="Đơn giá"><c:out value="${item.price != null ? item.price : 0}" /> VND</td>
+                            <td data-label="Đơn giá" data-unit-price="${price_raw}"><%= formatPrice(new java.math.BigDecimal(pageContext.getAttribute("price_raw", javax.servlet.jsp.PageContext.REQUEST_SCOPE).toString())) %></td>
                             <td data-label="Số lượng">
                                 <form action="${pageContext.request.contextPath}/cart" method="post" style="display:inline">
                                     <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">

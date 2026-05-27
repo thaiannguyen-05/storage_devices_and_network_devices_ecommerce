@@ -1,5 +1,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%!
+    private String formatPrice(java.math.BigDecimal price) {
+        if (price == null) return "0 ₫";
+        return java.text.NumberFormat.getNumberInstance(java.util.Locale.forLanguageTag("vi-VN")).format(price) + " ₫";
+    }
+%>
 <c:set var="pageTitle" value="San pham yeu thich" scope="request" />
 <jsp:include page="../layouts/header.jsp" />
 <c:if test="${not empty sessionScope.flashSuccess}"><div class="panel mb-4"><span class="badge success"><c:out value="${sessionScope.flashSuccess}" /></span></div><c:remove var="flashSuccess" scope="session" /></c:if>
@@ -20,7 +26,7 @@
                     <div class="product-media"><img src="${item.imageUrl}" alt="${item.productName}"></div>
                     <div class="product-body">
                         <h3 class="product-name"><c:out value="${item.productName}" /></h3>
-                        <strong class="price"><c:out value="${item.price}" /> VND</strong>
+                        <strong class="price"><%= formatPrice(((module.bussiness.wishlist.WishlistItemView)pageContext.getAttribute("item")).getPrice()) %></strong>
                         <form action="${pageContext.request.contextPath}/cart" method="post">
                             <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                             <input type="hidden" name="action" value="add">

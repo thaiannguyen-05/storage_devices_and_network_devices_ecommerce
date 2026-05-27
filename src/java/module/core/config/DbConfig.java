@@ -1,13 +1,15 @@
 package module.core.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DbConfig {
     private static final ConfigService CONFIG = ConfigService.getInstance();
     public static final String DRIVER_CLASS = CONFIG.get("DB_DRIVER_CLASS", "com.mysql.cj.jdbc.Driver");
-    private static volatile boolean driverLoaded;
+    private static HikariDataSource dataSource;
+    private static volatile boolean initialized;
 
     private DbConfig() {
     }
@@ -15,9 +17,35 @@ public class DbConfig {
     private static volatile boolean schemaChecking = false;
     private static volatile boolean schemaChecked = false;
 
+    private static HikariDataSource getDataSource() {
+        if (dataSource == null) {
+            synchronized (DbConfig.class) {
+                if (dataSource == null) {
+                    HikariConfig config = new HikariConfig();
+                    config.setDriverClassName(DRIVER_CLASS);
+                    config.setJdbcUrl(getJdbcUrl());
+                    config.setUsername(getUsername());
+                    config.setPassword(getPassword());
+                    config.setMinimumIdle(CONFIG.getInt("DB_POOL_MIN", 5));
+                    config.setMaximumPoolSize(CONFIG.getInt("DB_POOL_MAX", 20));
+                    config.setConnectionTimeout(CONFIG.getInt("DB_POOL_CONN_TIMEOUT", 30000));
+                    config.setIdleTimeout(CONFIG.getInt("DB_POOL_IDLE_TIMEOUT", 600000));
+                    config.setMaxLifetime(CONFIG.getInt("DB_POOL_MAX_LIFETIME", 1800000));
+                    config.setPoolName("LinhNamStore-Pool");
+                    config.addDataSourceProperty("cachePrepStmts", "true");
+                    config.addDataSourceProperty("prepStmtCacheSize", "250");
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+                    config.addDataSourceProperty("useServerPrepStmts", "true");
+                    dataSource = new HikariDataSource(config);
+                    System.out.println("[HikariCP] Pool initialized: " + config.getJdbcUrl());
+                }
+            }
+        }
+        return dataSource;
+    }
+
     public static Connection getConnection() throws SQLException {
-        loadDriver();
-        Connection conn = DriverManager.getConnection(getJdbcUrl(), getUsername(), getPassword());
+        Connection conn = getDataSource().getConnection();
         if (!schemaChecked && !schemaChecking) {
             schemaChecking = true;
             checkAndRepairSchema(conn);
@@ -25,6 +53,13 @@ public class DbConfig {
             schemaChecked = true;
         }
         return conn;
+    }
+
+    public static void close() {
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+            System.out.println("[HikariCP] Pool closed.");
+        }
     }
 
     public static String getJdbcUrl() {
@@ -47,23 +82,6 @@ public class DbConfig {
         return CONFIG.get("DB_PASSWORD", "");
     }
 
-    private static void loadDriver() {
-        if (driverLoaded) {
-            return;
-        }
-        synchronized (DbConfig.class) {
-            if (driverLoaded) {
-                return;
-            }
-            try {
-                Class.forName(DRIVER_CLASS);
-                driverLoaded = true;
-            } catch (ClassNotFoundException ex) {
-                throw new IllegalStateException("MySQL JDBC driver not found. Add MySQL Connector/J to WEB-INF/lib or GlassFish domain lib.", ex);
-            }
-        }
-    }
-
     private static void checkAndRepairSchema(Connection conn) {
         try {
             java.util.Set<String> columns = new java.util.HashSet<>();
@@ -72,7 +90,7 @@ public class DbConfig {
                     columns.add(rs.getString("COLUMN_NAME").toLowerCase());
                 }
             }
-            
+
             if (columns.isEmpty()) {
                 try (java.sql.Statement stmt = conn.createStatement();
                      java.sql.ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM `Order`")) {
@@ -81,9 +99,9 @@ public class DbConfig {
                     }
                 }
             }
-            
+
             System.out.println("[Schema Migrator] Existing columns in Order: " + columns);
-            
+
             alterIfMissing(conn, columns, "variantId", "ALTER TABLE `Order` ADD COLUMN `variantId` CHAR(36) NULL");
             alterIfMissing(conn, columns, "quantity", "ALTER TABLE `Order` ADD COLUMN `quantity` INT NOT NULL DEFAULT 1");
             alterIfMissing(conn, columns, "phone", "ALTER TABLE `Order` ADD COLUMN `phone` VARCHAR(20) NULL");
@@ -97,14 +115,14 @@ public class DbConfig {
             alterIfMissing(conn, columns, "totalAmount", "ALTER TABLE `Order` ADD COLUMN `totalAmount` DECIMAL(12,2) NULL");
             ensureProductReviewSchema(conn);
             seedProductReviewsIfEmpty(conn);
-            
+
             System.out.println("[Schema Migrator] Schema check and repair finished successfully!");
         } catch (Exception e) {
             System.err.println("[Schema Migrator] Error checking/repairing schema: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
+
     private static void alterIfMissing(Connection conn, java.util.Set<String> columns, String columnName, String sql) {
         if (!columns.contains(columnName.toLowerCase())) {
             try (java.sql.Statement stmt = conn.createStatement()) {

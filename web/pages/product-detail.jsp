@@ -1,5 +1,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%!
+    private String formatPrice(java.math.BigDecimal price) {
+        if (price == null) return "0 ₫";
+        return java.text.NumberFormat.getNumberInstance(java.util.Locale.forLanguageTag("vi-VN")).format(price) + " ₫";
+    }
+%>
 <c:set var="pageTitle" value="Chi tiết sản phẩm" scope="request" />
 <c:set var="activePage" value="products" scope="request" />
 <jsp:include page="../layouts/header.jsp" />
@@ -27,7 +33,7 @@
         </div>
     </div>
     <div class="panel">
-        <span class="badge">Storage device</span>
+        <span class="badge"><c:out value="${empty product.category ? 'SSD' : product.category}" /></span>
         <h1 class="page-title"><c:out value="${empty product.name ? 'Samsung 990 PRO NVMe SSD' : product.name}" /></h1>
         <p class="muted">Mã SP: <c:out value="${empty param.id ? 'DEMO-990PRO' : param.id}" /> - Thương hiệu: <a href="${pageContext.request.contextPath}/home?brand=Samsung">Samsung</a></p>
         <p><c:out value="${empty product.description ? 'PCIe 4.0 NVMe SSD cho gaming, workstation va creator workloads.' : product.description}" /></p>
@@ -49,10 +55,10 @@
         <p class="price" data-variant-price>
             <c:choose>
                 <c:when test="${not empty variants}">
-                    <c:out value="${variants[0].price}" /> VND
+                    <%= formatPrice(((entity.ProductVariantEntity)((java.util.List)request.getAttribute("variants")).get(0)).getPrice()) %>
                 </c:when>
                 <c:otherwise>
-                    3.490.000 VND
+                    3.490.000 ₫
                 </c:otherwise>
             </c:choose>
         </p>

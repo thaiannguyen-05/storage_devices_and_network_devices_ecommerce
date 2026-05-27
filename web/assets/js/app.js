@@ -171,11 +171,10 @@
             }
         });
 
-        // Auto-submit on change for desktop, and sort select on all devices
+        // Only auto-submit on change for sort select
         filterForm.addEventListener("change", (event) => {
-            const isDesktop = window.innerWidth > 1024;
             const isSelect = event.target.tagName === "SELECT";
-            if (isDesktop || isSelect) {
+            if (isSelect) {
                 filterForm.submit();
             }
         });

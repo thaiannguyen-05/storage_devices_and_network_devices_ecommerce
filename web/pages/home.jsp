@@ -1,5 +1,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%!
+    private String formatPrice(java.math.BigDecimal price) {
+        if (price == null) return "0 ₫";
+        return java.text.NumberFormat.getNumberInstance(java.util.Locale.forLanguageTag("vi-VN")).format(price) + " ₫";
+    }
+%>
 <c:set var="pageTitle" value="LinhNamStore - Trang chủ" scope="request" />
 <c:set var="activePage" value="home" scope="request" />
 <jsp:include page="../layouts/header.jsp" />
@@ -7,7 +13,7 @@
 <section class="hero">
     <div class="hero-copy">
         <h1>LinhNamStore</h1>
-        <p>SSD, HDD, NAS, router và phụ kiện mạng được sắp xếp rõ ràng để dễ tìm, dễ so sánh và dễ mua.</p>
+        <p>Chuỗi hệ thống bán chẵn thiết bị mạng và lưu trữ hàng đầu Việt Lam</p>
         <div>
             <a class="button" href="#products">Xem sản phẩm</a>
             <a class="button secondary" href="${pageContext.request.contextPath}/contact">Cần tư vấn</a>
@@ -37,8 +43,7 @@
                             <div class="product-body">
                                 <span class="badge success">Mới</span>
                                 <h3 class="product-name"><c:out value="${item.name}" /></h3>
-                                <span class="product-code">Mã: <c:out value="${item.id}" /></span>
-                                <strong class="price"><c:out value="${item.price}" /> VND</strong>
+                                <strong class="price"><%= formatPrice(((module.bussiness.product.ProductCardView)pageContext.getAttribute("item")).getPrice()) %></strong>
                             </div>
                         </a>
                     </article>
@@ -53,37 +58,13 @@
                             <div class="product-body">
                                 <span class="badge success">Mới</span>
                                 <h3 class="product-name">LinhNamStore NVMe SSD Gen4 ${i}TB</h3>
-                                <span class="product-code">Mã: DEMO-00${i}</span>
-                                <strong class="price">${i + 1}.490.000 VND</strong>
+                                <strong class="price">${i + 1}.490.000 ₫</strong>
                             </div>
                         </a>
                     </article>
                 </c:forEach>
             </c:otherwise>
         </c:choose>
-    </div>
-</section>
-
-<section>
-    <div class="section-title">
-        <div>
-            <h2>Bán chạy</h2>
-            <p>Sản phẩm có số lượng đơn hàng cao.</p>
-        </div>
-    </div>
-    <div class="grid product-grid">
-        <article class="card product-card">
-            <a href="${pageContext.request.contextPath}/product?id=p4444444-4444-4444-4444-444444444444">
-                <div class="product-media"><img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=900&q=80" alt="Router Wi-Fi 6"></div>
-                <div class="product-body"><span class="badge warning">Bán chạy</span><h3 class="product-name">TP-Link Archer AX73 Wi-Fi 6</h3><span class="product-code">Mã: 44444444</span><strong class="price">2.890.000 VND</strong></div>
-            </a>
-        </article>
-        <article class="card product-card">
-            <a href="${pageContext.request.contextPath}/product?id=p3333333-3333-3333-3333-333333333333">
-                <div class="product-media"><img src="https://images.unsplash.com/photo-1555617981-dac3880eac6e?auto=format&fit=crop&w=900&q=80" alt="NAS Synology"></div>
-                <div class="product-body"><span class="badge warning">Bán chạy</span><h3 class="product-name">Synology DiskStation DS923+</h3><span class="product-code">Mã: 33333333</span><strong class="price">16.890.000 VND</strong></div>
-            </a>
-        </article>
     </div>
 </section>
 
@@ -111,10 +92,8 @@
                                 <img src="${empty item.imageUrl ? 'https://images.unsplash.com/photo-1591799265444-d66432b91588?auto=format&fit=crop&w=600&q=80' : item.imageUrl}" alt="${item.name}">
                             </div>
                             <div class="product-body">
-                                <span class="badge success">Sản phẩm</span>
                                 <h3 class="product-name"><c:out value="${item.name}" /></h3>
-                                <span class="product-code">Mã: <c:out value="${item.id}" /></span>
-                                <strong class="price"><c:out value="${item.price}" /> VND</strong>
+                                <strong class="price"><%= formatPrice(((module.bussiness.product.ProductCardView)pageContext.getAttribute("item")).getPrice()) %></strong>
                             </div>
                         </a>
                     </article>
@@ -128,6 +107,30 @@
         </c:choose>
     </div>
 </section>
+
+<%-- Pagination --%>
+<%
+    module.bussiness.product.FilterResult fr = (module.bussiness.product.FilterResult) request.getAttribute("filterResult");
+    boolean isFiltered = request.getAttribute("isFiltered") != null && (Boolean)request.getAttribute("isFiltered");
+    Integer pgTotalPages = null;
+    Integer pgCurrentPage = null;
+    if (isFiltered && fr != null) {
+        pgTotalPages = fr.getTotalPages();
+        pgCurrentPage = fr.getPage();
+    } else {
+        Integer productsTotal = (Integer) request.getAttribute("productsTotal");
+        if (productsTotal != null && productsTotal > 0) {
+            pgTotalPages = (productsTotal + 9) / 10;
+            String pageParam = request.getParameter("page");
+            pgCurrentPage = pageParam != null ? Integer.parseInt(pageParam) : 1;
+        }
+    }
+    if (pgTotalPages != null && pgTotalPages > 1) {
+        request.setAttribute("pg_totalPages", pgTotalPages);
+        request.setAttribute("pg_currentPage", pgCurrentPage);
+%>
+<jsp:include page="../layouts/pagination.jsp" />
+<% } %>
 
 <jsp:include page="../layouts/footer.jsp" />
 

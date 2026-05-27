@@ -22,6 +22,7 @@ import module.bussiness.product.response_dto.CreateProductResponseDto;
 import module.bussiness.product.response_dto.CreateReviewResponseDto;
 import module.bussiness.product.response_dto.GetProductResponseDto;
 import module.bussiness.product.response_dto.GetReviewsResponseDto;
+import module.bussiness.product.response_dto.ListProductResponseDto;
 import module.core.common.BaseResponse;
 
 @Public
@@ -96,35 +97,41 @@ public class ProductController extends BaseController {
                 java.util.Map<String, Object> homeData = productService.getHomePage();
                 req.setAttribute("homeData", homeData);
                 req.setAttribute("newProducts", homeData.get("recent"));
-                
+
                 String homeKeyword = req.getParameter("q");
                 if (homeKeyword == null || homeKeyword.trim().isEmpty()) {
                     homeKeyword = req.getParameter("keyword");
                 }
-                
+
                 String[] categories = req.getParameterValues("category");
                 String[] brands = req.getParameterValues("brand");
-                String priceRange = req.getParameter("price");
+                String[] priceRanges = req.getParameterValues("price");
                 String filterStatus = req.getParameter("status");
                 String sort = req.getParameter("sort");
-                
+
                 boolean hasFilter = (categories != null && categories.length > 0)
                         || (brands != null && brands.length > 0)
-                        || (priceRange != null && !priceRange.trim().isEmpty())
+                        || (priceRanges != null && priceRanges.length > 0)
                         || (filterStatus != null && !filterStatus.trim().isEmpty())
                         || (sort != null && !sort.trim().isEmpty())
                         || (homeKeyword != null && !homeKeyword.trim().isEmpty());
-                
+
                 if (hasFilter) {
-                    req.setAttribute("products", productService.filterProducts(homeKeyword, categories, brands, priceRange, filterStatus, sort));
+                    FilterResult filterResult = productService.filterProducts(homeKeyword, categories, brands, priceRanges, filterStatus, sort, parseInt(req.getParameter("page"), 1));
+                    req.setAttribute("filterResult", filterResult);
+                    req.setAttribute("products", filterResult.getProducts());
                     req.setAttribute("isFiltered", true);
                 } else {
-                    req.setAttribute("products", homeData.get("recent"));
+                    ListProductResponseDto listResult = productService.listProducts(parseInt(req.getParameter("page"), 1));
+                    req.setAttribute("products", productService.toProductCards(listResult.getProducts()));
+                    req.setAttribute("productsTotal", listResult.getTotal());
                 }
                 forwardToJsp(req, res, "/pages/home.jsp");
                 break;
             default:
-                req.setAttribute("productsResult", productService.listProducts(parseInt(req.getParameter("page"), 1)));
+                ListProductResponseDto listResult = productService.listProducts(parseInt(req.getParameter("page"), 1));
+                req.setAttribute("products", productService.toProductCards(listResult.getProducts()));
+                req.setAttribute("productsTotal", listResult.getTotal());
                 req.setAttribute("brandsResult", productService.getAllBrands());
                 forwardToJsp(req, res, isAdminPath(req) ? "/views/admin/products/list.jsp" : "/pages/home.jsp");
                 break;

@@ -30,9 +30,9 @@
         <section>
             <h3>Nhóm thực hiện</h3>
             <ul>
-                <li>Thành viên 1 - 01/01/2004</li>
-                <li>Thành viên 2 - 02/02/2004</li>
-                <li>Thành viên 3 - 03/03/2004</li>
+                <li>Nguyễn Thái An</li>
+                <li>Lê Hữu Hoàng</li>
+                <li>Nguyễn Phúc Hưng</li>
             </ul>
         </section>
     </div>

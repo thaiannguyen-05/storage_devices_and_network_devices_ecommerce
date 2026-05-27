@@ -3,11 +3,8 @@ package module.bussiness.product;
 import entity.ProductEntity;
 import entity.ProductVariantEntity;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 import module.bussiness.product.dto.CreateProductDto;
 import module.bussiness.product.dto.UpdateProductDto;
 import module.bussiness.product.repository.impl.BrandRepository;
@@ -22,6 +19,7 @@ import module.bussiness.product.response_dto.SearchProductResponseDto;
 import module.bussiness.product.response_dto.UpdateProductResponseDto;
 import module.core.common.BaseResponse;
 import module.core.config.AppConfig;
+import module.core.sql.JdbcHelper;
 
 public class ProductService {
     private final ProductRepository productRepository = new ProductRepository();
@@ -30,9 +28,10 @@ public class ProductService {
 
     public Map<String, Object> getHomePage() {
         Map<String, Object> data = new HashMap<>();
-        data.put("recent", toCards(productRepository.findActive(0, 8)));
-        data.put("bestSelling", toCards(productRepository.findBestSelling(8)));
-        data.put("discount", toCards(productRepository.findActive(0, 8)));
+        List<ProductEntity> recentProducts = productRepository.findActive(0, 8);
+        data.put("recent", toProductCards(recentProducts));
+        data.put("bestSelling", toProductCards(productRepository.findBestSelling(8)));
+        data.put("discount", toProductCards(recentProducts));
         return data;
     }
 
@@ -61,7 +60,7 @@ public class ProductService {
         int offset = Math.max(0, page - 1) * AppConfig.PAGE_SIZE;
         SearchProductResponseDto response = new SearchProductResponseDto();
         response.setProducts(productRepository.search(keyword, offset, AppConfig.PAGE_SIZE));
-        response.setTotal(response.getProducts().size());
+        response.setTotal(productRepository.countSearch(keyword));
         response.setSuccess(true);
         return response;
     }
@@ -70,14 +69,14 @@ public class ProductService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return java.util.Collections.emptyList();
         }
-        return toCards(productRepository.search(keyword, 0, 5));
+        return toProductCards(productRepository.search(keyword, 0, 5));
     }
 
     public ListProductResponseDto findByCategory(String category, int page) {
         int offset = Math.max(0, page - 1) * AppConfig.PAGE_SIZE;
         ListProductResponseDto response = new ListProductResponseDto();
         response.setProducts(productRepository.findByCategory(category, offset, AppConfig.PAGE_SIZE));
-        response.setTotal(response.getProducts().size());
+        response.setTotal(productRepository.countByCategory(category));
         response.setSuccess(true);
         return response;
     }
@@ -139,22 +138,25 @@ public class ProductService {
         return isBlank(value) ? fallback : value;
     }
 
-    public List<ProductCardView> filterProducts(String keyword, String[] categories, String[] brands, String priceRange, String status, String sort) {
+    public FilterResult filterProducts(String keyword, String[] categories, String[] brands, String[] priceRanges, String status, String sort, int page) {
+        int offset = Math.max(0, page - 1) * AppConfig.PAGE_SIZE;
         StringBuilder sql = new StringBuilder(
-            "SELECT p.id, p.name, b.name AS brandName, p.category, p.status, p.createdAt " +
+            "SELECT DISTINCT p.id, p.name, p.category, p.status, p.createdAt, " +
+            "pv.price, pv.imageUrl " +
             "FROM Product p " +
             "LEFT JOIN Brand b ON p.brandId = b.id " +
+            "LEFT JOIN ProductVariant pv ON pv.productId = p.id " +
             "WHERE 1=1 "
         );
         java.util.List<Object> params = new java.util.ArrayList<>();
-        
+
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (p.name LIKE ? OR p.description LIKE ?) ");
             String like = "%" + keyword.trim() + "%";
             params.add(like);
             params.add(like);
         }
-        
+
         if (status != null && !status.trim().isEmpty()) {
             sql.append("AND p.status = ? ");
             params.add(status);
@@ -182,40 +184,140 @@ public class ProductService {
             sql.append(") ");
         }
 
-        if (priceRange != null && !priceRange.trim().isEmpty()) {
-            String[] range = priceRange.split("-");
-            if (range.length > 0 && !range[0].trim().isEmpty()) {
-                sql.append("AND EXISTS (SELECT 1 FROM ProductVariant pv WHERE pv.productId = p.id AND pv.price >= ?) ");
-                params.add(new java.math.BigDecimal(range[0]));
+        if (priceRanges != null && priceRanges.length > 0) {
+            sql.append("AND (");
+            for (int i = 0; i < priceRanges.length; i++) {
+                String[] range = priceRanges[i].split("-");
+                if (i > 0) sql.append(" OR ");
+                sql.append("(pv.price IS NOT NULL ");
+                if (range.length > 0 && !range[0].trim().isEmpty()) {
+                    sql.append("AND pv.price >= ? ");
+                    params.add(new java.math.BigDecimal(range[0]));
+                }
+                if (range.length > 1 && !range[1].trim().isEmpty()) {
+                    sql.append("AND pv.price <= ? ");
+                    params.add(new java.math.BigDecimal(range[1]));
+                }
+                sql.append(") ");
             }
-            if (range.length > 1 && !range[1].trim().isEmpty()) {
-                sql.append("AND EXISTS (SELECT 1 FROM ProductVariant pv WHERE pv.productId = p.id AND pv.price <= ?) ");
-                params.add(new java.math.BigDecimal(range[1]));
-            }
+            sql.append(") ");
         }
 
         if ("priceAsc".equals(sort)) {
-            sql.append("ORDER BY (SELECT MIN(pv.price) FROM ProductVariant pv WHERE pv.productId = p.id) ASC ");
+            sql.append("ORDER BY pv.price ASC ");
         } else if ("priceDesc".equals(sort)) {
-            sql.append("ORDER BY (SELECT MAX(pv.price) FROM ProductVariant pv WHERE pv.productId = p.id) DESC ");
+            sql.append("ORDER BY pv.price DESC ");
         } else if ("bestSeller".equals(sort)) {
-            sql.append("ORDER BY (SELECT COUNT(*) FROM `Order` o WHERE o.productId = p.id) DESC ");
+            sql.append("ORDER BY (SELECT COUNT(*) FROM `Order` o WHERE o.productId = p.id) DESC, p.createdAt DESC ");
         } else {
-            sql.append("ORDER BY p.createdAt DESC ");
+            sql.append("ORDER BY p.createdAt DESC, pv.price ASC ");
         }
 
+        // Count total before pagination
+        String countSql = "SELECT COUNT(DISTINCT p.id) " +
+            "FROM Product p " +
+            "LEFT JOIN Brand b ON p.brandId = b.id " +
+            "LEFT JOIN ProductVariant pv ON pv.productId = p.id " +
+            "WHERE 1=1 ";
+
+        // We need to extract the WHERE conditions from main SQL for count query
+        // Simpler: run count with same params but without ORDER BY and LIMIT
+        int total = countFilterProducts(keyword, categories, brands, priceRanges, status);
+
+        // Add pagination to main query
+        sql.append("LIMIT ? OFFSET ? ");
+        params.add(AppConfig.PAGE_SIZE);
+        params.add(offset);
+
         try {
-            List<ProductEntity> products = module.core.sql.JdbcHelper.executeQuery(sql.toString(), rs -> {
-                return new ProductEntity(rs.getString("id"), rs.getString("name"), "",
-                        "", rs.getString("status"), "",
-                        rs.getTimestamp("createdAt").toLocalDateTime(), rs.getTimestamp("createdAt").toLocalDateTime(),
-                        rs.getString("category"));
+            List<Map<String, Object>> rows = module.core.sql.JdbcHelper.executeQuery(sql.toString(), rs -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", rs.getString("id"));
+                map.put("name", rs.getString("name"));
+                map.put("category", rs.getString("category"));
+                map.put("status", rs.getString("status"));
+                map.put("createdAt", rs.getTimestamp("createdAt").toLocalDateTime());
+                map.put("price", rs.getBigDecimal("price"));
+                map.put("imageUrl", rs.getString("imageUrl"));
+                return map;
             }, params.toArray());
-            return toCards(products);
+
+            Map<String, ProductCardView> cardMap = new LinkedHashMap<>();
+            for (Map<String, Object> row : rows) {
+                String id = (String) row.get("id");
+                if (!cardMap.containsKey(id)) {
+                    java.math.BigDecimal price = (java.math.BigDecimal) row.get("price");
+                    String imageUrl = (String) row.get("imageUrl");
+                    cardMap.put(id, new ProductCardView(id, (String) row.get("name"),
+                            imageUrl == null ? "" : imageUrl,
+                            price == null ? java.math.BigDecimal.ZERO : price));
+                }
+            }
+            return new FilterResult(new ArrayList<>(cardMap.values()), total, page, AppConfig.PAGE_SIZE);
         } catch (Exception e) {
             e.printStackTrace();
-            return java.util.Collections.emptyList();
+            return new FilterResult(Collections.emptyList(), 0, page, AppConfig.PAGE_SIZE);
         }
+    }
+
+    private int countFilterProducts(String keyword, String[] categories, String[] brands, String[] priceRanges, String status) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(DISTINCT p.id) FROM Product p " +
+            "LEFT JOIN Brand b ON p.brandId = b.id " +
+            "WHERE 1=1 "
+        );
+        java.util.List<Object> params = new java.util.ArrayList<>();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (p.name LIKE ? OR p.description LIKE ?) ");
+            String like = "%" + keyword.trim() + "%";
+            params.add(like);
+            params.add(like);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append("AND p.status = ? ");
+            params.add(status);
+        } else {
+            sql.append("AND p.status = 'ACTIVE' ");
+        }
+        if (categories != null && categories.length > 0) {
+            sql.append("AND p.category IN (");
+            for (int i = 0; i < categories.length; i++) {
+                sql.append("?");
+                params.add(categories[i]);
+                if (i < categories.length - 1) sql.append(",");
+            }
+            sql.append(") ");
+        }
+        if (brands != null && brands.length > 0) {
+            sql.append("AND b.name IN (");
+            for (int i = 0; i < brands.length; i++) {
+                sql.append("?");
+                params.add(brands[i]);
+                if (i < brands.length - 1) sql.append(",");
+            }
+            sql.append(") ");
+        }
+        if (priceRanges != null && priceRanges.length > 0) {
+            sql.append("AND (");
+            for (int i = 0; i < priceRanges.length; i++) {
+                String[] range = priceRanges[i].split("-");
+                if (i > 0) sql.append(" OR ");
+                sql.append("EXISTS (SELECT 1 FROM ProductVariant pv WHERE pv.productId = p.id ");
+                if (range.length > 0 && !range[0].trim().isEmpty()) {
+                    sql.append("AND pv.price >= ? ");
+                    params.add(new java.math.BigDecimal(range[0]));
+                }
+                if (range.length > 1 && !range[1].trim().isEmpty()) {
+                    sql.append("AND pv.price <= ? ");
+                    params.add(new java.math.BigDecimal(range[1]));
+                }
+                sql.append(") ");
+            }
+            sql.append(") ");
+        }
+
+        return JdbcHelper.count(sql.toString(), params.toArray());
     }
 
     private void fail(BaseResponse response, String message) {
@@ -223,10 +325,13 @@ public class ProductService {
         response.setErrorMessage(message);
     }
 
-    private List<ProductCardView> toCards(List<ProductEntity> products) {
+    public List<ProductCardView> toProductCards(List<ProductEntity> products) {
+        Map<String, List<ProductVariantEntity>> variantsByProduct = variantRepository.findByProductIds(
+            products.stream().map(ProductEntity::getId).collect(java.util.stream.Collectors.toList())
+        );
         List<ProductCardView> cards = new ArrayList<>();
         for (ProductEntity product : products) {
-            List<ProductVariantEntity> variants = variantRepository.findByProductId(product.getId());
+            List<ProductVariantEntity> variants = variantsByProduct.getOrDefault(product.getId(), Collections.emptyList());
             ProductVariantEntity variant = variants.isEmpty() ? null : variants.get(0);
             cards.add(new ProductCardView(product.getId(), product.getName(),
                     variant == null ? "" : variant.getImageUrl(),

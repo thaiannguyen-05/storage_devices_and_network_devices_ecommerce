@@ -8,6 +8,7 @@ public interface IVariantRepository {
     ProductVariantEntity findById(String id);
     ProductVariantEntity findBySku(String sku);
     List<ProductVariantEntity> findByProductId(String productId);
+    java.util.Map<String, List<ProductVariantEntity>> findByProductIds(List<String> productIds);
     void update(ProductVariantEntity variant);
     void delete(String id);
 }

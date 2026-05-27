@@ -15,7 +15,7 @@
         </div>
     </div>
     <div class="panel">
-        <span class="badge">Storage device</span>
+        <span class="badge"><c:out value="${empty product.category ? 'SSD' : product.category}" /></span>
         <h1 class="page-title"><c:out value="${empty product.name ? 'Samsung 990 PRO NVMe SSD' : product.name}" /></h1>
         <p class="muted">Mã SP: <c:out value="${empty param.id ? 'DEMO-990PRO' : param.id}" /> - Thương hiệu: <a href="${pageContext.request.contextPath}/home?brand=Samsung">Samsung</a></p>
         <p><c:out value="${empty product.description ? 'PCIe 4.0 NVMe SSD cho gaming, workstation va creator workloads.' : product.description}" /></p>

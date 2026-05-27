@@ -89,9 +89,13 @@
                 <div class="filter-section">
                     <h3>Danh mục</h3>
                     <ul class="filter-list">
-                        <li><label><input type="checkbox" name="category" value="STORAGE_DEVICE"> Storage device</label></li>
-                        <li><label><input type="checkbox" name="category" value="NETWORK_DEVICE"> Network device</label></li>
-                        <li><label><input type="checkbox" name="category" value="ACCESSORY"> Accessory</label></li>
+                        <li><label><input type="checkbox" name="category" value="HDD"> HDD</label></li>
+                        <li><label><input type="checkbox" name="category" value="SSD"> SSD</label></li>
+                        <li><label><input type="checkbox" name="category" value="USB"> USB</label></li>
+                        <li><label><input type="checkbox" name="category" value="NAS"> NAS</label></li>
+                        <li><label><input type="checkbox" name="category" value="TAPE"> TAPE</label></li>
+                        <li><label><input type="checkbox" name="category" value="ENCLOSURE"> ENCLOSURE</label></li>
+                        <li><label><input type="checkbox" name="category" value="MEMORY_CARD"> MEMORY_CARD</label></li>
                     </ul>
                 </div>
                 <div class="filter-section">
@@ -107,11 +111,11 @@
                 <div class="filter-section">
                     <h3>Khoảng giá</h3>
                     <ul class="filter-list">
-                        <li><label><input type="radio" name="price" value="0-1000000"> Dưới 1 triệu</label></li>
-                        <li><label><input type="radio" name="price" value="1000000-3000000"> 1-3 triệu</label></li>
-                        <li><label><input type="radio" name="price" value="3000000-5000000"> 3-5 triệu</label></li>
-                        <li><label><input type="radio" name="price" value="5000000-10000000"> 5-10 triệu</label></li>
-                        <li><label><input type="radio" name="price" value="10000000-"> Trên 10 triệu</label></li>
+                        <li><label><input type="checkbox" name="price" value="0-1000000"> Dưới 1 triệu</label></li>
+                        <li><label><input type="checkbox" name="price" value="1000000-3000000"> 1-3 triệu</label></li>
+                        <li><label><input type="checkbox" name="price" value="3000000-5000000"> 3-5 triệu</label></li>
+                        <li><label><input type="checkbox" name="price" value="5000000-10000000"> 5-10 triệu</label></li>
+                        <li><label><input type="checkbox" name="price" value="10000000-"> Trên 10 triệu</label></li>
                     </ul>
                 </div>
                 <div class="filter-section">

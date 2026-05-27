@@ -1,7 +1,7 @@
 package module.bussiness.product.repository.impl;
 
 import entity.ProductVariantEntity;
-import java.util.List;
+import java.util.*;
 import module.bussiness.product.repository.interfaces.IVariantRepository;
 import module.core.sql.JdbcHelper;
 
@@ -27,6 +27,25 @@ public class VariantRepository implements IVariantRepository {
     @Override
     public List<ProductVariantEntity> findByProductId(String productId) {
         return JdbcHelper.executeQuery("SELECT * FROM ProductVariant WHERE productId = ? ORDER BY price ASC", rs -> map(rs), productId);
+    }
+
+    @Override
+    public Map<String, List<ProductVariantEntity>> findByProductIds(List<String> productIds) {
+        Map<String, List<ProductVariantEntity>> result = new HashMap<>();
+        if (productIds == null || productIds.isEmpty()) {
+            return result;
+        }
+        StringBuilder sql = new StringBuilder("SELECT * FROM ProductVariant WHERE productId IN (");
+        for (int i = 0; i < productIds.size(); i++) {
+            sql.append("?");
+            if (i < productIds.size() - 1) sql.append(",");
+        }
+        sql.append(") ORDER BY productId, price ASC");
+        List<ProductVariantEntity> allVariants = JdbcHelper.executeQuery(sql.toString(), rs -> map(rs), productIds.toArray());
+        for (ProductVariantEntity v : allVariants) {
+            result.computeIfAbsent(v.getProductId(), k -> new ArrayList<>()).add(v);
+        }
+        return result;
     }
 
     @Override

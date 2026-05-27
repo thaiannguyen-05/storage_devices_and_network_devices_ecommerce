@@ -12,7 +12,7 @@
         <input type="hidden" name="action" value="create">
         <label>Name</label><input name="name" required>
         <label>Brand</label><select name="brandId"><option>Samsung</option><option>Western Digital</option><option>Synology</option><option>TP-Link</option><option>SanDisk</option></select>
-        <label>Category</label><select name="category"><option>STORAGE_DEVICE</option><option>NETWORK_DEVICE</option><option>ACCESSORY</option></select>
+        <label>Category</label><select name="category"><option>HDD</option><option>SSD</option><option>USB</option><option>NAS</option><option>TAPE</option><option>ENCLOSURE</option><option>MEMORY_CARD</option></select>
         <label>Status</label><select name="status"><option>ACTIVE</option><option>INACTIVE</option></select>
         <label>Description</label><textarea name="description" required></textarea>
         <label>SKU</label><input name="sku">

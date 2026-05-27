@@ -11,6 +11,8 @@ public interface IProductRepository {
     List<ProductEntity> findByCategory(String category, int offset, int limit);
     List<ProductEntity> findBestSelling(int limit);
     int countActive();
+    int countSearch(String keyword);
+    int countByCategory(String category);
     void update(ProductEntity product);
     void delete(String id);
 }

@@ -26,7 +26,6 @@ services:
       - DB_NAME=sto_db
       - DB_USER=root
       - DB_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
       - APP_BASE_URL=https://ecommerce.anhemlinhnam.thaiandev.online
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}

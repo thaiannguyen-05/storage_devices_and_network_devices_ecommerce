@@ -49,6 +49,17 @@ public class ProductRepository implements IProductRepository {
     }
 
     @Override
+    public int countSearch(String keyword) {
+        String like = "%" + (keyword == null ? "" : keyword) + "%";
+        return JdbcHelper.count("SELECT COUNT(*) FROM Product WHERE status = 'ACTIVE' AND (name LIKE ? OR description LIKE ?)", like, like);
+    }
+
+    @Override
+    public int countByCategory(String category) {
+        return JdbcHelper.count("SELECT COUNT(*) FROM Product WHERE status = 'ACTIVE' AND category = ?", category);
+    }
+
+    @Override
     public void update(ProductEntity p) {
         JdbcHelper.executeUpdate("UPDATE Product SET name = ?, description = ?, brandId = ?, status = ?, category = ? WHERE id = ?",
                 p.getName(), p.getDescription(), p.getBrandId(), p.getStatus(), p.getCategory(), p.getId());
