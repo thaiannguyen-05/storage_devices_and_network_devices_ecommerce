@@ -59,9 +59,14 @@ public class VariantRepository implements IVariantRepository {
         JdbcHelper.executeUpdate("DELETE FROM ProductVariant WHERE id = ?", id);
     }
 
+    private java.time.LocalDateTime safeTimestamp(java.sql.ResultSet rs, String column) throws java.sql.SQLException {
+        java.sql.Timestamp ts = rs.getTimestamp(column);
+        return ts == null ? null : ts.toLocalDateTime();
+    }
+
     private ProductVariantEntity map(java.sql.ResultSet rs) throws java.sql.SQLException {
         return new ProductVariantEntity(rs.getString("id"), rs.getString("productId"), rs.getBigDecimal("price"),
-                rs.getString("imageUrl"), rs.getString("status"), rs.getTimestamp("createdAt").toLocalDateTime(),
-                rs.getTimestamp("updatedAt").toLocalDateTime(), rs.getString("sku"), rs.getInt("quantity"));
+                rs.getString("imageUrl"), rs.getString("status"), safeTimestamp(rs, "createdAt"),
+                safeTimestamp(rs, "updatedAt"), rs.getString("sku"), rs.getInt("quantity"));
     }
 }

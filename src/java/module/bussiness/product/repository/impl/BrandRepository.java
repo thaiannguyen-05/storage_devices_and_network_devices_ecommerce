@@ -10,16 +10,16 @@ public class BrandRepository implements IBrandRepository {
     public List<BrandEntity> findAll() {
         return JdbcHelper.executeQuery("SELECT * FROM Brand ORDER BY name ASC",
                 rs -> new BrandEntity(rs.getString("id"), rs.getString("name"), rs.getString("userId"),
-                        rs.getString("description"), rs.getString("status"), rs.getTimestamp("createdAt").toLocalDateTime(),
-                        rs.getTimestamp("updatedAt").toLocalDateTime()));
+                        rs.getString("description"), rs.getString("status"),
+                        safeTimestamp(rs, "createdAt"), safeTimestamp(rs, "updatedAt")));
     }
 
     @Override
     public BrandEntity findById(String id) {
         List<BrandEntity> rows = JdbcHelper.executeQuery("SELECT * FROM Brand WHERE id = ?",
                 rs -> new BrandEntity(rs.getString("id"), rs.getString("name"), rs.getString("userId"),
-                        rs.getString("description"), rs.getString("status"), rs.getTimestamp("createdAt").toLocalDateTime(),
-                        rs.getTimestamp("updatedAt").toLocalDateTime()), id);
+                        rs.getString("description"), rs.getString("status"),
+                        safeTimestamp(rs, "createdAt"), safeTimestamp(rs, "updatedAt")), id);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
@@ -45,5 +45,10 @@ public class BrandRepository implements IBrandRepository {
     @Override
     public void updateStatus(String id, String status) {
         JdbcHelper.executeUpdate("UPDATE Brand SET status = ? WHERE id = ?", status, id);
+    }
+
+    private java.time.LocalDateTime safeTimestamp(java.sql.ResultSet rs, String column) throws java.sql.SQLException {
+        java.sql.Timestamp ts = rs.getTimestamp(column);
+        return ts == null ? null : ts.toLocalDateTime();
     }
 }

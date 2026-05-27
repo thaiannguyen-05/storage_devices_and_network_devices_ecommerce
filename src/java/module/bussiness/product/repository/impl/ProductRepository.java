@@ -70,10 +70,15 @@ public class ProductRepository implements IProductRepository {
         JdbcHelper.executeUpdate("DELETE FROM Product WHERE id = ?", id);
     }
 
+    private java.time.LocalDateTime safeTimestamp(java.sql.ResultSet rs, String column) throws java.sql.SQLException {
+        java.sql.Timestamp ts = rs.getTimestamp(column);
+        return ts == null ? null : ts.toLocalDateTime();
+    }
+
     private ProductEntity map(java.sql.ResultSet rs) throws java.sql.SQLException {
         return new ProductEntity(rs.getString("id"), rs.getString("name"), rs.getString("description"),
                 rs.getString("brandId"), rs.getString("status"), rs.getString("userId"),
-                rs.getTimestamp("createdAt").toLocalDateTime(), rs.getTimestamp("updatedAt").toLocalDateTime(),
+                safeTimestamp(rs, "createdAt"), safeTimestamp(rs, "updatedAt"),
                 rs.getString("category"));
     }
 }

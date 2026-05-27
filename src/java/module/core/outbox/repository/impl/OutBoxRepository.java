@@ -18,9 +18,7 @@ public class OutBoxRepository implements IOutBoxRepository {
     @Override
     public List<OutBoxEntity> findPending(int limit) {
         return JdbcHelper.executeQuery("SELECT * FROM OutBox WHERE status = 'PENDING' ORDER BY createdAt ASC LIMIT ?",
-                rs -> new OutBoxEntity(rs.getString("id"), rs.getString("code"), rs.getString("status"),
-                        rs.getTimestamp("createdAt").toLocalDateTime(), rs.getTimestamp("updatedAt").toLocalDateTime(),
-                        rs.getString("type"), rs.getString("userId")),
+                rs -> mapOutBox(rs),
                 limit);
     }
 
@@ -29,11 +27,18 @@ public class OutBoxRepository implements IOutBoxRepository {
         ensureSchema();
         List<OutBoxEntity> rows = JdbcHelper.executeQuery(
                 "SELECT * FROM OutBox WHERE userId = ? AND type = ? AND code = ? AND status IN ('PENDING', 'PROCESSED') AND usedAt IS NULL AND (expiresAt IS NULL OR expiresAt > NOW()) ORDER BY createdAt DESC LIMIT 1",
-                rs -> new OutBoxEntity(rs.getString("id"), rs.getString("code"), rs.getString("status"),
-                        rs.getTimestamp("createdAt").toLocalDateTime(), rs.getTimestamp("updatedAt").toLocalDateTime(),
-                        rs.getString("type"), rs.getString("userId")),
+                rs -> mapOutBox(rs),
                 userId, type, code);
         return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    private OutBoxEntity mapOutBox(java.sql.ResultSet rs) throws java.sql.SQLException {
+        java.sql.Timestamp createdAt = rs.getTimestamp("createdAt");
+        java.sql.Timestamp updatedAt = rs.getTimestamp("updatedAt");
+        return new OutBoxEntity(rs.getString("id"), rs.getString("code"), rs.getString("status"),
+                createdAt == null ? null : createdAt.toLocalDateTime(),
+                updatedAt == null ? null : updatedAt.toLocalDateTime(),
+                rs.getString("type"), rs.getString("userId"));
     }
 
     @Override

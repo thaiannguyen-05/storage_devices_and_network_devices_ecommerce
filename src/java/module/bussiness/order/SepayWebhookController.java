@@ -110,9 +110,11 @@ public class SepayWebhookController extends BaseController {
                     List<OrderEntity> matched = JdbcHelper.executeQuery(
                         "SELECT * FROM `Order` WHERE id LIKE ? AND status = 'PENDING'",
                         rs -> {
+                            Timestamp createdAt = rs.getTimestamp("createdAt");
                             Timestamp updatedAt = rs.getTimestamp("updatedAt");
                             OrderEntity order = new OrderEntity(rs.getString("id"), rs.getString("userId"), rs.getString("productId"),
-                                    rs.getString("variantId"), rs.getInt("quantity"), rs.getTimestamp("createdAt").toLocalDateTime(),
+                                    rs.getString("variantId"), rs.getInt("quantity"),
+                                    createdAt == null ? null : createdAt.toLocalDateTime(),
                                     updatedAt == null ? null : updatedAt.toLocalDateTime(), rs.getString("status"));
                             order.setPhone(rs.getString("phone"));
                             order.setAddress(rs.getString("address"));

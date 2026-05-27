@@ -11,9 +11,7 @@ public class AuthRepository implements IAuthRepository {
     public UserEntity findByEmail(String email) {
         List<UserEntity> rows = JdbcHelper.executeQuery(
                 "SELECT * FROM `User` WHERE email = ? LIMIT 1",
-                rs -> new UserEntity(rs.getString("id"), rs.getString("name"), rs.getDate("dateOfBirth").toLocalDate(),
-                        rs.getString("hashPassword"), rs.getString("status"), rs.getString("role"), rs.getString("email"),
-                        rs.getTimestamp("createdAt").toLocalDateTime(), rs.getTimestamp("updatedAt").toLocalDateTime()),
+                rs -> mapUser(rs),
                 email);
         return rows.isEmpty() ? null : rows.get(0);
     }
@@ -22,11 +20,20 @@ public class AuthRepository implements IAuthRepository {
     public UserEntity findById(String id) {
         List<UserEntity> rows = JdbcHelper.executeQuery(
                 "SELECT * FROM `User` WHERE id = ? LIMIT 1",
-                rs -> new UserEntity(rs.getString("id"), rs.getString("name"), rs.getDate("dateOfBirth").toLocalDate(),
-                        rs.getString("hashPassword"), rs.getString("status"), rs.getString("role"), rs.getString("email"),
-                        rs.getTimestamp("createdAt").toLocalDateTime(), rs.getTimestamp("updatedAt").toLocalDateTime()),
+                rs -> mapUser(rs),
                 id);
         return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    private UserEntity mapUser(java.sql.ResultSet rs) throws java.sql.SQLException {
+        java.sql.Date dob = rs.getDate("dateOfBirth");
+        java.sql.Timestamp createdAt = rs.getTimestamp("createdAt");
+        java.sql.Timestamp updatedAt = rs.getTimestamp("updatedAt");
+        return new UserEntity(rs.getString("id"), rs.getString("name"),
+                dob == null ? null : dob.toLocalDate(),
+                rs.getString("hashPassword"), rs.getString("status"), rs.getString("role"), rs.getString("email"),
+                createdAt == null ? null : createdAt.toLocalDateTime(),
+                updatedAt == null ? null : updatedAt.toLocalDateTime());
     }
 
     @Override

@@ -110,7 +110,7 @@ public class AdminAnalyticsRepository implements IAdminAnalyticsRepository {
                 + "FROM `User` "
                 + "WHERE createdAt >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) "
                 + "GROUP BY DATE(createdAt) ORDER BY reportDate ASC",
-                rs -> Map.entry(rs.getDate("reportDate").toLocalDate().toString(), rs.getInt("total")));
+                rs -> { java.sql.Date d = rs.getDate("reportDate"); return Map.entry(d == null ? "unknown" : d.toLocalDate().toString(), rs.getInt("total")); });
         Map<String, Integer> result = new LinkedHashMap<String, Integer>();
         for (Map.Entry<String, Integer> entry : rows) {
             result.put(entry.getKey(), entry.getValue());

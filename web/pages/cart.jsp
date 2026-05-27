@@ -48,7 +48,7 @@
                             <td data-label="Chọn" style="text-align: center;"><input type="checkbox" name="selectedItems" value="${item.id}" form="checkoutForm" data-item-select checked></td>
                             <td data-label="Sản phẩm"><c:out value="${item.productName}" /></td>
                             <td data-label="Variant"><c:out value="${item.sku}" /></td>
-                            <td data-label="Đơn giá" data-unit-price="${price_raw}"><%= formatPrice(new java.math.BigDecimal(pageContext.getAttribute("price_raw", javax.servlet.jsp.PageContext.REQUEST_SCOPE).toString())) %></td>
+                            <td data-label="Đơn giá" data-unit-price="${price_raw}"><%= formatPrice(new java.math.BigDecimal(pageContext.getAttribute("price_raw", jakarta.servlet.jsp.PageContext.REQUEST_SCOPE).toString())) %></td>
                             <td data-label="Số lượng">
                                 <form action="${pageContext.request.contextPath}/cart" method="post" style="display:inline">
                                     <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">

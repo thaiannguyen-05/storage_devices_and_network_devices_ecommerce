@@ -107,7 +107,7 @@ public class AiShopContextService {
                     + " | so luong: " + rs.getInt("quantity")
                     + " | tong tien: " + formatMoney(rs.getBigDecimal("totalAmount"))
                     + " | trang thai: " + defaultText(rs.getString("status"), "Khong ro")
-                    + " | tao luc: " + rs.getTimestamp("createdAt").toLocalDateTime().format(DATE_TIME_FORMAT),
+                    + " | tao luc: " + formatTimestamp(rs.getTimestamp("createdAt")),
                     userId, MAX_ORDERS);
             if (rows.isEmpty()) {
                 return "Khong tim thay don hang nao cua nguoi dung hien tai.";
@@ -181,6 +181,13 @@ public class AiShopContextService {
             return "Khong ro";
         }
         return value.stripTrailingZeros().toPlainString() + " VND";
+    }
+
+    private String formatTimestamp(java.sql.Timestamp ts) {
+        if (ts == null) {
+            return "Khong ro";
+        }
+        return ts.toLocalDateTime().format(DATE_TIME_FORMAT);
     }
 
     private String defaultText(String value, String fallback) {

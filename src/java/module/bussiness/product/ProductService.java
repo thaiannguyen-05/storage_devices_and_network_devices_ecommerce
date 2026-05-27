@@ -236,7 +236,8 @@ public class ProductService {
                 map.put("name", rs.getString("name"));
                 map.put("category", rs.getString("category"));
                 map.put("status", rs.getString("status"));
-                map.put("createdAt", rs.getTimestamp("createdAt").toLocalDateTime());
+                java.sql.Timestamp ts = rs.getTimestamp("createdAt");
+                map.put("createdAt", ts == null ? null : ts.toLocalDateTime());
                 map.put("price", rs.getBigDecimal("price"));
                 map.put("imageUrl", rs.getString("imageUrl"));
                 return map;

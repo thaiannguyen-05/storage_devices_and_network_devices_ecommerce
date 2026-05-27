@@ -24,6 +24,12 @@ public class GlobalExceptionFilter implements Filter {
             chain.doFilter(request, response);
         } catch (Exception error) {
             LOGGER.error("Unhandled request error", error);
+            System.err.println("!!! GlobalExceptionFilter caught: " + error.getClass().getName());
+            System.err.println("!!! Message: " + error.getMessage());
+            if (error.getCause() != null) {
+                System.err.println("!!! Cause: " + error.getCause().getClass().getName() + ": " + error.getCause().getMessage());
+            }
+            error.printStackTrace(System.err);
             if (response instanceof HttpServletResponse && !response.isCommitted()) {
                 HttpServletResponse httpResponse = (HttpServletResponse) response;
                 httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
