@@ -12,7 +12,6 @@ public class RootRedirectServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
         resp.sendRedirect(req.getContextPath() + "/home");
     }
 }
