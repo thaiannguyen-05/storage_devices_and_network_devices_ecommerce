@@ -31,6 +31,7 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
       - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - API_AI_TOKEN=${API_AI_TOKEN}
       - "DB_PARAMS=useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true"
     ports:
       - "8080:8080"
