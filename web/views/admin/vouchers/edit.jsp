@@ -6,14 +6,14 @@
     <jsp:param name="part" value="start" />
 </jsp:include>
 <section class="admin-panel admin-panel--narrow">
-    <h2>Edit voucher</h2>
+    <h2>Sửa mã giảm giá</h2>
     <form class="admin-form" action="${pageContext.request.contextPath}/admin/vouchers" method="post">
         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
-        <label>Percent</label><input type="number" name="percent" min="1" max="100" required>
-        <label>User ID</label><input name="userId" required>
-        <label>Expire date</label><input type="date" name="expTime" required>
-        <label>Quantity</label><input type="number" name="quantity" min="1" required>
-        <button class="button" type="submit">Save</button>
+        <label>Phần trăm</label><input type="number" name="percent" min="1" max="100" required>
+        <label>Người dùng</label><input name="userId" required>
+        <label>Ngày hết hạn</label><input type="date" name="expTime" required>
+        <label>Số lượng</label><input type="number" name="quantity" min="1" required>
+        <button class="button" type="submit">Lưu</button>
     </form>
 </section>
 <jsp:include page="/layouts/admin-layout.jsp">

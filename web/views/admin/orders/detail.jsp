@@ -7,23 +7,23 @@
 </jsp:include>
 <section class="admin-grid-2">
     <section class="admin-panel">
-        <h2>Order Summary</h2>
+        <h2>Tóm tắt đơn hàng</h2>
         <dl class="admin-detail-list">
-            <div><dt>Order ID</dt><dd><c:out value="${order.orderId}" /></dd></div>
-            <div><dt>Customer</dt><dd><c:out value="${order.customerName}" /></dd></div>
+            <div><dt>Mã đơn</dt><dd><c:out value="${order.orderId}" /></dd></div>
+            <div><dt>Khách hàng</dt><dd><c:out value="${order.customerName}" /></dd></div>
             <div><dt>Email</dt><dd><c:out value="${order.email}" /></dd></div>
-            <div><dt>Phone</dt><dd><c:out value="${order.phone}" /></dd></div>
-            <div><dt>Address</dt><dd><c:out value="${order.address}" /></dd></div>
-            <div><dt>Product</dt><dd><c:out value="${order.productName}" /></dd></div>
-            <div><dt>Quantity</dt><dd><c:out value="${order.quantity}" /></dd></div>
-            <div><dt>Total</dt><dd><c:out value="${order.totalAmount}" /> VND</dd></div>
-            <div><dt>Status</dt><dd><c:out value="${order.status}" /></dd></div>
-            <div><dt>Payment</dt><dd><c:out value="${empty order.paymentStatus ? order.paymentMethod : order.paymentStatus}" /></dd></div>
-            <div><dt>Created</dt><dd><c:out value="${order.createdAt}" /></dd></div>
+            <div><dt>Số điện thoại</dt><dd><c:out value="${order.phone}" /></dd></div>
+            <div><dt>Địa chỉ</dt><dd><c:out value="${order.address}" /></dd></div>
+            <div><dt>Sản phẩm</dt><dd><c:out value="${order.productName}" /></dd></div>
+            <div><dt>Số lượng</dt><dd><c:out value="${order.quantity}" /></dd></div>
+            <div><dt>Tổng</dt><dd><c:out value="${order.totalAmount}" /> VND</dd></div>
+            <div><dt>Trạng thái</dt><dd><c:out value="${order.status}" /></dd></div>
+            <div><dt>Thanh toán</dt><dd><c:out value="${empty order.paymentStatus ? order.paymentMethod : order.paymentStatus}" /></dd></div>
+            <div><dt>Ngày tạo</dt><dd><c:out value="${order.createdAt}" /></dd></div>
         </dl>
         <c:if test="${not empty order.note}">
             <div class="admin-note-box">
-                <h3>Customer Note</h3>
+                <h3>Ghi chú khách hàng</h3>
                 <p><c:out value="${order.note}" /></p>
             </div>
         </c:if>

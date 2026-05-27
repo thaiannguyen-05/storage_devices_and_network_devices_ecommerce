@@ -7,37 +7,37 @@
 </jsp:include>
 <section class="admin-grid-2">
     <section class="admin-panel">
-        <h2>User profile</h2>
+        <h2>Thông tin người dùng</h2>
         <form class="admin-form" action="${pageContext.request.contextPath}/admin/users" method="post">
             <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" value="${userResult.user.id}">
-            <label for="name">Name</label>
+            <label for="name">Tên</label>
             <input id="name" name="name" value="${userResult.user.name}" required>
             <label for="email">Email</label>
             <input id="email" type="email" name="email" value="${userResult.user.email}" required>
-            <label for="dateOfBirth">Date of birth</label>
+            <label for="dateOfBirth">Ngày sinh</label>
             <input id="dateOfBirth" type="date" name="dateOfBirth" value="${userResult.user.dateOfBirth}">
-            <label for="role">Role</label>
+            <label for="role">Vai trò</label>
             <select id="role" name="role">
                 <option value="USER" ${userResult.user.role == 'USER' ? 'selected' : ''}>USER</option>
                 <option value="ADMIN" ${userResult.user.role == 'ADMIN' ? 'selected' : ''}>ADMIN</option>
             </select>
-            <label for="status">Status</label>
+            <label for="status">Trạng thái</label>
             <select id="status" name="status">
                 <option value="ACTIVE" ${userResult.user.status == 'ACTIVE' ? 'selected' : ''}>ACTIVE</option>
                 <option value="INACTIVE" ${userResult.user.status == 'INACTIVE' ? 'selected' : ''}>INACTIVE</option>
                 <option value="BANNED" ${userResult.user.status == 'BANNED' ? 'selected' : ''}>BANNED</option>
                 <option value="PENDING" ${userResult.user.status == 'PENDING' ? 'selected' : ''}>PENDING</option>
             </select>
-            <button class="button" type="submit">Save</button>
+            <button class="button" type="submit">Lưu</button>
         </form>
     </section>
     <section class="admin-panel">
-        <h2>Recent orders</h2>
+        <h2>Đơn hàng gần đây</h2>
         <div class="table-wrap">
             <table>
-                <thead><tr><th>ID</th><th>Product</th><th>Total</th><th>Status</th></tr></thead>
+                <thead><tr><th>Mã</th><th>Sản phẩm</th><th>Tổng</th><th>Trạng thái</th></tr></thead>
                 <tbody>
                     <c:forEach var="order" items="${userOrders}">
                         <tr>
@@ -55,7 +55,7 @@
                 <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="${userResult.user.id}">
-                <button class="button danger" type="submit">Delete user</button>
+                <button class="button danger" type="submit">Xóa người dùng</button>
             </form>
         </div>
     </section>

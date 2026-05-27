@@ -130,8 +130,15 @@ public class ProductController extends BaseController {
                 break;
             default:
                 ListProductResponseDto listResult = productService.listProducts(parseInt(req.getParameter("page"), 1));
-                req.setAttribute("products", productService.toProductCards(listResult.getProducts()));
-                req.setAttribute("productsTotal", listResult.getTotal());
+                if (isAdminPath(req)) {
+                    ListProductResponseDto adminResult = new ListProductResponseDto();
+                    adminResult.setProducts(listResult.getProducts());
+                    adminResult.setTotal(listResult.getTotal());
+                    req.setAttribute("productsResult", adminResult);
+                } else {
+                    req.setAttribute("products", productService.toProductCards(listResult.getProducts()));
+                    req.setAttribute("productsTotal", listResult.getTotal());
+                }
                 req.setAttribute("brandsResult", productService.getAllBrands());
                 forwardToJsp(req, res, isAdminPath(req) ? "/views/admin/products/list.jsp" : "/pages/home.jsp");
                 break;

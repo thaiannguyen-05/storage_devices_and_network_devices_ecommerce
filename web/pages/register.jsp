@@ -9,11 +9,8 @@
         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
         <input type="hidden" name="action" value="register">
         <c:if test="${not empty error}"><p class="badge danger field full"><c:out value="${error}" /></p></c:if>
-        <div class="field"><label>Tên tài khoản</label><input name="name" required><span class="error"></span></div>
-        <div class="field"><label>Tên đăng nhập</label><input name="username" required><span class="error"></span></div>
         <div class="field"><label>Ngày sinh</label><input type="date" name="dateOfBirth" required><span class="error"></span></div>
         <div class="field"><label>Email</label><input type="email" name="email" required><span class="error"></span></div>
-        <div class="field"><label>Số điện thoại</label><input name="phone" data-phone="true" required><span class="error"></span></div>
         <div class="field full"><label>Địa chỉ</label><input name="address" required><span class="error"></span></div>
         <div class="field"><label>Mật khẩu</label><input data-password type="password" name="password" minlength="8" autocomplete="new-password" required><span class="error"></span></div>
         <div class="field"><label>Nhập lại mật khẩu</label><input data-password-confirm type="password" name="confirmPassword" minlength="8" autocomplete="new-password" required><span class="error"></span></div>

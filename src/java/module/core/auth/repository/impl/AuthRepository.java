@@ -57,4 +57,11 @@ public class AuthRepository implements IAuthRepository {
         JdbcHelper.executeUpdate("INSERT INTO OrderCart (id, userId) VALUES (?, ?) ON DUPLICATE KEY UPDATE userId = VALUES(userId)",
                 UUID.randomUUID().toString(), userId);
     }
+
+    public UserEntity findAdmin() {
+        List<UserEntity> rows = JdbcHelper.executeQuery(
+                "SELECT * FROM `User` WHERE role = 'ADMIN' LIMIT 1",
+                rs -> mapUser(rs));
+        return rows.isEmpty() ? null : rows.get(0);
+    }
 }

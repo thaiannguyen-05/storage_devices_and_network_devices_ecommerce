@@ -49,6 +49,10 @@ public class OrderService {
             fail(response, "Email định dạng không đúng");
             return response;
         }
+        if (!isValidPhone(dto.getPhone())) {
+            fail(response, "Số điện thoại cần 9-11 chữ số, bắt đầu bằng 0");
+            return response;
+        }
         java.math.BigDecimal totalAmount = java.math.BigDecimal.ZERO;
         for (CheckoutItemDto item : dto.getItems()) {
             ProductVariantEntity variant = variantRepository.findById(item.getVariantId());
@@ -117,6 +121,10 @@ public class OrderService {
 
     private boolean isValidEmail(String email) {
         return email != null && email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    }
+
+    private boolean isValidPhone(String phone) {
+        return phone != null && phone.trim().matches("^0\\d{9,10}$");
     }
 
     public GetOrderResponseDto getOrderDetail(String orderId, String userId) {

@@ -8,8 +8,6 @@
         <h1 class="page-title field full">Đăng ký tài khoản</h1>
         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
         <input type="hidden" name="action" value="register">
-        <div class="field"><label>Tên tài khoản</label><input name="name" required><span class="error"></span></div>
-        <div class="field"><label>Tên đăng nhập</label><input name="username" required><span class="error"></span></div>
         <div class="field"><label>Ngày sinh</label><input type="date" name="dateOfBirth" required><span class="error"></span></div>
         <div class="field"><label>Email</label><input type="email" name="email" required><span class="error"></span></div>
         <div class="field"><label>Số điện thoại</label><input name="phone" data-phone="true" required><span class="error"></span></div>
@@ -21,4 +19,3 @@
     </form>
 </section>
 <jsp:include page="../../layouts/footer.jsp" />
-

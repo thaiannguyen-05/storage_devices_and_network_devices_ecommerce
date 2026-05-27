@@ -7,19 +7,19 @@
 </jsp:include>
 <section class="admin-panel">
     <div class="admin-panel-head">
-        <h2>Products</h2>
+        <h2>Sản phẩm</h2>
         <div style="display:flex;gap:8px;align-items:center;">
             <c:if test="${not empty productsResult}">
-                <span class="muted"><c:out value="${productsResult.total}" /> san pham</span>
+                <span class="muted"><c:out value="${productsResult.total}" /> sản phẩm</span>
             </c:if>
-            <a class="button" href="${pageContext.request.contextPath}/admin/products?action=create">Create product</a>
+            <a class="button" href="${pageContext.request.contextPath}/admin/products?action=create">Tạo sản phẩm</a>
         </div>
     </div>
     <div class="table-wrap">
         <c:choose>
             <c:when test="${not empty productsResult && not empty productsResult.products}">
                 <table>
-                    <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Brand</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Tên</th><th>Danh mục</th><th>Thương hiệu</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                     <tbody>
                         <c:forEach var="p" items="${productsResult.products}">
                             <tr>
@@ -29,12 +29,12 @@
                                 <td>${p.brandId != null ? p.brandId.substring(0, 8) : ''}...</td>
                                 <td><span class="badge ${p.status == 'ACTIVE' ? 'success' : ''}"><c:out value="${p.status}" /></span></td>
                                 <td class="admin-actions">
-                                    <a class="button secondary" href="${pageContext.request.contextPath}/admin/products?action=edit&id=${p.id}">Edit</a>
+                                    <a class="button secondary" href="${pageContext.request.contextPath}/admin/products?action=edit&id=${p.id}">Sửa</a>
                                     <form action="${pageContext.request.contextPath}/admin/products" method="post" style="display:inline;">
                                         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="${p.id}">
-                                        <button class="button danger" type="submit" onclick="return confirm('Delete this product?')">Delete</button>
+                                        <button class="button danger" type="submit" onclick="return confirm('Xóa sản phẩm này?')">Xóa</button>
                                     </form>
                                 </td>
                             </tr>
@@ -43,7 +43,7 @@
                 </table>
             </c:when>
             <c:otherwise>
-                <p class="muted">No products found.</p>
+                <p class="muted">Không tìm thấy sản phẩm nào.</p>
             </c:otherwise>
         </c:choose>
     </div>

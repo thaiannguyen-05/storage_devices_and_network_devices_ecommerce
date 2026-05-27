@@ -8,16 +8,16 @@
 <section class="admin-panel">
     <form class="admin-filterbar" action="${pageContext.request.contextPath}/admin/orders" method="get">
         <input type="hidden" name="action" value="list">
-        <input type="search" name="keyword" value="${keyword}" placeholder="Search order, customer, email">
+        <input type="search" name="keyword" value="${keyword}" placeholder="Tìm kiếm đơn hàng, khách hàng, email">
         <select name="status">
-            <option value="">All status</option>
+            <option value="">Tất cả trạng thái</option>
             <option value="PENDING" ${selectedStatus == 'PENDING' ? 'selected' : ''}>PENDING</option>
             <option value="CONFIRMED" ${selectedStatus == 'CONFIRMED' ? 'selected' : ''}>CONFIRMED</option>
             <option value="SHIPPING" ${selectedStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
             <option value="COMPLETED" ${selectedStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
             <option value="CANCELLED" ${selectedStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
         </select>
-        <button class="button" type="submit">Filter</button>
+        <button class="button" type="submit">Lọc</button>
     </form>
     <div class="admin-kpis">
         <c:forEach var="entry" items="${statusCounts}">
@@ -26,7 +26,7 @@
     </div>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>ID</th><th>Customer</th><th>Email</th><th>Product</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Mã</th><th>Khách hàng</th><th>Email</th><th>Sản phẩm</th><th>Tổng</th><th>Trạng thái</th><th>Ngày</th><th>Thao tác</th></tr></thead>
             <tbody>
                 <c:forEach var="order" items="${orders}">
                     <tr>
@@ -40,12 +40,12 @@
                         </td>
                         <td><c:out value="${order.createdAt}" /></td>
                         <td class="admin-actions">
-                            <a class="button secondary" href="${pageContext.request.contextPath}/admin/orders?action=detail&id=${order.orderId}">Detail</a>
+                            <a class="button secondary" href="${pageContext.request.contextPath}/admin/orders?action=detail&id=${order.orderId}">Chi tiết</a>
                             <form action="${pageContext.request.contextPath}/admin/orders" method="post">
                                 <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                                 <input type="hidden" name="action" value="cancel">
                                 <input type="hidden" name="id" value="${order.orderId}">
-                                <button class="button danger" type="submit">Cancel</button>
+                                <button class="button danger" type="submit">Hủy</button>
                             </form>
                         </td>
                     </tr>

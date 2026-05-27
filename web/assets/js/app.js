@@ -20,7 +20,8 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
         },
         validatePhone(phone) {
-            return /^[0-9]{9,11}$/.test(String(phone || "").trim());
+            const cleaned = String(phone || "").trim().replace(/[\s\-\.\(\)]/g, "");
+            return /^0\d{9,10}$/.test(cleaned);
         }
     };
 

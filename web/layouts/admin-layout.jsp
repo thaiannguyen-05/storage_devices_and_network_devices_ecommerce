@@ -23,9 +23,9 @@
             </a>
             <nav class="admin-nav" aria-label="Admin navigation">
                 <a class="${activePage == 'admin-dashboard' ? 'active' : ''}" href="${ctx}/admin/dashboard">Dashboard</a>
-                <a class="${activePage == 'admin-orders' ? 'active' : ''}" href="${ctx}/admin/orders?action=list">Don hang</a>
+                <a class="${activePage == 'admin-orders' ? 'active' : ''}" href="${ctx}/admin/orders?action=list">Đơn hàng</a>
                 <a class="${activePage == 'admin-users' ? 'active' : ''}" href="${ctx}/admin/users?action=list">User</a>
-                <a class="${activePage == 'admin-products' ? 'active' : ''}" href="${ctx}/admin/products?action=list">San pham</a>
+                <a class="${activePage == 'admin-products' ? 'active' : ''}" href="${ctx}/admin/products?action=list">Sản phẩm</a>
                 <a class="${activePage == 'admin-brands' ? 'active' : ''}" href="${ctx}/admin/brands?action=list">Brand</a>
                 <a class="${activePage == 'admin-vouchers' ? 'active' : ''}" href="${ctx}/admin/vouchers?action=list">Voucher</a>
             </nav>

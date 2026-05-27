@@ -10,28 +10,28 @@
     document.body.setAttribute("data-dashboard-api", "${pageContext.request.contextPath}/admin/dashboard/api/stats");
 </script>
 <section class="admin-stats-grid">
-    <article class="admin-stat-card"><span>Total Users</span><strong id="statTotalUsers"><c:out value="${dashboardStats.totalUsers}" /></strong></article>
-    <article class="admin-stat-card"><span>Total Products</span><strong id="statTotalProducts"><c:out value="${dashboardStats.totalProducts}" /></strong></article>
-    <article class="admin-stat-card"><span>Total Orders</span><strong id="statTotalOrders"><c:out value="${dashboardStats.totalOrders}" /></strong></article>
-    <article class="admin-stat-card"><span>Total Revenue</span><strong id="statTotalRevenue"><c:out value="${dashboardStats.totalRevenue}" /></strong></article>
-    <article class="admin-stat-card"><span>Active Orders</span><strong id="statActiveOrders"><c:out value="${dashboardStats.activeOrders}" /></strong></article>
+    <article class="admin-stat-card"><span>Tổng người dùng</span><strong id="statTotalUsers"><c:out value="${dashboardStats.totalUsers}" /></strong></article>
+    <article class="admin-stat-card"><span>Tổng sản phẩm</span><strong id="statTotalProducts"><c:out value="${dashboardStats.totalProducts}" /></strong></article>
+    <article class="admin-stat-card"><span>Tổng đơn hàng</span><strong id="statTotalOrders"><c:out value="${dashboardStats.totalOrders}" /></strong></article>
+    <article class="admin-stat-card"><span>Tổng doanh thu</span><strong id="statTotalRevenue"><c:out value="${dashboardStats.totalRevenue}" /></strong></article>
+    <article class="admin-stat-card"><span>Đơn hàng hoạt động</span><strong id="statActiveOrders"><c:out value="${dashboardStats.activeOrders}" /></strong></article>
 </section>
 <section class="admin-panel">
     <div class="admin-panel-head">
-        <h2>Revenue Trend</h2>
-        <span>Auto refresh every 30s</span>
+        <h2>Xu hướng doanh thu</h2>
+        <span>Tự động cập nhật mỗi 30s</span>
     </div>
     <div class="admin-chart" id="adminRevenueChart"></div>
 </section>
 <section class="admin-grid-2">
     <section class="admin-panel">
         <div class="admin-panel-head">
-            <h2>Recent Orders</h2>
-            <a class="button secondary" href="${pageContext.request.contextPath}/admin/orders?action=list">View all</a>
+            <h2>Đơn hàng gần đây</h2>
+            <a class="button secondary" href="${pageContext.request.contextPath}/admin/orders?action=list">Xem tất cả</a>
         </div>
         <div class="table-wrap">
             <table>
-                <thead><tr><th>ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Created</th></tr></thead>
+                <thead><tr><th>Mã</th><th>Khách hàng</th><th>Tổng</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
                 <tbody id="adminRecentOrdersBody">
                     <c:forEach var="order" items="${recentOrders}">
                         <tr>
@@ -48,11 +48,11 @@
     </section>
     <section class="admin-panel">
         <div class="admin-panel-head">
-            <h2>Top Products</h2>
+            <h2>Sản phẩm bán chạy</h2>
         </div>
         <div class="table-wrap">
             <table>
-                <thead><tr><th>Product</th><th>Sold</th><th>Revenue</th></tr></thead>
+                <thead><tr><th>Sản phẩm</th><th>Đã bán</th><th>Doanh thu</th></tr></thead>
                 <tbody id="adminTopProductsBody">
                     <c:forEach var="product" items="${topProducts}">
                         <tr>

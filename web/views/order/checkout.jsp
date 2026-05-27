@@ -10,15 +10,15 @@
         <input type="hidden" name="productId" value="p1111111-1111-1111-1111-111111111111">
         <input type="hidden" name="variantId" value="v1111111-1111-1111-1111-111111111111">
         <input type="hidden" name="quantity" value="1">
-        <div class="field"><label>Họ tên</label><input name="name" required><span class="error"></span></div>
-        <div class="field"><label>Email</label><input type="email" name="email" required><span class="error"></span></div>
-        <div class="field"><label>Số điện thoại</label><input name="phone" data-phone="true" required><span class="error"></span></div>
+        <div class="field"><label>Họ tên</label><input name="name" value="${empty submittedName ? '' : submittedName}" required><span class="error"></span></div>
+        <div class="field"><label>Email</label><input type="email" name="email" value="${empty submittedEmail ? '' : submittedEmail}" required><span class="error"></span></div>
+        <div class="field"><label>Số điện thoại</label><input name="phone" value="${empty submittedPhone ? '' : submittedPhone}" data-phone="true" required><span class="error"></span></div>
         <div class="field"><label>Voucher</label><select name="voucherId"><option value="">Không dùng voucher</option><option value="voucher10">Giám 10%</option></select></div>
-        <div class="field full"><label>Địa chỉ</label><textarea name="address" required></textarea><span class="error"></span></div>
-        <div class="field full"><label>Ghi chú</label><textarea name="note"></textarea></div>
+        <div class="field full"><label>Địa chỉ</label><textarea name="address" required>${empty submittedAddress ? '' : submittedAddress}</textarea><span class="error"></span></div>
+        <div class="field full"><label>Ghi chú</label><textarea name="note">${empty submittedNote ? '' : submittedNote}</textarea></div>
         <div class="field full">
-            <label><input type="radio" name="paymentMethod" value="COD" checked> COD</label>
-            <label><input type="radio" name="paymentMethod" value="SEPAY"> Chuyển khoản QR (Sepay)</label>
+            <label><input type="radio" name="paymentMethod" value="COD" ${empty submittedPaymentMethod || submittedPaymentMethod == 'COD' ? 'checked' : ''}> COD</label>
+            <label><input type="radio" name="paymentMethod" value="SEPAY" ${submittedPaymentMethod == 'SEPAY' ? 'checked' : ''}> Chuyển khoản QR (Sepay)</label>
         </div>
         <button class="button" type="submit">Đặt hàng</button>
     </form>
