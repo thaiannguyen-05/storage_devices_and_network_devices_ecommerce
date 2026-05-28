@@ -24,11 +24,12 @@ public class VoucherService {
 
     public BaseResponse createVoucher(String id, String percent, String userId, String expTime, String quantity) {
         BaseResponse response = new BaseResponse();
-        if (isBlank(id) || isBlank(percent) || isBlank(userId) || isBlank(expTime) || isBlank(quantity)) {
-            fail(response, "Voucher id, percent, user, expiry and quantity are required");
+        if (isBlank(percent) || isBlank(userId) || isBlank(expTime) || isBlank(quantity)) {
+            fail(response, "Percent, user, expiry and quantity are required");
             return response;
         }
-        VoucherEntity voucher = new VoucherEntity(id.trim(), parsePercent(percent), userId.trim(),
+        String voucherId = isBlank(id) ? java.util.UUID.randomUUID().toString() : id.trim();
+        VoucherEntity voucher = new VoucherEntity(voucherId, parsePercent(percent), userId.trim(),
                 LocalDate.parse(expTime.trim()), LocalDateTime.now(), parseInt(quantity));
         voucherRepository.insert(voucher);
         response.setSuccess(true);

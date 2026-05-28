@@ -129,18 +129,33 @@ public class ProductController extends BaseController {
                 forwardToJsp(req, res, "/pages/home.jsp");
                 break;
             default:
-                ListProductResponseDto listResult = productService.listProducts(parseInt(req.getParameter("page"), 1));
-                if (isAdminPath(req)) {
-                    ListProductResponseDto adminResult = new ListProductResponseDto();
-                    adminResult.setProducts(listResult.getProducts());
-                    adminResult.setTotal(listResult.getTotal());
-                    req.setAttribute("productsResult", adminResult);
-                } else {
-                    req.setAttribute("products", productService.toProductCards(listResult.getProducts()));
-                    req.setAttribute("productsTotal", listResult.getTotal());
+                try {
+                    int page = parseInt(req.getParameter("page"), 1);
+                    System.out.println("[DEBUG] Admin products list - page=" + page);
+                    ListProductResponseDto listResult = productService.listProducts(page);
+                    System.out.println("[DEBUG] listResult=" + listResult + ", products=" + (listResult != null ? listResult.getProducts() : "null"));
+                    if (isAdminPath(req)) {
+                        ListProductResponseDto adminResult = new ListProductResponseDto();
+                        if (listResult != null) {
+                            adminResult.setProducts(listResult.getProducts() != null ? listResult.getProducts() : java.util.Collections.emptyList());
+                            adminResult.setTotal(listResult.getTotal());
+                        } else {
+                            adminResult.setProducts(java.util.Collections.emptyList());
+                            adminResult.setTotal(0);
+                        }
+                        req.setAttribute("productsResult", adminResult);
+                    } else {
+                        req.setAttribute("products", productService.toProductCards(listResult.getProducts()));
+                        req.setAttribute("productsTotal", listResult.getTotal());
+                    }
+                    req.setAttribute("brandsResult", productService.getAllBrands());
+                    forwardToJsp(req, res, isAdminPath(req) ? "/views/admin/products/list.jsp" : "/pages/home.jsp");
+                } catch (Exception e) {
+                    System.err.println("[ERROR] Admin products list failed:");
+                    e.printStackTrace(System.err);
+                    req.setAttribute("error", "Lỗi load sản phẩm: " + e.getMessage());
+                    forwardToJsp(req, res, isAdminPath(req) ? "/views/admin/products/list.jsp" : "/pages/home.jsp");
                 }
-                req.setAttribute("brandsResult", productService.getAllBrands());
-                forwardToJsp(req, res, isAdminPath(req) ? "/views/admin/products/list.jsp" : "/pages/home.jsp");
                 break;
         }
     }

@@ -48,6 +48,14 @@
                 </div>
             </header>
             <main class="admin-content">
+    <c:if test="${not empty sessionScope.flashSuccess}">
+        <div class="alert alert-success panel">${sessionScope.flashSuccess}</div>
+        <c:remove var="flashSuccess" scope="session" />
+    </c:if>
+    <c:if test="${not empty sessionScope.flashError}">
+        <div class="alert alert-danger panel">${sessionScope.flashError}</div>
+        <c:remove var="flashError" scope="session" />
+    </c:if>
     </c:when>
     <c:otherwise>
             </main>

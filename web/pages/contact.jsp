@@ -11,7 +11,6 @@
         <div class="field"><label>Email</label><input type="email" name="email" value="${submittedEmail}" required><span class="error"></span></div>
         <div class="field full"><label>Nội dung</label><textarea name="message" rows="6" required>${submittedMessage}</textarea><span class="error"></span></div>
         <button class="button" type="submit">Gửi liên hệ</button>
-        <c:if test="${not empty success}"><span class="badge success"><c:out value="${success}" /></span></c:if>
         <c:if test="${not empty error}"><span class="badge danger"><c:out value="${error}" /></span></c:if>
     </form>
     <aside class="panel">
